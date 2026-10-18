@@ -50,8 +50,10 @@ CAM_TUYET_DOI = [
 # Email cá nhân: dùng MẪU chứ không viết literal. Bản trước ghi thẳng địa chỉ vào đây rồi
 # tự miễn trừ chính file này — tức cổng mang sẵn thứ nó đi tìm, và không bao giờ thấy.
 MAU_EMAIL = re.compile(r"[\w.+-]+@(?:gmail|outlook|hotmail|yahoo|icloud)\.com", re.I)
-# Email liên hệ của tác giả: chủ dự án chủ động công khai (18/10) ở khối author/owner của
-# manifest và mục Tác giả của README. Đếm chính xác từng file; email ở file khác vẫn đỏ.
+# Email liên hệ của tác giả: chủ dự án chủ động công khai ở khối author/owner của manifest
+# và mục Tác giả của README. Chỉ miễn ĐÚNG địa chỉ này (dựng bằng ghép chuỗi để file test
+# không tự chứa nó), đếm chính xác từng file; mọi địa chỉ khác đếm từ 0 ở mọi file.
+EMAIL_TG = "ducng" + "uyen.ams" + "@" + "gmail" + ".com"
 EMAIL_MIEN_TRU = {
     ".claude-plugin/plugin.json": 1,
     ".claude-plugin/marketplace.json": 1,
@@ -118,10 +120,41 @@ def test_khong_lo_token():
         for mau in MAU_TOKEN:
             if mau.search(text):
                 dinh.append(f"{rel} ({mau.pattern[:18]}…)")
-        n = len(MAU_EMAIL.findall(text))
-        if n > EMAIL_MIEN_TRU.get(rel, 0):
-            dinh.append(f"{rel} ({MAU_EMAIL.pattern[:18]}… x{n})")
+        dinh.extend(vi_pham_email(rel, text))
     assert not dinh, f"có chuỗi hình dạng token: {dinh}"
+
+
+def vi_pham_email(rel: str, text: str) -> list[str]:
+    """Email lạ: cấm ở mọi file. Email của tác giả: phải đúng số lần đã ghi cho file đó
+    (thừa lẫn thiếu đều đỏ — mục miễn trừ dư là cửa mở sẵn)."""
+    tim = [m.lower() for m in MAU_EMAIL.findall(text)]
+    n_tg = tim.count(EMAIL_TG)
+    n_la = len(tim) - n_tg
+    loi = []
+    if n_la:
+        loi.append(f"{rel}: {n_la} địa chỉ email không phải của tác giả")
+    mong = EMAIL_MIEN_TRU.get(rel, 0)
+    if n_tg != mong:
+        loi.append(f"{rel}: email tác giả x{n_tg}, kỳ vọng x{mong}")
+    return loi
+
+
+def test_email_mien_tru_co_that():
+    """Mỗi file được miễn phải có trong cây git — không thì số đếm không bao giờ được so."""
+    co = {p.relative_to(ROOT).as_posix() for p, _ in FILES}
+    assert set(EMAIL_MIEN_TRU) <= co, f"file miễn trừ email không còn: {set(EMAIL_MIEN_TRU) - co}"
+
+
+@pytest.mark.parametrize("rel", sorted(EMAIL_MIEN_TRU))
+def test_dot_bien_email_tac_gia(rel):
+    """Đột biến: đổi email tác giả thành email lạ, hoặc thêm lần thứ hai, thì cổng phải ĐỎ."""
+    text = dict((p.relative_to(ROOT).as_posix(), t) for p, t in FILES)[rel]
+    assert vi_pham_email(rel, text) == [], "bản thật phải xanh"
+    la = "stran" + "ger" + "@" + "gmail" + ".com"
+    assert vi_pham_email(rel, text.replace(EMAIL_TG, la)), "đổi sang email lạ mà cổng vẫn xanh"
+    assert vi_pham_email(rel, text + "\n" + EMAIL_TG), "thêm lần thứ hai mà cổng vẫn xanh"
+    assert vi_pham_email(rel, text + "\n" + la), "thêm email lạ cạnh email thật mà cổng vẫn xanh"
+    assert vi_pham_email("docs/khac.md", EMAIL_TG), "email tác giả ở file không được miễn phải đỏ"
 
 
 def test_fixtures_trung_tinh():
@@ -281,7 +314,7 @@ MIEN_TRU = {
     ("LICENSE", "ten-nguoi"): 1,
     (".github/CODEOWNERS", "handle"): 8,
     # Trang giới thiệu repo (GitHub Pages của chính chủ) + ảnh og của nó.
-    ("docs/index.html", "ten-mien"): 9,
+    ("docs/index.html", "ten-mien"): 8,
     ("docs/index.html", "handle"): 8,
     ("docs/index.html", "ten-nguoi"): 1,
     ("docs/og-image.svg", "ten-mien"): 1,
@@ -362,6 +395,14 @@ def test_mien_tru_khong_han():
     hits = dem_danh_tinh()
     han = [k for k in MIEN_TRU if k not in hits and (ROOT / k[0]).exists()]
     assert han == [], f"mục MIEN_TRU không còn khớp gì, gỡ đi: {han}"
+
+
+def test_mien_tru_bang_so_that():
+    """Số miễn trừ phải BẰNG số thật: mục dư (cửa mở sẵn) cũng đỏ như mục thiếu."""
+    hits = dem_danh_tinh()
+    lech = {k: (n, hits.get(k, 0)) for k, n in MIEN_TRU.items()
+            if (ROOT / k[0]).exists() and hits.get(k, 0) != n}
+    assert lech == {}, f"MIEN_TRU lệch số thật (cho phép, thật): {lech}"
 
 
 def test_mau_bat_dung_muc_tieu():
