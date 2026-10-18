@@ -9,7 +9,7 @@
 Thứ tự, không ngoại lệ (cùng luật với `brand-paths.ps1` và `scripts/lib/studio_paths.py`):
 
     MARKETING_STUDIO_DATA
-    → `studio_paths.resolve_station()` của repo (`studio.local.json` → `<repo>/workspace`),
+    → `studio_paths.resolve_station()` của repo (`studio.local.json` → `<repo>/workspaces`),
       chỉ nhận khi nơi đó CÓ `CHANNELS.md`
     → DỪNG bằng `StationMissing`, nêu tên biến. KHÔNG dò thư mục nhà.
 
@@ -71,7 +71,7 @@ def station():
     if t:
         return t
     msg = ("không xác định được trạm: đặt MARKETING_STUDIO_DATA hoặc chạy `scripts/pipeline/init_station.py` "
-           "(chế độ embedded: <repo>/workspace có CHANNELS.md)")
+           "(chế độ embedded: <repo>/workspaces có CHANNELS.md)")
     if _LIB not in sys.path:
         sys.path.insert(0, _LIB)
     try:

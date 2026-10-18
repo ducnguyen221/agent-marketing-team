@@ -287,7 +287,7 @@ def _o_chung(campaign: Path, post: Path, cid: str) -> dict:
 
     `{channel}` = thư mục kênh (đi lên tới `channel.yml`). `{station}` = trạm: đi lên tới
     `CHANNELS.md` như `run.ps1`, rồi thứ tự của `studio_paths.root` (`MARKETING_STUDIO_DATA`
-    → `studio.local.json` → `<repo>/workspace/`). Hai ô này để lệnh trong `campaign.md` KHÔNG phải ghi cứng đường
+    → `studio.local.json` → `<repo>/workspaces/`). Hai ô này để lệnh trong `campaign.md` KHÔNG phải ghi cứng đường
     của một máy — chép trạm sang máy khác là lệnh vẫn đúng.
     """
     try:

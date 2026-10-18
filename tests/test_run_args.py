@@ -88,7 +88,7 @@ def _tram(tmp_path: Path, runner_args: str, probe: str = PROBE,
 def _nha(tmp_path: Path) -> Path:
     """Thư mục nhà GIẢ của một lượt test.
 
-    Kế thừa nhà THẬT thì máy nào có sẵn `.marketing`/`.news/engine` sẽ chạy một nhánh khác hẳn CI
+    Kế thừa nhà THẬT thì máy nào có sẵn thư mục ẩn kiểu cũ/`.news/engine` sẽ chạy một nhánh khác hẳn CI
     nếu `run.ps1` còn đoán trong nhà — hai môi trường, hai kết quả, không cổng nào biết. Tệ hơn:
     một test khai `runner` trùng tên với runner thật trong nhà sẽ CHẠY runner thật.
     """
@@ -268,7 +268,7 @@ def test_engine_la_thu_muc_engine_CO_DINH_trong_tram(tmp_path):
 
 
 # ── Không đường lùi về thư mục nhà  ───────────────────────
-# Bản trước có hai đường lùi ẩn: `$HOME/.marketing` (không CHANNELS.md, không biến) và
+# Bản trước có hai đường lùi ẩn: một thư mục ẩn của trạm trong nhà (không CHANNELS.md, không biến) và
 # `$HOME/.news/engine` (trạm chưa có `engine/`). Cả hai đều ĐOÁN một thư mục trong nhà — đoán
 # trạm là tạo ra trạm thứ hai, đoán engine là chạy runner của máy khác. Nay `run.ps1` NÉM
 # (mã thoát ≠ 0, thông báo nêu tên biến / đường engine thiếu).
@@ -285,7 +285,7 @@ def _gon(s: str) -> str:
 
 def test_khong_CHANNELS_khong_bien_thi_NEM_nen_MARKETING_STUDIO_DATA_khong_lay_nha(tmp_path):
     campaign = _tram(tmp_path, "-Brand ai", channels=False)
-    nha_cu = _nha(tmp_path) / ".marketing"
+    nha_cu = _nha(tmp_path) / ("." + "marketing")      # tên ghép: test chống chữ cũ không bắt chính nó
     (nha_cu / "engine").mkdir(parents=True)               # mồi: trạm cũ ĐẦY ĐỦ trong nhà giả
     (nha_cu / "CHANNELS.md").write_text("# mồi\n", encoding="utf-8")
     (nha_cu / "engine" / "probe.ps1").write_text(PROBE, encoding="utf-8-sig")
@@ -404,10 +404,10 @@ def test_khong_khai_MARKETING_STUDIO_PY_van_tim_duoc_Python(tmp_path):
 #
 # Bản trước lùi về `<nhà>/Code/agent-marketing-team` khi không có `MARKETING_STUDIO_HOME`:
 # máy clone ở chỗ khác (Mac: `~/Repo`) phải khai biến trong plist mới chạy được, dù ở chế
-# độ embedded `run.ps1` nằm ngay TRONG repo (`<repo>/workspace/<kênh>/<chiến dịch>/`).
+# độ embedded `run.ps1` nằm ngay TRONG repo (`<repo>/workspaces/<kênh>/<chiến dịch>/`).
 
 def _repo_embedded(tmp_path: Path, runner_args: str = "-Brand ai") -> tuple[Path, Path]:
-    """Repo giả đặt dưới thư mục cha tên bất kỳ (`xyz/bat-ky`), trạm = `<repo>/workspace/`.
+    """Repo giả đặt dưới thư mục cha tên bất kỳ (`xyz/bat-ky`), trạm = `<repo>/workspaces/`.
     Chép đúng phần `campaign_cfg.py` cần để chạy (lib + pipeline/campaign_cfg.py)."""
     repo = tmp_path / "xyz" / "bat-ky"
     (repo / "scripts" / "pipeline").mkdir(parents=True)
@@ -415,7 +415,7 @@ def _repo_embedded(tmp_path: Path, runner_args: str = "-Brand ai") -> tuple[Path
     shutil.copyfile(GOC / "scripts" / "pipeline" / "campaign_cfg.py",
                     repo / "scripts" / "pipeline" / "campaign_cfg.py")
     (repo / "install.ps1").write_text("", encoding="utf-8")
-    campaign = _tram(repo / "workspace", runner_args)
+    campaign = _tram(repo / "workspaces", runner_args)
     return repo, campaign
 
 

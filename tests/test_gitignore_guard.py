@@ -35,7 +35,7 @@ import studio_paths as SP  # noqa: E402
 GITIGNORE = ROOT / ".gitignore"
 
 # Xoá BẤT KỲ dòng nào dưới đây là test đỏ — kể cả khi một mẫu rộng hơn tình cờ vẫn chặn.
-BAT_BUOC = ["/workspace/", ".env", ".env.*", "!.env.example", "studio.local.json"]
+BAT_BUOC = ["/workspaces/", "/workspace/", ".env", ".env.*", "!.env.example", "studio.local.json"]
 
 
 def _dong():
@@ -72,7 +72,9 @@ def test_gitignore_giu_dong_cong_cu_tu_sinh(dong):
     (".idea/workspace.xml", True),
     (".vscode/settings.json", True),
     ("logs/run.log", True),
-    ("workspace/ai-news/channel.yml", True),
+    ("workspaces/ai-news/channel.yml", True),
+    ("workspaces/a.md", True),
+    ("workspace/ai-news/channel.yml", True),          # bố cục cũ còn sót
     ("workspace/a.md", True),
     (".env", True),
     (".env.local", True),
@@ -122,7 +124,7 @@ def _stage(repo, rel, noi_dung="x\n"):
     subprocess.run(["git", "-C", str(repo), "add", "-f", rel], check=True, capture_output=True)
 
 
-@pytest.mark.parametrize("rel", ["workspace/a.md", ".env", ".env.local", "studio.local.json"])
+@pytest.mark.parametrize("rel", ["workspaces/a.md", "workspace/a.md", ".env", ".env.local", "studio.local.json"])
 def test_hook_chan_noi_dung_tram_va_secret(repo_git, rel):
     _stage(repo_git, rel)
     van_de = PCG.soi(str(repo_git))
@@ -149,8 +151,8 @@ def test_hook_KHONG_chan_chinh_khuon_trong_repo():
 # ── doctor ────────────────────────────────────────────────────────────────────────────
 
 def test_doctor_bat_HAI_NGUON_SU_THAT(repo_git, tmp_path, monkeypatch):
-    """Vừa có `<repo>/workspace/` vừa có trạm ngoài ⇒ không ai biết bài mới nằm ở đâu."""
-    IS.do_init(yes=True)                                   # dựng embedded: có workspace/
+    """Vừa có `<repo>/workspaces/` vừa có trạm ngoài ⇒ không ai biết bài mới nằm ở đâu."""
+    IS.do_init(yes=True)                                   # dựng embedded: có workspaces/
     ngoai = tmp_path / "tram-ngoai"
     ngoai.mkdir()
     (ngoai / SP.SO_KENH).write_text("---\nchannels: []\n---\n", encoding="utf-8")
@@ -179,7 +181,7 @@ def test_doctor_bat_gitignore_bi_thung(repo_git):
     shutil.copyfile(ROOT / ".gitignore", repo_git / ".gitignore")
     IS.do_init(yes=True)
     thu = [d for d in (repo_git / ".gitignore").read_text(encoding="utf-8").splitlines()
-           if d.strip() != "/workspace/"]
+           if d.strip() != "/workspaces/"]
     (repo_git / ".gitignore").write_text("\n".join(thu) + "\n", encoding="utf-8")
     kq = DR.kham()
     assert kq["code"] == SC.CONTRACT_ERROR
@@ -218,7 +220,7 @@ def test_migrate_doi_workspace_ra_ngoai_va_dời_env(repo_git, tmp_path):
 
     assert Path(kq["station"]) == dich.resolve()
     assert (dich / "kenh-cua-toi" / "channel.yml").is_file()
-    assert not ws.exists(), "workspace/ phải được DỜI, không phải chép"
+    assert not ws.exists(), "workspaces/ phải được DỜI, không phải chép"
     assert (kho / ".env").read_text(encoding="utf-8").startswith("TG_CONFIG=")
     assert not (repo_git / ".env").exists()
     lc = json.loads((repo_git / SP.LOCAL_CONFIG).read_text(encoding="utf-8"))
@@ -307,7 +309,7 @@ def test_backup_tu_choi_file_trong_giong_secret(repo_git, tmp_path):
 # ── khuôn trong repo phải khớp cái mã trông đợi ───────────────────────────────────────
 
 def test_cay_mau_workspace_du_file():
-    t = ROOT / "templates" / SP.WORKSPACE
+    t = ROOT / "templates" / "workspace"            # thư mục MẪU giữ tên cũ (bảng băm khoá của bộ kiểm skill)
     for rel in ("README.md", "CHANNELS.md", "AUTHOR.md"):
         assert (t / rel).is_file(), rel
 
@@ -316,5 +318,5 @@ def test_CHANNELS_md_mau_KHONG_khai_san_kenh_khong_co_that(tmp_path):
     """Khai sẵn `ten-kenh` là để `check_tree.py` đỏ ngay phút đầu vì một đường không có thật."""
     sys.path.insert(0, str(ROOT / "scripts" / "lib"))
     import md_io  # noqa: E402
-    fm, _ = md_io.read_fm(ROOT / "templates" / SP.WORKSPACE / "CHANNELS.md")
+    fm, _ = md_io.read_fm(ROOT / "templates" / "workspace" / "CHANNELS.md")
     assert fm.get("channels") == []

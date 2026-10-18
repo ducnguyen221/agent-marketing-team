@@ -275,7 +275,7 @@ def test_moi_ps1_parse_duoc(ten):
 
 _Q = '"'
 MAU_PHAM = [
-    ("nha-windows", "$d = Join-Path " + _NHA_WIN + " '.marketing'"),
+    ("nha-windows", "$d = Join-Path " + _NHA_WIN + " '.thu-muc-an'"),
     # Biến chỉ Windows có KHÁC ngoài thư mục nhà: trên macOS chúng RỖNG, và Join-Path với
     # chuỗi rỗng ra đường tương đối — hỏng im lặng, đúng kiểu đã trả giá ở `$env:USERPROFILE`.
     ("nha-windows", "$c = Join-Path " + _BIEN_WIN[1] + " 'npm-cache'"),
@@ -303,7 +303,7 @@ MAU_PHAM = [
 ]
 
 MAU_SACH = [
-    "$d = Join-Path $HOME '.marketing'",
+    "$d = Join-Path $HOME '.thu-muc-an'",
     "$e = Join-Path $station (Join-Path 'engine' 'run.ps1')",
     "$py = Find-Python -Repo $repo",
     "$ra = & $python $py $Campaign 2>&1",

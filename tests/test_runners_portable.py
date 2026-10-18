@@ -12,7 +12,7 @@ pháp PowerShell chung cho mọi `.ps1`, file này giữ phần riêng của b�
 3. **Registry `'User'` chỉ đọc sau điều kiện Windows** (P0-1): macOS không có registry,
    đọc trần trả chuỗi rỗng và runner lặng lẽ bỏ qua upload mà vẫn báo ✅.
 4. **Thư mục cũ trong thư mục nhà chỉ là đường lùi CUỐI, có tên trong danh sách**:
-   literal `.marketing`/`.voice`/`.tts`/`.video` chỉ được ở đúng chỗ phân giải có WARN.
+   literal tên thư mục ẩn kiểu cũ (của trạm nội dung, giọng, video) KHÔNG còn ở file nào.
 5. **Bộ chạy tối thiểu của `engine_dir` có trong repo** — `run.ps1` tìm runner ở
    `<repo>/scripts/runners` trước `<trạm>/engine`.
 
@@ -150,12 +150,10 @@ _CU = re.compile(r"""['"]\.(marketing|voice|tts|video)['"]""")
 # {file: số literal được phép}. Hiện RỖNG: không file nào còn được dò thư mục nhà cũ. Thêm một
 # mục là thêm một đường tạo trạm thứ hai trên máy mới — phải có lý do và một ca test riêng.
 CHO_PHEP_CU = {
-    # brand-paths.ps1 hết ba khối dò thư mục nhà (`.marketing`,
-    # `.voice`/`.tts`, `.video`) nên không còn literal nào; run.ps1 (template) hết `.marketing` và
-    # `.news/engine`, không còn được miễn. Mục của brand-paths.ps1 gỡ ⇒ `test_thu_muc_cu_chi_o_cho_phan_giai`
-    # đòi 0 cho cả hai.
-    # paths.py::station() hết đường lùi ~/.marketing nên không còn
-    # literal nào — bỏ mục này để `test_thu_muc_cu_chi_o_cho_phan_giai` đòi 0 cho file đó.
+    # brand-paths.ps1 hết ba khối dò thư mục nhà (trạm nội dung, giọng, video) nên không còn
+    # literal nào; run.ps1 (template) hết literal đó và `.news/engine`, không còn được miễn.
+    # paths.py::station() hết đường lùi về thư mục nhà nên cũng không còn literal nào —
+    # `test_thu_muc_cu_chi_o_cho_phan_giai` đòi 0 cho mọi file.
 }
 
 

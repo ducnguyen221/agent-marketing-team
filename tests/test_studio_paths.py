@@ -94,8 +94,9 @@ def test_cap_chua_khai_thi_no_loi_chu_khong_doan():
 # F17.3 — MỘT thứ tự phân giải dùng chung cho mọi script (hai chế độ cài embedded/separate)
 #
 # Thứ tự phải đo được từng nhánh, vì mỗi nhánh là một cách người dùng có thể đã cài:
-#   --station → MARKETING_STUDIO_DATA → studio.local.json → <repo>/workspace/ (có thật)
-#   → <repo>/workspace/ (mặc định, chưa tạo). Không có đường lùi về thư mục trong nhà.
+#   --station → MARKETING_STUDIO_DATA → studio.local.json → <repo>/workspaces/ (có thật)
+#   → <repo>/workspace/ cũ (có CHANNELS.md) → <repo>/workspaces/ (mặc định, chưa tạo).
+#   Không có đường lùi về thư mục trong nhà.
 # Nhánh nào lặng lẽ nhảy cóc thì người dùng mất trạm mà không có thông báo nào.
 # ══════════════════════════════════════════════════════════════════════════════════════
 
@@ -162,16 +163,16 @@ def test_nhanh_4_workspace_co_that(repo_gia):
 
 
 def test_nhanh_5_khong_khai_gi_thi_tram_la_workspace_cua_repo(repo_gia, tmp_path):
-    """Đ4: người dùng không đặt biến ⇒ trạm là `<repo>/workspace/`, KHÔNG phải ~/.marketing."""
+    """Đ4: người dùng không đặt biến ⇒ trạm là `<repo>/workspaces/`, KHÔNG phải thư mục trong nhà."""
     st, nguon = SP.resolve_station()
     assert st == (repo_gia / SP.WORKSPACE).resolve() and nguon == "default"
 
 
 def test_mac_dinh_KHONG_lui_ve_tram_trong_nha_du_tram_do_co_that(repo_gia, tmp_path):
-    """Máy có sẵn một trạm ở ~/.marketing (của bản cài khác) không được "tự tìm thấy":
+    """Máy có sẵn một trạm ẩn trong nhà (của bản cài khác) không được "tự tìm thấy":
     trạm ngoài repo chỉ có khi người dùng chỉ định."""
-    (tmp_path / "nha" / ".marketing").mkdir()
-    (tmp_path / "nha" / ".marketing" / SP.SO_KENH).write_text("x", encoding="utf-8")
+    (tmp_path / "nha" / ("." + "marketing")).mkdir()
+    (tmp_path / "nha" / ("." + "marketing") / SP.SO_KENH).write_text("x", encoding="utf-8")
     st, _ = SP.resolve_station()
     assert st == (repo_gia / SP.WORKSPACE).resolve()
 
@@ -420,7 +421,7 @@ def test_sandbox_home_che_het_nha_that(sandbox_home, tmp_path):
     for b in ("OPCOS_WORKSPACES", "OPCOS_ROOT", "MARKETING_STUDIO_DATA", "VIDEO_STATION",
               "VOICE_STATION", "OMNIVOICE_DIR"):
         assert b not in os.environ, b
-    assert (sandbox_home / ".marketing" / SP.SO_KENH).is_file()      # trạm mồi
+    assert (sandbox_home / ("." + "marketing") / SP.SO_KENH).is_file()      # trạm mồi
     # Hai biến checkout bị ĐẶT (không gỡ) trỏ thư mục rỗng trong nhà giả: gỡ thì resolver tự dò ra checkout thật.
     for b in ("VIDEO_STUDIO_REPO", "VOICE_STUDIO_REPO"):
         assert b in os.environ, b

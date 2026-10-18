@@ -260,7 +260,7 @@ def _kham_duong_clone(so: So, repo: Path | None) -> None:
 
 def _kham_tram_opcos(so: So, nguon: str) -> None:
     """Check `opcos-station`: biến vắng/rỗng ⇒ im. Có và `<biến>/marketing` mang dấu trạm mà
-    nguồn hiện tại là `workspace`/`default` ⇒ nhắc lệnh `init`. Có mà chưa mang dấu ⇒ một dòng
+    nguồn hiện tại là `workspaces`/`workspace`/`default` ⇒ nhắc lệnh `init`. Có mà chưa mang dấu ⇒ một dòng
     ghi đường đã thử. Nguồn đã là biến trạm/`studio.local.json` ⇒ im."""
     d = SP.goc_opcos()
     if d is None:
@@ -270,7 +270,7 @@ def _kham_tram_opcos(so: So, nguon: str) -> None:
     if tram is None:
         so.nhac(f"OPCOS_WORKSPACES={bien}: {goc} chưa là trạm (không có {SP.SO_KENH}) — "
                 "bỏ qua, không ảnh hưởng.")
-    elif nguon in (SP.WORKSPACE, "default"):
+    elif nguon in (SP.WORKSPACE, SP.WORKSPACE_CU, "default"):
         so.nhac(f"máy có trạm OpcOS {tram} nhưng trạm đang dùng là {nguon}. Muốn dùng trạm "
                 f"OpcOS: `python scripts/pipeline/init_station.py --mode separate --station {tram}`.")
 
@@ -292,9 +292,17 @@ def kham(station=None) -> dict:
 
     # 2. HAI NGUỒN SỰ THẬT — lỗi nặng nhất của mô hình hai chế độ
     ws = SP.workspace_dir(repo)
-    if ws and ws.is_dir() and ws.resolve() != st:
-        so.hong(f"hai nguồn sự thật: {ws} tồn tại nhưng trạm đang dùng là {st} (nguồn {nguon}). "
-                f"Giữ MỘT chỗ: dời {ws} đi, hoặc gỡ biến/`{SP.LOCAL_CONFIG}` đang trỏ chỗ kia.")
+    cu = SP.bo_cuc_cu_con_sot(repo) if repo else None
+    for d in (ws, cu):
+        if d and d.is_dir() and d.resolve() != st:
+            if d is cu and ws and ws.is_dir() and ws.resolve() == st:
+                continue                       # bố cục cũ còn sót cạnh bố cục mới: nhắc ở dưới
+            so.hong(f"hai nguồn sự thật: {d} tồn tại nhưng trạm đang dùng là {st} (nguồn "
+                    f"{nguon}). Giữ MỘT chỗ: dời {d} đi, hoặc gỡ biến/`{SP.LOCAL_CONFIG}` đang "
+                    "trỏ chỗ kia.")
+    nhac_cu = SP.goi_y_doi_bo_cuc(repo) if repo else None
+    if nhac_cu and (cu is not None) and (st == cu.resolve() or (ws and ws.resolve() == st)):
+        so.nhac(nhac_cu)
 
     # 2b. Trạm OpcOS (OPCOS_WORKSPACES) — chỉ NHẮC, không bao giờ đổi trạm hộ
     _kham_tram_opcos(so, nguon)

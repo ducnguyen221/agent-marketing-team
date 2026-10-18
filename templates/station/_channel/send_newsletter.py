@@ -87,7 +87,7 @@ def _no_repo(gia):
     (`studio_paths.duong_repo_web`): `${TÊN}`, `~`, và đường TƯƠNG ĐỐI tính theo thư mục cha
     chứa các repo. Không giả định thư mục chứa repo của máy nào.
 
-    Repo engine tìm bằng cách đi LÊN từ file này (trạm embedded = `<repo>/workspace/`) tới
+    Repo engine tìm bằng cách đi LÊN từ file này (trạm embedded = `<repo>/workspaces/`) tới
     thư mục có `scripts/lib/studio_paths.py`. Không thấy (trạm ngoài repo) thì chỉ mở `~` và
     `${TÊN}` từ môi trường — đường tương đối khi đó là lỗi, nói rõ thay vì đoán."""
     d = os.path.dirname(os.path.abspath(__file__))

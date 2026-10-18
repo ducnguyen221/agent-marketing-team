@@ -74,11 +74,12 @@ _BIEN_TRAM_SANDBOX = ("VIDEO_STATION", "VIDEO_ROOT", "VOICE_STATION", "OMNIVOICE
 
 @pytest.fixture
 def sandbox_home(tmp_path, monkeypatch):
-    """Nhà GIẢ không junction: `tmp_path/home` có `.marketing/CHANNELS.md` MỒI (một trạm giả).
+    """Nhà GIẢ không junction: `tmp_path/home` có một thư mục ẩn kiểu cũ mang `CHANNELS.md` MỒI
+    (một trạm giả; tên ghép bằng phép cộng chuỗi để test chống chữ cũ không bắt chính nó).
 
     Đặt cả bốn biến nhà — Python `expanduser` đọc `HOME`/`USERPROFILE`, tiến trình con PowerShell
     5.1 tính lại từ `HOMEDRIVE`+`HOMEPATH` — và gỡ mọi biến trạm/`OPCOS_*`. Dùng để chứng minh
-    không đường nào còn "đoán" `~/.marketing`. Đặt TRƯỚC `repo_gia` khi dùng chung (fixture này
+    không đường nào dò thư mục trong nhà làm trạm. Đặt TRƯỚC `repo_gia` khi dùng chung (fixture này
     gỡ `MARKETING_STUDIO_HOME`; `repo_gia` đặt lại). Không symlink/junction."""
     nha = tmp_path / "home"
     nha.mkdir()
@@ -93,7 +94,7 @@ def sandbox_home(tmp_path, monkeypatch):
     for ten, con in (("VIDEO_STUDIO_REPO", "no-video-repo"), ("VOICE_STUDIO_REPO", "no-voice-repo")):
         (nha / con).mkdir()
         monkeypatch.setenv(ten, str(nha / con))
-    moi = nha / ".marketing"
+    moi = nha / ("." + "marketing")
     moi.mkdir()
     (moi / "CHANNELS.md").write_text("---\nschema: channels/1\nchannels: []\n---\n",
                                     encoding="utf-8")
@@ -124,11 +125,11 @@ def pytest_configure(config):
 @pytest.fixture
 def repo_gia(tmp_path, monkeypatch):
     """Bản clone GIẢ, cô lập: `MARKETING_STUDIO_HOME` trỏ vào nó nên `studio_paths.repo_root()`
-    — và mọi thứ suy từ đó (`workspace/`, `studio.local.json`, `<repo>/.env`, repo anh em cùng
+    — và mọi thứ suy từ đó (`workspaces/`, `studio.local.json`, `<repo>/.env`, repo anh em cùng
     thư mục cha) — đều nằm trong cây tạm.
 
     Vì sao cần (P1-8, 30/09/2026): test nào để `repo_root()` rơi về bản clone THẬT (nơi chính
-    file test nằm) thì đọc `workspace/` + `studio.local.json` của máy đang chạy. CI checkout
+    file test nằm) thì đọc `workspaces/` + `studio.local.json` của máy đang chạy. CI checkout
     sạch xanh, còn máy đã `install.sh --mode embedded` — tức mọi máy chạy thật — đỏ 12 ca.
     Và từ khi trạm giọng/video được suy từ repo anh em, một bản clone thật nằm cạnh
     `agent-voice-studio` sẽ "có" trạm giọng trong mọi test không cô lập.

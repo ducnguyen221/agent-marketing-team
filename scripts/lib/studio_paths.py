@@ -13,23 +13,28 @@ dò thư mục thì kênh ngoài STATION vô hình.
 
 Trạm là một KHÁI NIỆM, không phải một đường dẫn cố định. Người dùng cài theo hai kiểu:
 
-    embedded   trạm = `<repo>/workspace/`, biến cấu hình ở `<repo>/.env` — "mở một folder
-               là thấy hết". MẶC ĐỊNH và là khuyến nghị cho người mới.
+    embedded   trạm = `<repo>/workspaces/`, biến cấu hình ở `<repo>/.env` — "mở một folder
+               là thấy hết". MẶC ĐỊNH và là khuyến nghị cho người mới. Cùng tên thư mục
+               `workspaces` với khi cài cùng OpcOS; khác ở chỗ nằm trong repo (đã là của riêng
+               repo này nên không cần thêm tầng `marketing`) chứ không nằm trong
+               `OPCOS_WORKSPACES` (ở đó trạm là `<biến>/marketing`).
     separate   trạm ngoài repo (thư mục người dùng chọn), biến đặt
                ở cấp user, bí mật ở kho secret của máy — cho người nhiều máy, hoặc repo
                public của chính họ.
 
 Lựa chọn ghi ở `<repo>/studio.local.json` (bị gitignore). Thứ tự phân giải trạm:
 
-    --station → MARKETING_STUDIO_DATA → studio.local.json → <repo>/workspace/
+    --station → MARKETING_STUDIO_DATA → studio.local.json → <repo>/workspaces/
+                (tầng tương thích: nếu CHƯA có, mà `<repo>/workspace/` cũ mang `CHANNELS.md`
+                thì nhận thư mục cũ đó)
 
 Biến môi trường đứng TRƯỚC `studio.local.json` là có chủ đích: máy nào đã đặt biến từ
 trước (máy chạy lịch thật) thì một file cấu hình lạc vào repo không được phép cướp trạm.
 
-Không có gì khai ⇒ trạm là `<repo>/workspace/` (có thật hay chưa). KHÔNG có đường lùi về
-một thư mục trong nhà người dùng: trạm ngoài repo chỉ có khi người dùng chỉ định (biến,
-`--station`, hoặc chọn `separate` lúc cài). Đường lùi ngầm về `~/.marketing` từng làm một
-bản clone mới "tìm thấy" trạm của bản cài khác trên cùng máy mà không ai hỏi.
+Không có gì khai ⇒ trạm là `<repo>/workspaces/` (có thật hay chưa). KHÔNG có
+đường lùi về một thư mục trong nhà người dùng: trạm ngoài repo chỉ có khi người dùng chỉ
+định (biến, `--station`, hoặc chọn `separate` lúc cài). Bộ cài mới KHÔNG bao giờ tạo
+`<repo>/workspace/` số ít; thư mục đó chỉ còn được NHẬN nếu đã có sẵn từ bản cài cũ.
 
 Bí mật đi theo thứ tự riêng: biến môi trường → `<repo>/.env` (**chỉ** khi `mode=embedded`)
 → kho secret của máy. Luật ba tầng không đổi: biến/`.env` giữ **đường dẫn**, file ngoài git
@@ -64,7 +69,8 @@ SO_KENH = "CHANNELS.md"
 
 # Hợp đồng F17 — tên file/thư mục dùng chung với `agent-voice-studio`, `agent-video-studio`.
 LOCAL_CONFIG = "studio.local.json"
-WORKSPACE = "workspace"
+WORKSPACE = "workspaces"                   # trạm embedded = chính `<repo>/workspaces` (tương đối từ gốc repo)
+WORKSPACE_CU = "workspace"                 # bố cục CŨ (số ít): chỉ còn được NHẬN, không bao giờ được tạo
 MODES = ("embedded", "separate")
 
 
@@ -119,9 +125,11 @@ def resolve_station(station=None) -> tuple[Path, str]:
     """-> (gốc trạm, nguồn). Nguồn ∈ `--station` · MARKETING_STUDIO_DATA · studio.local.json
     · workspace · default. Đọc lại MỖI LẦN gọi (không đóng băng lúc import).
 
-    `default` = không ai khai gì: trạm là `<repo>/workspace/` dù thư mục chưa có (hàm này
-    KHÔNG tạo nó — bộ cài tạo, `doctor` báo thiếu). Không xác định được repo mà cũng không
-    có gì khai → `StudioPathsError`, không đoán một thư mục trong nhà."""
+    `default` = không ai khai gì: trạm là `<repo>/workspaces/` dù thư mục chưa có
+    (hàm này KHÔNG tạo nó — bộ cài tạo, `doctor` báo thiếu). Nguồn `workspace` = bố cục cũ
+    `<repo>/workspace/` (số ít) được nhận vì đã có `CHANNELS.md` mà bố cục mới chưa có.
+    Không xác định được repo mà cũng không có gì khai → `StudioPathsError`, không đoán một
+    thư mục trong nhà."""
     if station:
         return Path(station).expanduser().resolve(), "--station"
     bien = (os.environ.get("MARKETING_STUDIO_DATA") or "").strip()
@@ -133,13 +141,12 @@ def resolve_station(station=None) -> tuple[Path, str]:
         if sp:
             q = Path(sp).expanduser()
             return (q if q.is_absolute() else (repo / q)).resolve(), LOCAL_CONFIG
-        ws = repo / WORKSPACE
-        if ws.is_dir():
-            return ws.resolve(), WORKSPACE
-        return ws.resolve(), "default"
+        ws, nguon = tram_nhung(repo)
+        return ws.resolve(), nguon
     raise StudioPathsError(
         "không xác định được trạm: không có --station, biến MARKETING_STUDIO_DATA chưa đặt, "
-        "và không tìm ra bản clone repo (đặt MARKETING_STUDIO_HOME) để dùng <repo>/workspace/")
+        "và không tìm ra bản clone repo (đặt MARKETING_STUDIO_HOME) để dùng "
+        "<repo>/workspaces/")
 
 
 def root(station=None) -> Path:
@@ -148,9 +155,53 @@ def root(station=None) -> Path:
 
 
 def workspace_dir(repo=None) -> Path | None:
-    """`<repo>/workspace/` — chỗ trạm nằm ở chế độ embedded (có tồn tại hay chưa thì tuỳ)."""
+    """`<repo>/workspaces/` — chỗ trạm nằm ở chế độ embedded (có tồn tại hay chưa
+    thì tuỳ). Đây là bố cục MỚI; muốn biết trạm embedded đang thật sự ở đâu (có thể là
+    bố cục cũ còn sót) thì dùng `tram_nhung`."""
     repo = Path(repo) if repo else repo_root()
     return (repo / WORKSPACE) if repo else None
+
+
+def workspace_cu_dir(repo=None) -> Path | None:
+    """`<repo>/workspace/` (số ít) — bố cục cũ, chỉ để nhận ra, không bao giờ để tạo."""
+    repo = Path(repo) if repo else repo_root()
+    return (repo / WORKSPACE_CU) if repo else None
+
+
+def tram_nhung(repo) -> tuple[Path, str]:
+    """-> (trạm embedded, nguồn) của một bản clone. Nguồn ∈ `workspaces` (bố cục mới có
+    thật) · `workspace` (bố cục cũ số ít còn sót, mang `CHANNELS.md`, mà bố cục mới chưa có) ·
+    `default` (cả hai chưa có: trạm mới sẽ ở `workspaces`). Cả hai cùng có ⇒ ưu
+    tiên bố cục mới. Cùng luật với `Get-StationRoot` bên PowerShell: bố cục mới chỉ cần là
+    thư mục, bố cục cũ phải mang dấu trạm."""
+    repo = Path(repo)
+    moi = repo / WORKSPACE
+    cu = repo / WORKSPACE_CU
+    if moi.is_dir():
+        return moi, WORKSPACE
+    if (cu / SO_KENH).is_file():
+        return cu, WORKSPACE_CU
+    return moi, "default"
+
+
+def bo_cuc_cu_con_sot(repo) -> Path | None:
+    """`<repo>/workspace/` nếu nó là một trạm (có `CHANNELS.md`) — nghĩa là bản cài này còn
+    dùng/để sót bố cục cũ và nên được đổi tên thành `workspaces`; không thì None."""
+    cu = Path(repo) / WORKSPACE_CU
+    return cu if (cu / SO_KENH).is_file() else None
+
+
+def goi_y_doi_bo_cuc(repo) -> str | None:
+    """MỘT dòng khuyến nghị khi còn bố cục cũ; None khi không có gì để nhắc."""
+    cu = bo_cuc_cu_con_sot(repo)
+    if not cu:
+        return None
+    moi = Path(repo) / WORKSPACE
+    if moi.is_dir():
+        return (f"có cả {cu} (bố cục cũ) lẫn {moi}: đang dùng {moi}. Dời nội dung còn lại ở "
+                f"{cu.name}/ sang đó rồi xoá thư mục cũ.")
+    return (f"trạm đang ở {cu} (bố cục cũ): vẫn chạy bình thường. Nên đổi tên/dời sang "
+            f"{moi} (ghi lại station_path trong {LOCAL_CONFIG} nếu có).")
 
 
 def duong_nguoi_go(s) -> str:
@@ -389,16 +440,20 @@ def repo_anh_em(ten: str, repo=None) -> Path | None:
 
 def tram_cua_repo(r: Path) -> Path | None:
     """Trạm mà một repo anh em đã CHỌN: `studio.local.json: station_path` (tương đối tính
-    từ repo đó) → `<repo>/workspace/` nếu có. Chưa chọn/chưa init ⇒ None — không đoán."""
+    từ repo đó) → `<repo>/workspaces/` (bố cục mới) → `<repo>/workspace/` (bố cục cũ số ít)
+    nếu có thư mục. Chưa chọn/chưa init ⇒ None — không đoán."""
     try:
         sp = str(_doc_json(Path(r) / LOCAL_CONFIG).get("station_path") or "").strip()
     except StudioPathsError:
         return None
-    q = Path(r) / WORKSPACE
     if sp:
         q = Path(sp).expanduser()
         q = q if q.is_absolute() else Path(r) / q
-    return q.resolve() if q.is_dir() else None
+        return q.resolve() if q.is_dir() else None
+    for q in (Path(r) / WORKSPACE, Path(r) / WORKSPACE_CU):
+        if q.is_dir():
+            return q.resolve()
+    return None
 
 
 def tram_anh_em(ten: str, repo=None) -> Path | None:

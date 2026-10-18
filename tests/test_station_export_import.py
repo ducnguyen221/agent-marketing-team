@@ -448,7 +448,7 @@ NHA_CU = str(Path.home())
 
 
 @pytest.mark.parametrize("rel,truoc,sau", [
-    ("kenh-a/channel.yml", "root: " + NHA_CU + "/.marketing\n", "root: ~/.marketing\n"),
+    ("kenh-a/channel.yml", "root: " + NHA_CU + "/tram-mau\n", "root: ~/tram-mau\n"),
     ("kenh-a/cd-1/BAI-001/meta.json",
      '{"p": "' + NHA_CU.replace("\\", "\\\\") + '\\\\x"}',
      '{"p": "~\\\\x"}'),
@@ -491,7 +491,7 @@ def test_import_giu_BOM_va_CRLF_khi_doi_duong(tram, tmp_path):
     đăng gì (bài học đã trả giá). Nên việc đổi đường phải làm trên BYTE, không đi qua
     một vòng decode/encode nào."""
     rel = "kenh-a/cd-1/run.ps1"
-    goc = "\ufeff$station = '" + NHA_CU + "\\.marketing'\r\nWrite-Host ok\r\n"
+    goc = "\ufeff$station = '" + NHA_CU + "\\tram-mau'\r\nWrite-Host ok\r\n"
     _ghi(tram / rel, goc)
     out = tmp_path / "goi.zip"
     STN.export_station(tram, out)
@@ -500,7 +500,7 @@ def test_import_giu_BOM_va_CRLF_khi_doi_duong(tram, tmp_path):
     b = (dich / rel).read_bytes()
     assert b[:3] == b"\xef\xbb\xbf", "mất BOM"
     assert b.count(b"\r\n") == 2, "đổi CRLF"
-    assert b"~\\.marketing" in b
+    assert b"~\\tram-mau" in b
 
 
 def test_import_vao_duong_qua_dai_thi_DUNG_TRUOC_khi_ghi(tram, tmp_path):

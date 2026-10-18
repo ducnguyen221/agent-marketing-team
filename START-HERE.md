@@ -2,7 +2,7 @@
 
 agent-marketing-team là xưởng nội dung cho AI agent: lên chiến dịch, viết bài, chấm 24 cổng,
 dựng trang, đăng qua hook của bạn — có cổng duyệt của người. Chạy trên Windows và macOS. Nội dung
-của bạn nằm ở **trạm** — mặc định `workspace/` trong repo, bị git bỏ qua.
+của bạn nằm ở **trạm** — mặc định `workspaces/` trong repo, bị git bỏ qua.
 
 ## Cách nhanh: nhờ agent cài
 

@@ -9,6 +9,7 @@ content/*
 # Cổng canh từng dòng: tests/test_gitignore_guard.py. Xoá một dòng ở đây là im lặng
 # mở cửa cho nội dung riêng đi lên một repo công khai; hook pre-commit
 # (templates/hooks/pre-commit) là lớp rào thứ hai, `doctor.py` đo lại cả hai.
+/workspaces/
 /workspace/
 studio.local.json
 

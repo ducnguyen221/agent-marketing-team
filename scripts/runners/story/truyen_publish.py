@@ -100,7 +100,7 @@ def _agent_call_json(prompt, timeout=300):
         import agent_call as AC
         import tempfile
         # station=None: agent_call phân giải trạm theo studio_paths (MARKETING_STUDIO_DATA →
-        # studio.local.json → <repo>/workspace) — MỘT luật cho mọi script của repo.
+        # studio.local.json → <repo>/workspaces) — MỘT luật cho mọi script của repo.
         r = AC.call(prompt, engine=eng, model=mdl or "best", tools=(),
                     cwd=tempfile.gettempdir(), timeout=timeout,
                     on_quota="fallback", station=os.environ.get("MARKETING_STUDIO_DATA") or None)

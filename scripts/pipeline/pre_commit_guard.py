@@ -2,13 +2,13 @@
 # -*- coding: utf-8 -*-
 """Cổng pre-commit của chế độ `embedded`: chặn commit nội dung trạm và thứ giống secret.
 
-Chế độ `embedded` đặt trạm (`workspace/`) và `<repo>/.env` NGAY TRONG repo. `.gitignore`
+Chế độ `embedded` đặt trạm (`workspaces/`) và `<repo>/.env` NGAY TRONG repo. `.gitignore`
 đã chặn chúng, nhưng `.gitignore` chỉ là thói quen — `git add -f`, một dòng ignore bị sửa,
 hay một công cụ tự stage là đủ để nội dung riêng đi lên một repo công khai. Hook này là
 lớp rào thứ hai, và là lớp cuối còn sửa được.
 
 Chặn hai thứ:
-  · **đường dẫn**: bất cứ gì dưới `workspace/`, `.env` / `.env.*` (trừ `.env.example`),
+  · **đường dẫn**: bất cứ gì dưới `workspaces/` (và `workspace/` của bố cục cũ), `.env` / `.env.*` (trừ `.env.example`),
     `studio.local.json`
   · **nội dung**: dòng THÊM MỚI trong diff trông giống token (GitHub, Hugging Face,
     OpenAI/Anthropic, AWS, Slack, Google, Facebook Graph, khoá riêng PEM) hoặc gán
@@ -25,7 +25,7 @@ import re
 import subprocess
 import sys
 
-CHAN_TIEN_TO = ("workspace/",)
+CHAN_TIEN_TO = ("workspaces/", "workspace/")        # bố cục mới + bố cục cũ còn sót
 CHAN_TEN = ("studio.local.json",)
 
 MAU_TOKEN = [

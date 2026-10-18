@@ -124,7 +124,7 @@ def _ps(tmp_path, f_cfg, prompt, expect):
         encoding="utf-8-sig")
     (tmp_path / "prompt.txt").write_text(prompt, encoding="utf-8")
     # `brand-paths.ps1` phân giải trạm NGAY khi được nạp và ném nếu không thấy. Checkout sạch
-    # (CI) không có trạm nào — máy dev có `~/.marketing` nên không lộ. Trạm giả, tường minh:
+    # (CI) không có trạm nào — máy dev có trạm kiểu cũ trong nhà nên không lộ. Trạm giả, tường minh:
     # test không được dựa vào trạm thật của máy đang chạy.
     tram = tmp_path / "tram"
     tram.mkdir(exist_ok=True)

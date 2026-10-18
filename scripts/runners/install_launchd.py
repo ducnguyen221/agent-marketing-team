@@ -76,7 +76,7 @@ Plist ghi ra có quyền 600: nó chứa đường tới file bí mật của b�
 
 ## Chế độ embedded
 
-Không có biến trạm nào ⇒ trạm là `<repo>/workspace/` (thứ tự phân giải ở
+Không có biến trạm nào ⇒ trạm là `<repo>/workspaces/` (thứ tự phân giải ở
 `studio_paths.resolve_station`), và `<trạm>/launchd.json` nằm trong đó.
 
 ## Hai pipeline, HAI cấu hình giọng — không gộp

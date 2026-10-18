@@ -16,7 +16,7 @@ không đo được từ đây. Trang này giải thích những trường hợp
 | macOS: `brew: command not found` | chưa cài Homebrew, hoặc `/opt/homebrew/bin` chưa lên `PATH` | người dùng tự cài theo brew.sh; kiểm `zsh -lic 'echo $PATH'` |
 | macOS: agent không thấy `brew`/`python3.12`/một biến mà người dùng thấy | shell của agent không nạp `~/.zprofile`/`~/.zshrc` | kiểm bằng `zsh -lic 'echo $TÊN_BIẾN'`; gọi bằng đường đầy đủ (`/opt/homebrew/bin/python3.12`) |
 | macOS: `pwsh: command not found` khi chạy runner `.ps1` | chưa cài PowerShell 7 | `brew install --cask powershell` |
-| `studio.py update` không chạy được | tải ZIP thay vì `git clone` | cài Git rồi clone lại; chép `workspace/` (nếu có) sang bản clone mới |
+| `studio.py update` không chạy được | tải ZIP thay vì `git clone` | cài Git rồi clone lại; chép `workspaces/` (nếu có) sang bản clone mới |
 | `doctor` nhắc repo/trạm nằm trong thư mục đồng bộ | clone vào OneDrive/iCloud/Dropbox | clone lại vào thư mục cục bộ; đồng bộ đám mây làm hỏng git và `.venv` |
 | Windows: `git clone`/`git pull` báo `Filename too long`, hoặc `doctor` nhắc "bản clone nằm sâu" | clone vào thư mục có đường dài (~150 ký tự trở lên); file tracked dài nhất của repo ~107 ký tự nên đường đầy đủ vượt 259 ký tự của Windows | `git config --global core.longpaths true` rồi clone lại, hoặc clone vào đường ngắn hơn (ví dụ `C:\src\agent-marketing-team`) |
 
@@ -25,7 +25,7 @@ không đo được từ đây. Trang này giải thích những trường hợp
 | Dòng | Nghĩa | Sửa |
 |---|---|---|
 | `ĐỎ … chưa có trạm` (mã 3) | chưa chạy bộ cài | INSTALL.md mục 6 |
-| `ĐỎ hai nguồn sự thật` (mã 2) | vừa có `<repo>/workspace/` vừa có trạm ở chỗ khác | giữ **một** trạm: dời `workspace/` đi, hoặc gỡ biến/`studio.local.json` đang trỏ chỗ kia |
+| `ĐỎ hai nguồn sự thật` (mã 2) | vừa có `<repo>/workspaces/` vừa có trạm ở chỗ khác | giữ **một** trạm: dời `workspaces/` đi, hoặc gỡ biến/`studio.local.json` đang trỏ chỗ kia |
 | `ĐỎ git KHÔNG bỏ qua …` (mã 2) | dòng bắt buộc trong `.gitignore` bị xoá | khôi phục dòng đó — nội dung riêng sắp commit được |
 | `nhắc … biến ĐÃ ĐIỀN trong .env mà KHÔNG script Python nào đọc` | biến của `.ps1` (`MARKETING_STUDIO_*`) hoặc tên gõ sai | biến `.ps1` đặt ở cấp user / plist; bảng đủ ở [WORKSPACE.md](WORKSPACE.md) mục `.env` |
 | `nhắc .env đang mở cho người khác đọc` | quyền file quá rộng (macOS/Linux) | `chmod 600 .env` |

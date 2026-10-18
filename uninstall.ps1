@@ -7,7 +7,7 @@
     cái gì, giữ cái gì nằm ở lõi Python, một chỗ, dùng chung với `uninstall.sh`.
 
     Gỡ   : <repo>/studio.local.json · hook pre-commit do bộ cài đặt
-    Giữ  : trạm nội dung (workspace/ hoặc thư mục ngoài) · <repo>/.env · mọi file của repo
+    Giữ  : trạm nội dung (workspaces/ hoặc thư mục ngoài) · <repo>/.env · mọi file của repo
 
 .EXAMPLE
     .\uninstall.ps1 -DryRun     # xem trước, chưa gỡ gì

@@ -90,7 +90,7 @@ if (-not (Test-Path -LiteralPath $State -PathType Leaf)) {
 
 try { $py = Find-OmniVoicePython } catch {
   Write-Output ('[truyen] LOI: ' + $_.Exception.Message)
-  Write-Output '[truyen] Dat VOICE_STATION (goc tram giong, vd <repo agent-voice-studio>/workspace) hoac OMNIVOICE_PY.'
+  Write-Output '[truyen] Dat VOICE_STATION (goc tram giong, vd <repo agent-voice-studio>/workspaces) hoac OMNIVOICE_PY.'
   exit 1
 }
 

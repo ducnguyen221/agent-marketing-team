@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
-"""`pytest` TRẦN ở gốc repo không được gom test của TRẠM (`workspace/`) hay của `.venv`.
+"""`pytest` TRẦN ở gốc repo không được gom test của TRẠM (`workspaces/`, hoặc `workspace/` của bố cục cũ) hay của `.venv`.
 
-Máy đã `install.sh --mode embedded` có `workspace/` ngay trong repo, và trạm mang script +
-test riêng của người dùng (Mac 30/09/2026: `workspace/nghe-tien-truyen/**/test_*.py` cần
+Máy đã `install.sh --mode embedded` có `workspaces/` ngay trong repo, và trạm mang script +
+test riêng của người dùng (Mac 30/09/2026: `workspaces/nghe-tien-truyen/**/test_*.py` cần
 `numpy` → 3 lỗi collect). Chặn bằng `collect_ignore` trong `conftest.py` ở GỐC repo. Test
 này dựng một cây tạm mang đúng file đó, rồi chạy `pytest` trần ở gốc cây — đo hành vi thật
 của pytest, không chỉ đọc chuỗi trong file.
@@ -22,7 +22,7 @@ def test_conftest_goc_bo_qua_workspace_va_venv():
     spec = importlib.util.spec_from_file_location("conftest_goc", ROOT / "conftest.py")
     m = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(m)
-    assert {"workspace", ".venv"} <= set(m.collect_ignore)
+    assert {"workspaces", "workspace", ".venv"} <= set(m.collect_ignore)
 
 
 def test_pytest_TRAN_khong_gom_test_cua_tram(tmp_path):
@@ -31,7 +31,7 @@ def test_pytest_TRAN_khong_gom_test_cua_tram(tmp_path):
     shutil.copyfile(ROOT / "conftest.py", goc / "conftest.py")
     (goc / "tests" / "test_repo.py").write_text("def test_repo():\n    assert True\n",
                                                 encoding="utf-8")
-    for d in ("workspace/kenh", ".venv/lib"):
+    for d in ("workspaces/kenh", "workspace/kenh", ".venv/lib"):
         (goc / d).mkdir(parents=True)
         (goc / d / "test_tram.py").write_text(HONG, encoding="utf-8")
     r = subprocess.run([sys.executable, "-m", "pytest", "-q", "-p", "no:cacheprovider"],

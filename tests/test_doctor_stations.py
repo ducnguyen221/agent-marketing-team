@@ -43,7 +43,7 @@ GIA = "API_VERSION = {!r}\n"
 @pytest.fixture
 def may(tmp_path, monkeypatch, request):
     """Một máy giả: trạm nội dung hợp lệ, không trạm năng lực nào, môi trường sạch biến —
-    và bản clone GIẢ (`repo_gia`): không cô lập repo thì `doctor` so `<repo thật>/workspace/`
+    và bản clone GIẢ (`repo_gia`): không cô lập repo thì `doctor` so `<repo thật>/workspaces/`
     với trạm giả và báo "hai nguồn sự thật" trên mọi máy đã cài embedded (P1-8)."""
     for b in BIEN:
         monkeypatch.delenv(b, raising=False)

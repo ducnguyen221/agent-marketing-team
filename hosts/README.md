@@ -24,5 +24,5 @@
   dụng AI được. Mở phiên mới tại thư mục repo và hỏi danh sách skill — phải có `campaign-pipeline`,
   `content-production`, `hook-writer`, `thread-writer`.
 - **Script chạy từ repo, nội dung ở trạm.** Mọi skill gọi script trong `scripts/` của bản clone; kênh,
-  chiến dịch, bài nằm ở trạm (`workspace/` hoặc thư mục bạn chỉ định) — xem
+  chiến dịch, bài nằm ở trạm (`workspaces/` hoặc thư mục bạn chỉ định) — xem
   [docs/WORKSPACE.md](../docs/WORKSPACE.md).

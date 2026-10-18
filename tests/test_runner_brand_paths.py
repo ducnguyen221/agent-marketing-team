@@ -2,8 +2,8 @@
 """`brand-paths.ps1` (PowerShell) và `studio_paths.py` (Python) phải phân giải CÙNG một bố cục ra
 CÙNG một kết quả — chúng là hai bản của một luật (P1-14).
 
-Dựng một thư mục cha giả chứa: bản clone marketing (chế độ embedded, `.env`, `workspace/`), repo
-anh em `agent-voice-studio` (trạm `workspace/`) và `agent-video-studio` (trạm `station_path`
+Dựng một thư mục cha giả chứa: bản clone marketing (chế độ embedded, `.env`, `workspaces/`), repo
+anh em `agent-voice-studio` (trạm `workspaces/`) và `agent-video-studio` (trạm `station_path`
 tương đối + `.venv`). Tên thư mục KHÔNG phải tên repo — nhận diện phải đi bằng `pyproject.toml`.
 Không mạng, không trạm thật: HOME trỏ thư mục tạm, biến trạm bị gỡ khỏi tiến trình.
 
@@ -77,7 +77,7 @@ def bo_cuc(tmp_path):
     _viet(mkt / "install.ps1")
     _viet(mkt / "pyproject.toml", '[project]\nname = "agent-marketing-team"\n')
     _viet(mkt / "studio.local.json", '{"mode": "embedded"}')
-    ws = mkt / "workspace"
+    ws = mkt / "workspaces"
     _viet(ws / "CHANNELS.md", "---\nchannels: []\n---\n")
     _viet(ws / "k" / "c" / "logs" / "config.json", "{}")
     bgm = tmp_path / "nhac"
@@ -85,7 +85,7 @@ def bo_cuc(tmp_path):
     _viet(mkt / ".env", f"VOICE_BGM_DIR={bgm}\nWEB_REPO_DIR={tmp_path / 'web'}\n")
     giong = cha / "giong-x"
     _viet(giong / "pyproject.toml", '[project]\nname = "agent-voice-studio"\n')
-    (giong / "workspace").mkdir()
+    (giong / "workspaces").mkdir()
     video = cha / "video-y"
     _viet(video / "pyproject.toml", "[project]\nname = 'agent-video-studio'\n")
     _viet(video / "studio.local.json", '{"station_path": "tram-rieng"}')
@@ -144,7 +144,7 @@ def test_PS_va_Python_phan_giai_CUNG_bo_cuc(bo_cuc, monkeypatch):
     kq = _chay(bo_cuc, str(bo_cuc["ws"] / "k" / "c" / "logs" / "config.json"))
     assert _cung(kq["station"], bo_cuc["ws"]), kq
     assert _cung(kq["repo"], bo_cuc["mkt"]), kq
-    assert _cung(kq["voice"], bo_cuc["giong"] / "workspace"), kq
+    assert _cung(kq["voice"], bo_cuc["giong"] / "workspaces"), kq
     assert _cung(kq["video"], bo_cuc["video"] / "tram-rieng"), kq
     assert _cung(kq["bgm"], bo_cuc["bgm"]), "embedded: Get-EnvVar phải đọc <repo>/.env"
     assert _cung(kq["ovpy"], bo_cuc["vpy"]), "python giọng: .venv của repo anh em video"
@@ -167,9 +167,9 @@ def test_khong_Config_thi_tram_embedded_la_workspace(bo_cuc):
 
 
 # ── bố cục `khong-gi-ca` và `sibling` — KHÔNG đoán thư mục nhà ───────────
-# Nhà giả (`sandbox_home`) mồi `.marketing/CHANNELS.md`; thêm `.video`, `.voice`, `.tts` mang dấu.
-# Bản cũ thấy chúng là lấy làm trạm (kèm WARN). Nay: không biến, không studio.local.json, không
-# repo anh em, không <repo>/workspace/CHANNELS.md ⇒ `Get-StationRoot` NÉM nêu MARKETING_STUDIO_DATA,
+# Nhà giả (`sandbox_home`) mồi một thư mục ẩn kiểu cũ mang CHANNELS.md; thêm `.video`, `.voice`,
+# `.tts` mang dấu. Bản cũ thấy chúng là lấy làm trạm (kèm WARN). Nay: không biến, không
+# studio.local.json, không repo anh em, không <repo>/workspaces ⇒ `Get-StationRoot` NÉM nêu MARKETING_STUDIO_DATA,
 # `Get-VideoStation`/`Get-VoiceStation` trả `$null` — đúng như Python (`resolve_station` nguồn
 # "default" / `video_station()`/`voice_station()` là None).
 
@@ -185,7 +185,7 @@ def bo_cuc_trong(tmp_path, sandbox_home):
     # Nhà giả mang dấu ở MỌI thư mục cũ mà bản trước dò.
     for ten in (".video", ".voice", ".tts"):
         _viet(sandbox_home / ten / "station.json", "{}")
-    assert (sandbox_home / ".marketing" / "CHANNELS.md").is_file()
+    assert any((d / "CHANNELS.md").is_file() for d in sandbox_home.iterdir() if d.is_dir())
     return {"cha": cha, "mkt": mkt, "nha": sandbox_home, "tmp": tmp_path}
 
 
@@ -223,13 +223,13 @@ def test_khong_gi_ca_thi_Get_StationRoot_NEM_nen_ten_bien_khong_lay_nha(bo_cuc_t
     ra = r.stdout + r.stderr
     assert r.returncode != 0, "không có trạm mà vẫn thoát 0: " + ra
     assert "MARKETING_STUDIO_DATA" in ra, ra
-    assert "WARN" not in ra and ".marketing" not in ra, "còn lấy thư mục nhà làm trạm: " + ra
+    assert "WARN" not in ra and ("." + "marketing") not in ra, "còn lấy thư mục nhà làm trạm: " + ra
     SP = _py_voi_repo(monkeypatch, bo_cuc_trong)
     assert SP.resolve_station()[1] == "default", "Python cũng phải coi là 'không ai khai gì'"
 
 
 def test_khong_gi_ca_thi_Video_Voice_la_null_va_Find_OmniVoicePython_dung(bo_cuc_trong, monkeypatch):
-    ws = bo_cuc_trong["mkt"] / "workspace"
+    ws = bo_cuc_trong["mkt"] / "workspaces"
     _viet(ws / "CHANNELS.md", "---\nchannels: []\n---\n")        # có trạm, KHÔNG có anh em
     r = _chay_tho(bo_cuc_trong, _IN_KET_QUA)
     assert r.returncode == 0, r.stdout + r.stderr
@@ -250,19 +250,59 @@ def test_sibling_PS_va_Python_cung_tram_anh_em(bo_cuc_trong, monkeypatch):
     cha = bo_cuc_trong["cha"]
     giong = cha / "giong-x"
     _viet(giong / "pyproject.toml", '[project]\nname = "agent-voice-studio"\n')
-    _viet(giong / "workspace" / "station.json", "{}")
+    _viet(giong / "workspaces" / "station.json", "{}")
     video = cha / "video-y"
     _viet(video / "pyproject.toml", "[project]\nname = 'agent-video-studio'\n")
-    (video / "workspace").mkdir()
-    _viet(bo_cuc_trong["mkt"] / "workspace" / "CHANNELS.md", "---\nchannels: []\n---\n")
+    (video / "workspaces").mkdir()
+    _viet(bo_cuc_trong["mkt"] / "workspaces" / "CHANNELS.md", "---\nchannels: []\n---\n")
     r = _chay_tho(bo_cuc_trong, _IN_KET_QUA)
     assert r.returncode == 0, r.stdout + r.stderr
     kq = json.loads(r.stdout.strip().splitlines()[-1])
     _kiem_phien_ban(kq["psver"])
-    assert _cung(kq["voice"], giong / "workspace"), kq
-    assert _cung(kq["video"], video / "workspace"), kq
+    assert _cung(kq["voice"], giong / "workspaces"), kq
+    assert _cung(kq["video"], video / "workspaces"), kq
     SP = _py_voi_repo(monkeypatch, bo_cuc_trong)
     assert _cung(SP.voice_station(), kq["voice"]) and _cung(SP.video_station(), kq["video"])
+
+
+@pytest.mark.parametrize("bo_cuc_anh_em", ["cu", "ca-hai"])
+def test_sibling_bo_cuc_cu_workspace_so_it_PS_va_Python_cung_ket_qua(bo_cuc_trong, monkeypatch,
+                                                                       bo_cuc_anh_em):
+    """Repo anh em còn bố cục cũ (`workspace`): vẫn nhận; có cả `workspaces` thì ưu tiên nó."""
+    cha = bo_cuc_trong["cha"]
+    giong = cha / "giong-x"
+    _viet(giong / "pyproject.toml", '[project]\nname = "agent-voice-studio"\n')
+    (giong / "workspace").mkdir()
+    if bo_cuc_anh_em == "ca-hai":
+        (giong / "workspaces").mkdir()
+    _viet(bo_cuc_trong["mkt"] / "workspaces" / "CHANNELS.md", "---\nchannels: []\n---\n")
+    kq = _ket_qua_ps(bo_cuc_trong)
+    mong = giong / ("workspaces" if bo_cuc_anh_em == "ca-hai" else "workspace")
+    assert _cung(kq["voice"], mong), kq
+    SP = _py_voi_repo(monkeypatch, bo_cuc_trong)
+    assert _cung(SP.voice_station(), kq["voice"])
+
+
+@pytest.mark.parametrize("bo_cuc_mkt", ["cu", "ca-hai", "moi-rong", "cu-khong-dau"])
+def test_tram_nhung_PS_va_Python_cung_dinh_nghia_co_that(bo_cuc_trong, monkeypatch, bo_cuc_mkt):
+    """`workspaces` chỉ cần là thư mục; `workspace` cũ phải có CHANNELS.md; có cả hai → `workspaces`."""
+    mkt = bo_cuc_trong["mkt"]
+    if bo_cuc_mkt in ("cu", "ca-hai"):
+        _viet(mkt / "workspace" / "CHANNELS.md", "---\nchannels: []\n---\n")
+    if bo_cuc_mkt in ("ca-hai", "moi-rong"):
+        (mkt / "workspaces").mkdir()
+    if bo_cuc_mkt == "cu-khong-dau":
+        (mkt / "workspace").mkdir()                      # có thư mục nhưng KHÔNG có dấu trạm
+        r = _chay_tho(bo_cuc_trong, "")
+        assert r.returncode != 0 and "MARKETING_STUDIO_DATA" in r.stdout + r.stderr
+        SP = _py_voi_repo(monkeypatch, bo_cuc_trong)
+        assert SP.resolve_station()[1] == "default"
+        return
+    kq = _ket_qua_ps(bo_cuc_trong)
+    mong = mkt / ("workspace" if bo_cuc_mkt == "cu" else "workspaces")
+    assert _cung(kq["station"], mong), kq
+    SP = _py_voi_repo(monkeypatch, bo_cuc_trong)
+    assert _cung(SP.resolve_station()[0], kq["station"])
 
 
 # ── parity cho bố cục 'biến', 'local-config', nấc gợi ý `-Config` ──────────
@@ -288,7 +328,7 @@ def test_bien_PS_va_Python_cung_tram(bo_cuc_trong, monkeypatch, bien_giong, bien
     # Repo anh em CÓ mặt: biến phải THẮNG anh em (thứ tự biến → local-config → anh em).
     sib = bo_cuc_trong["cha"] / "giong-x"
     _viet(sib / "pyproject.toml", '[project]\nname = "agent-voice-studio"\n')
-    (sib / "workspace").mkdir()
+    (sib / "workspaces").mkdir()
     env = {"MARKETING_STUDIO_DATA": str(tram), bien_giong: str(giong), bien_video: str(video)}
     kq = _ket_qua_ps(bo_cuc_trong, env)
     mong_giong = giong.parent if giong_la_cha else giong
@@ -321,7 +361,7 @@ def test_local_config_PS_va_Python_cung_tram_station_path_tuong_doi(bo_cuc_trong
 # nền im lặng. Nhạc nền là tuỳ chọn nên KHÔNG dừng pipeline (dừng làm hỏng video đã lên lịch), chỉ WARN.
 
 def _bgm(b, env_them=None):
-    _viet(b["mkt"] / "workspace" / "CHANNELS.md", "---\nchannels: []\n---\n")
+    _viet(b["mkt"] / "workspaces" / "CHANNELS.md", "---\nchannels: []\n---\n")
     r = _chay_tho(b, "$bgm = Get-BgmDir\n@{ bgm = [string]$bgm } | ConvertTo-Json -Compress", env_them=env_them)
     assert r.returncode == 0, r.stdout + r.stderr
     return r.stdout, json.loads(r.stdout.strip().splitlines()[-1])["bgm"]
@@ -351,11 +391,11 @@ def test_runner_dung_Get_BgmDir_khong_tu_ghep_bgmDir(ten):
 
 def test_goi_y_Config_thang_workspace(bo_cuc_trong):
     """`run.ps1` chọn trạm theo đường đi LÊN từ chiến dịch; runner nhận `-Config` (bản chụp trong
-    `<chiến dịch>/logs/`) phải ra ĐÚNG trạm đó, kể cả khi `<repo>/workspace` là một trạm khác."""
+    `<chiến dịch>/logs/`) phải ra ĐÚNG trạm đó, kể cả khi `<repo>/workspaces` là một trạm khác."""
     tmp, mkt = bo_cuc_trong["tmp"], bo_cuc_trong["mkt"]
-    _viet(mkt / "workspace" / "CHANNELS.md", "---\nchannels: []\n---\n")
+    _viet(mkt / "workspaces" / "CHANNELS.md", "---\nchannels: []\n---\n")
     khac = tmp / "tram-khac"
     _viet(khac / "CHANNELS.md", "---\nchannels: []\n---\n")
     cfg = _viet(khac / "k" / "c" / "logs" / "config.json", "{}")
-    assert _cung(_ket_qua_ps(bo_cuc_trong)["station"], mkt / "workspace")
+    assert _cung(_ket_qua_ps(bo_cuc_trong)["station"], mkt / "workspaces")
     assert _cung(_ket_qua_ps(bo_cuc_trong, config=str(cfg))["station"], khac)

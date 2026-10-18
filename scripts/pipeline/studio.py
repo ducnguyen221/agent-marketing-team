@@ -11,7 +11,7 @@ repo (xoá đi clone lại, `git clean`, chép tay) sẽ ăn mất nội dung c�
     uninstall = gỡ đúng phần bộ cài tạo (`studio.local.json`, hook pre-commit của nó);
                GIỮ trạm, `.env` và repo.
     backup   = zip cả trạm. Mặc định KHÔNG kèm `.env`; kèm thì phải xin rõ `--with-env`.
-    migrate  = đường ra khi người dùng lớn lên: dời `<repo>/workspace/` ra ngoài repo và
+    migrate  = đường ra khi người dùng lớn lên: dời `<repo>/workspaces/` ra ngoài repo và
                `.env` về kho secret của máy, rồi ghi lại lựa chọn. Đích KHÔNG có mặc định
                ngầm: không khai `--station` thì hỏi (có gợi ý, cho thấy số file/dung lượng,
                xin y/N); không có người ngồi thì bắt buộc `--station`.
@@ -74,7 +74,7 @@ def _sha256(p: Path) -> str:
 # ── update ────────────────────────────────────────────────────────────────────────────
 
 def _sua_doi_cuc_bo(repo: Path) -> list[str]:
-    """File ĐÃ TRACK đang có sửa đổi chưa commit. File bị ignore (`workspace/`, `.env`,
+    """File ĐÃ TRACK đang có sửa đổi chưa commit. File bị ignore (`workspaces/`, `.env`,
     `studio.local.json`) không tính — đó là dữ liệu của người dùng, không phải mã."""
     r = subprocess.run(["git", "-C", str(repo), "status", "--porcelain", "--untracked-files=no"],
                        capture_output=True, text=True, encoding="utf-8", errors="replace",
@@ -114,7 +114,7 @@ def update() -> dict:
 #   studio.local.json   lựa chọn chế độ + đường trạm        → GỠ
 #   hook pre-commit     rào lớp hai của embedded            → GỠ nếu đúng là hook của bộ cài
 #   .env                chép từ .env.example rồi BẠN điền   → GIỮ (cấu hình của bạn)
-#   trạm                workspace/ hoặc thư mục ngoài       → GIỮ (nội dung của bạn)
+#   trạm                workspaces/ hoặc thư mục ngoài      → GIỮ (nội dung của bạn)
 #
 # Xoá nội dung không bao giờ là một phần của gỡ công cụ. Skill và adapter host là file
 # được git theo dõi trong repo — gỡ chúng là xoá repo, việc đó người dùng tự làm.
@@ -373,7 +373,7 @@ def migrate_sang_separate(station=None, kho_secret=None, ask=None, non_interacti
         raise SC.ContractError(
             f"máy này không ở chế độ embedded (đang: {SP.mode(repo) or 'chưa cài'}) — "
             "không có gì để dời.")
-    ws = repo / SP.WORKSPACE
+    ws, _nguon = SP.tram_nhung(repo)       # bố cục mới; bố cục cũ còn sót thì dời nó
     if not ws.is_dir():
         raise SC.StationMissing(f"không có {ws} — chưa có trạm nào nằm trong repo.")
     dich = Path(station).expanduser().resolve() if station else \

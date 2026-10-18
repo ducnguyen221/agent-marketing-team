@@ -43,7 +43,7 @@ sẵn làm câu trả lời. Thứ tự, cho mọi đường:
 
 | Cần gì | Nguồn |
 |---|---|
-| Trạm | đi lên từ bản chụp `-Config` tới `CHANNELS.md` → `MARKETING_STUDIO_DATA` → `studio.local.json` → `<repo>/workspace` |
+| Trạm | đi lên từ bản chụp `-Config` tới `CHANNELS.md` → `MARKETING_STUDIO_DATA` → `studio.local.json` → `<repo>/workspaces` |
 | Trạm giọng / video | `VOICE_STATION` (`OMNIVOICE_DIR`) / `VIDEO_STATION` (`VIDEO_ROOT`) → `studio.local.json` → repo anh em |
 | Python giọng | `OMNIVOICE_PY` → `station.json: venv` → `<trạm giọng>/omnivoice/.venv` → `.venv` của repo anh em video, rồi giọng |
 | Repo web | `repo` của `channel.yml` (hiểu `${TÊN}`, `~`, đường tương đối theo thư mục cha) |

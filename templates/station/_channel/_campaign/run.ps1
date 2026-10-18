@@ -79,7 +79,7 @@ $cam = $PSScriptRoot
 #   Engine : <trạm>/engine — tên cố định; chỉ BẮT BUỘC khi runner không có ở chiến dịch lẫn repo
 #            (nấc 3 bên dưới), thiếu lúc đó thì DỪNG nêu đường thiếu. Không bao giờ dò `.news`
 #   Repo   : biến MARKETING_STUDIO_HOME -> đi LÊN từ thư mục chiến dịch tới thư mục có
-#            scripts/pipeline/campaign_cfg.py (embedded: repo = CHA của trạm workspace/)
+#            scripts/pipeline/campaign_cfg.py (embedded: repo = CHA của trạm workspaces/)
 #            -> không có thì DỪNG. Không đoán thư mục chứa repo (`Code`, `Repo`…): tên đó
 #            là lựa chọn của từng máy, không phải hằng số của chương trình.
 $station = $null

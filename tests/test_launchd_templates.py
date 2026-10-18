@@ -440,7 +440,7 @@ def test_only_goi_dich_danh_thi_van_nap_duoc_job_bi_loai(tmp_path):
 # ══ P4 (Mac mini chạy embedded) — PATH, con trỏ bí mật, runner, lịch, trạm ═══════════
 #
 # Kịch bản đích: một Mac mini chạy tự động ở chế độ `embedded` — KHÔNG có biến trạm nào,
-# trạm là `<repo>/workspace/`, cấu hình ở `<repo>/.env`. launchd không đọc `.env` và không
+# trạm là `<repo>/workspaces/`, cấu hình ở `<repo>/.env`. launchd không đọc `.env` và không
 # đọc `~/.zshrc`, nên mọi thứ job cần phải đi vào plist qua bộ cài — và chỉ TÊN của con trỏ
 # bí mật được khai trong repo, GIÁ TRỊ đến từ máy.
 
@@ -683,12 +683,12 @@ def test_schedule_sai_la_ma_2(lich):
                     {"channel": "k", "campaign": "c", "schedule": lich})
 
 
-# ── chế độ embedded: không biến trạm nào ⇒ trạm là <repo>/workspace ──────────
+# ── chế độ embedded: không biến trạm nào ⇒ trạm là <repo>/workspaces ─────────
 
-def test_embedded_KHONG_bien_tram_thi_tram_la_repo_workspace(monkeypatch, khong_bien):
+def test_embedded_KHONG_bien_tram_thi_tram_la_repo_workspaces(monkeypatch, khong_bien):
     monkeypatch.setattr(SP, "local_config", lambda repo=None: {})
     bang, _ = IL.cho_trong(None)
-    assert Path(bang["__STATION__"]) == (ROOT / "workspace").resolve()
+    assert Path(bang["__STATION__"]) == (ROOT / "workspaces").resolve()
     assert Path(bang["__REPO__"]) == ROOT
 
 

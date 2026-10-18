@@ -43,7 +43,7 @@ Hai vỏ đó chỉ dò Python rồi giao việc cho `scripts/pipeline/init_stat
 
 | Chế độ | Nội dung của bạn nằm ở | Chọn khi |
 |---|---|---|
-| **`embedded`** (khuyến nghị cho người mới, Enter là nhận) | `<repo>/workspace/` — trong repo, nhưng bị `.gitignore` khoá và có hook `pre-commit` chặn | một máy, một bộ nội dung, muốn ít thứ phải nhớ |
+| **`embedded`** (khuyến nghị cho người mới, Enter là nhận) | `<repo>/workspaces/` — trong repo, nhưng bị `.gitignore` khoá và có hook `pre-commit` chặn | một máy, một bộ nội dung, muốn ít thứ phải nhớ |
 | **`separate`** | một thư mục ngoài repo do **bạn chọn đường** (không có đường mặc định ở thư mục nhà) | máy đã có trạm, hoặc nhiều repo/nhiều máy dùng chung một trạm |
 
 Chọn `separate` mà chưa chỉ đường: nếu máy có `OPCOS_WORKSPACES`, bộ cài đề xuất
@@ -56,17 +56,18 @@ chính là đường trạm). Biến `VOICE_STATION`, `VIDEO_STATION`… cũng b
 ngoài" nhưng không nói trạm nội dung ở đâu, nên bộ cài hỏi đường (và với `--yes` hoặc khi không
 có người thì dừng mã 2, đòi `--station`, trừ khi có `OPCOS_WORKSPACES`).
 
-**Trạm cũ ở `~/.marketing` (có `CHANNELS.md`) không bao giờ được tự nhận**, kể cả với `--yes`.
-Có người ngồi thì bộ cài hỏi ba đường: [1] dùng trạm mới (nhãn ghi đường thật), [2] nhận trạm
-cũ, [3] dừng để bạn tự dời; Enter là [1]. Nếu máy đặt `OPCOS_WORKSPACES` thì "trạm mới" ở [1] là
-`<OPCOS_WORKSPACES>/marketing` (bạn xác nhận hoặc đổi ở câu kế tiếp), không thì `<repo>/workspace`.
-`--yes` không bao giờ hỏi: dùng `<repo>/workspace` và in một dòng nêu trạm cũ cùng cách nhận nó
-(`--station <đường>`). `--non-interactive` thiếu cả `--yes` lẫn `--mode` thì dừng mã 2.
+**Thư mục trạm cũ ẩn trong thư mục cá nhân không còn được tự nhận**; trỏ vào bằng
+`--station <đường>`. Cài riêng lẻ thì trạm là chính `<repo>/workspaces` (cùng tên `workspaces`
+với khi cài cùng OpcOS, chỉ khác là nằm trong repo). Máy đặt `OPCOS_WORKSPACES` và có người
+ngồi: Enter (hoặc xác nhận) ra `<OPCOS_WORKSPACES>/marketing`; `--yes` thì không bao giờ hỏi và
+ra `<repo>/workspaces`. `--non-interactive` thiếu cả `--yes` lẫn `--mode` thì dừng mã 2.
+Bản cài trước để `<repo>/workspace` (số ít, có `CHANNELS.md`) vẫn chạy; `init`/`doctor` nhắc một
+dòng nên đổi tên thành `workspaces`.
 
 Đổi ý sau: `python scripts/pipeline/studio.py migrate --to separate`.
 
 **Kiểm:** `studio.local.json` ở gốc repo có `mode` đúng cái bạn chọn; `embedded` thì có
-`workspace/`, `separate` thì **không**.
+`workspaces/`, `separate` thì **không**.
 
 ---
 
@@ -181,7 +182,7 @@ python3.12 -m venv agent-video-studio/.venv
 ```
 
 **Cài embedded thì không phải khai gì thêm.** Repo này tự nhận hai repo anh em nằm cùng thư
-mục cha (nhận bằng `pyproject.toml: name`, không bằng tên thư mục), lấy trạm `workspace/`
+mục cha (nhận bằng `pyproject.toml: name`, không bằng tên thư mục), lấy trạm `workspaces/`
 mà mỗi repo đã chọn và python của `.venv` bên video (rồi bên giọng). Thứ tự đầy đủ:
 biến môi trường → `<repo>/.env` → `studio.local.json` → repo anh em cùng thư mục cha →
 chưa bật. Trạm/venv ở chỗ khác thì khai `VOICE_STATION`, `VIDEO_STATION`, `OMNIVOICE_PY`

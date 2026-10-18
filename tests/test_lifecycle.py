@@ -150,7 +150,7 @@ def test_update_DUNG_truoc_khi_keo_neu_co_sua_doi_va_KHONG_dung_toi_no(repo_git)
 
 
 def test_update_bo_qua_file_bi_ignore_cua_nguoi_dung(repo_git):
-    """`workspace/`, `.env`, `studio.local.json` là dữ liệu, không phải "sửa đổi mã"."""
+    """`workspaces/`, `.env`, `studio.local.json` là dữ liệu, không phải "sửa đổi mã"."""
     IS.do_init(yes=True)
     (repo_git / SP.WORKSPACE / "bai.md").write_text("x", encoding="utf-8")
     assert ST._sua_doi_cuc_bo(repo_git) == []

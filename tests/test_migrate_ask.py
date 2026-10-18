@@ -6,7 +6,7 @@ Không còn đích ngầm. Không có `--station`:
     số file / dung lượng sẽ dời, rồi xin xác nhận y/N TRƯỚC khi dời byte đầu tiên;
   * không có người → bắt buộc `--station`, thiếu thì dừng mã 2 và nói cách làm.
 Gợi ý: `<OPCOS_WORKSPACES>/marketing` khi biến có; không có biến thì KHÔNG gợi ý gì (người dùng gõ đường).
-`~/.marketing` không bao giờ là đích mặc định. Đích nằm trong chính trạm nguồn bị từ chối.
+Thư mục trong nhà không bao giờ là đích mặc định. Nguồn là trạm nhúng `<repo>/workspaces`. Đích nằm trong chính trạm nguồn bị từ chối.
 """
 import json
 import shutil
@@ -100,7 +100,7 @@ def test_goi_y_bien_tuong_doi_van_ra_duong_tuyet_doi(repo_git, tmp_path, monkeyp
 
 def test_khong_co_bien_thi_KHONG_goi_y_gi_ca(repo_git):
     """Không đoán đích từ vị trí của repo: clone có thể nằm trong một repo git khác, và
-    `<cha>/workspace/marketing` sẽ dời nội dung vào cây repo đó."""
+    một đường suy từ vị trí repo sẽ dời nội dung vào cây repo đó."""
     assert ST.goi_y_dich(repo_git) is None
 
 
@@ -114,14 +114,15 @@ def test_clone_nam_trong_repo_git_khac_khong_bi_goi_y_vao_cay_do(tmp_path, monke
     assert ST.goi_y_dich(ngoai / "clones" / "repo") is None
     ask = _tra_loi("")
     with pytest.raises(SC.ContractError):
-        ST._hoi_noi_doi(ngoai / "clones" / "repo", ngoai / "clones" / "repo" / "workspace", ask, False)
+        ST._hoi_noi_doi(ngoai / "clones" / "repo", ngoai / "clones" / "repo" / "workspaces", ask, False)
     assert str(ngoai) not in ask.loi_nhac[0], "lời nhắc không được gợi ý đường trong cây repo khác"
 
 
 def test_khong_bao_gio_goi_y_thu_muc_trong_nha(repo_git, tmp_path, monkeypatch):
-    assert ".marketing" not in str(ST.goi_y_dich(repo_git))
+    nha = str(Path(SP.os.path.expanduser("~")))
+    assert ST.goi_y_dich(repo_git) is None
     monkeypatch.setenv("OPCOS_WORKSPACES", str(tmp_path / "ws"))
-    assert ".marketing" not in str(ST.goi_y_dich(repo_git))
+    assert not str(ST.goi_y_dich(repo_git)).startswith(nha) or str(tmp_path).startswith(nha)
 
 
 def test_khong_co_bien_tuong_tac_Enter_rong_la_dung_va_chua_dung_gi(repo_git, tmp_path):
@@ -275,19 +276,35 @@ def test_thong_bao_loi_neu_cach_lam_va_khong_nhac_thu_muc_trong_nha(repo_git, tm
     with pytest.raises(SC.ContractError) as e:
         ST.migrate_sang_separate(kho_secret=str(tmp_path / "kho"), non_interactive=True)
     msg = str(e.value)
-    assert "--station" in msg and "migrate" in msg and ".marketing" not in msg
+    assert "--station" in msg and "migrate" in msg and ("." + "marketing") not in msg
 
 
-def test_khong_tao_thu_muc_marketing_trong_nha_khi_bi_tu_choi(repo_git, tmp_path):
+def test_khong_tao_thu_muc_nao_trong_nha_khi_bi_tu_choi(repo_git, tmp_path):
     nha = Path(SP.os.path.expanduser("~"))
+    truoc = sorted(p.name for p in nha.iterdir())
     with pytest.raises(SC.ContractError):
         ST.migrate_sang_separate(kho_secret=str(tmp_path / "kho"), non_interactive=True)
-    assert not (nha / ".marketing").exists()
+    assert sorted(p.name for p in nha.iterdir()) == truoc
 
 
 def test_help_khong_con_noi_mac_dinh_thu_muc_trong_nha():
     nguon = (ROOT / "scripts" / "pipeline" / "studio.py").read_text(encoding="utf-8")
-    assert ".marketing" not in nguon, "studio.py không còn coi ~/.marketing là đích mặc định"
+    assert ("." + "marketing") not in nguon.replace("studio.marketing", ""), \
+        "studio.py không còn coi một thư mục ẩn trong nhà là đích mặc định"
+
+
+def test_nguon_la_bo_cuc_cu_workspace_so_it_van_dem_duoc_nhu_nguon(repo_git, tmp_path):
+    """Bản cài cũ để `<repo>/workspace` (mang CHANNELS.md): migrate dời đúng thư mục đó."""
+    moi = repo_git / "workspaces"
+    cu = repo_git / "workspace"
+    moi.rename(cu)
+    lc = json.loads((repo_git / SP.LOCAL_CONFIG).read_text(encoding="utf-8"))
+    lc["station_path"] = "workspace"
+    (repo_git / SP.LOCAL_CONFIG).write_text(json.dumps(lc), encoding="utf-8")
+    dich = tmp_path / "ra-ngoai"
+    kq = ST.migrate_sang_separate(station=str(dich), kho_secret=str(tmp_path / "kho"))
+    assert Path(kq["station"]) == dich.resolve()
+    assert (dich / "kenh-cua-toi" / "channel.yml").is_file() and not cu.exists()
 
 
 def test_dich_la_mot_FILE_thi_ma_2_chu_khong_NotADirectoryError(repo_git, tmp_path):

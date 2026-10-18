@@ -105,7 +105,7 @@ def engine_dir(env=None, registry=True, sp=None):
         if goc:
             return os.path.join(str(goc), "omnivoice")
     raise SystemExit("truyen_paths: không biết trạm giọng ở đâu — đặt VOICE_STATION (gốc trạm "
-                     "giọng, vd <repo agent-voice-studio>/workspace) hoặc OMNIVOICE_DIR (thư mục "
+                     "giọng, vd <repo agent-voice-studio>/workspaces) hoặc OMNIVOICE_DIR (thư mục "
                      "engine của trạm đó), ở biến môi trường hoặc <repo>/.env (embedded).")
 
 

@@ -2,8 +2,8 @@
 """`scripts/runners/paths.py::station()` — trạm của runner Python.
 
 Thứ tự: `MARKETING_STUDIO_DATA` → `studio_paths.resolve_station()` của repo (chỉ nhận khi nơi
-đó CÓ `CHANNELS.md`) → DỪNG bằng `StationMissing` nêu tên biến. KHÔNG còn nấc "thư mục
-`.marketing` trong nhà": nhà giả (`sandbox_home`) có trạm mồi ở đó và hàm phải phớt lờ nó.
+đó CÓ `CHANNELS.md`) → DỪNG bằng `StationMissing` nêu tên biến. KHÔNG có nấc "thư mục ẩn
+trong nhà": nhà giả (`sandbox_home`) có trạm mồi ở đó và hàm phải phớt lờ nó.
 """
 import importlib.util
 import sys
@@ -39,13 +39,13 @@ def test_station_theo_MARKETING_STUDIO_DATA(sandbox_home, tmp_path, monkeypatch)
 
 
 def test_station_theo_resolve_station_cua_repo(sandbox_home, repo_gia):
-    ws = _tram(repo_gia / "workspace")
+    ws = _tram(repo_gia / "workspaces")
     assert Path(_nap_paths().station()).resolve() == ws.resolve()
 
 
 def test_station_khong_cau_hinh_nem_StationMissing_khong_doc_home(
         sandbox_home, repo_gia, capsys):
-    assert (sandbox_home / ".marketing" / "CHANNELS.md").is_file()      # trạm mồi có thật
+    assert any((d / "CHANNELS.md").is_file() for d in sandbox_home.iterdir() if d.is_dir())  # trạm mồi có thật
     with pytest.raises(SC.StationMissing) as e:
         _nap_paths().station()
     assert "MARKETING_STUDIO_DATA" in str(e.value)

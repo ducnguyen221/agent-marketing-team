@@ -70,10 +70,10 @@ jobs:
         run: python -m pytest -q -rs
 
   # Cổng P1-8 (30/09/2026): bộ test phải xanh trên MÁY ĐÃ CÀI, không chỉ trên checkout sạch.
-  # Job trên chạy trên cây vừa checkout — không có `workspace/`, không `studio.local.json`,
+  # Job trên chạy trên cây vừa checkout — không có `workspaces/`, không `studio.local.json`,
   # không `.env`. Mọi máy chạy thật thì đã `install … embedded`, và 12 test từng đọc trạng
   # thái THẬT đó của repo: xanh ở đây, đỏ trên Mac mini. Job này cài đúng như người dùng rồi
-  # chạy `pytest` TRẦN (không `tests/`) — cũng bắt luôn việc gom nhầm test trong `workspace/`.
+  # chạy `pytest` TRẦN (không `tests/`) — cũng bắt luôn việc gom nhầm test trong `workspaces/`.
   # Một bản Python (bản máy lịch đang chạy) là đủ: ma trận Python đã có ở job trên.
   pytest-embedded:
     name: cài embedded rồi pytest (${{ matrix.os }})

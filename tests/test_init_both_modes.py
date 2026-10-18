@@ -8,7 +8,7 @@ Vì sao mỗi nhóm test dưới đây tồn tại:
 · **Không có người trả lời thì DỪNG, đừng đoán.** Chạy trong CI, trong một tác vụ theo
   lịch, hay qua pipe: `input()` ném `EOF` và một bộ cài ẩu sẽ hiểu thành "Enter". Ở đây
   nó phải in bảng lựa chọn ra rồi thoát mã 2 mà **chưa ghi gì**.
-· **Máy đã có trạm ngoài thì không bao giờ mọc thêm `workspace/`.** Đó là bảo vệ máy đang
+· **Máy đã có trạm ngoài thì không bao giờ mọc thêm `workspaces/`.** Đó là bảo vệ máy đang
   chạy lịch thật: hai nguồn sự thật cho cùng một repo là cách mất dữ liệu êm nhất.
 
 Mọi test chạy trong thư mục tạm: repo giả (`MARKETING_STUDIO_HOME`) + nhà giả
@@ -29,6 +29,8 @@ sys.path.insert(0, str(ROOT / "scripts" / "pipeline"))
 import init_station as IS  # noqa: E402
 import studio_contract as SC  # noqa: E402
 import studio_paths as SP  # noqa: E402
+
+NHA_CU = "." + "marketing"      # tên thư mục ẩn kiểu cũ trong nhà; ghép chuỗi để test chống chữ cũ không bắt chính nó
 
 BIEN_HOP_DONG = ("MARKETING_STUDIO_DATA", "MARKETING_STUDIO_HOME", "VOICE_STATION",
                  "OMNIVOICE_DIR", "VIDEO_STATION", "VIDEO_ROOT")
@@ -101,7 +103,7 @@ def test_Enter_nghia_la_embedded(repo, nha):
     # mọi script từ giờ phân giải ra đúng trạm này
     st, nguon = SP.resolve_station()
     assert st == ws.resolve() and nguon == SP.LOCAL_CONFIG
-    assert not (nha / ".marketing").exists(), "embedded không được đụng tới ~/.marketing"
+    assert not (nha / NHA_CU).exists(), "embedded không được tạo thư mục kiểu cũ trong nhà"
 
 
 # ── bảng lựa chọn PHÂN TÍCH theo trình độ người dùng (chỉ đạo 21/09) ──────────────────
@@ -187,7 +189,7 @@ def test_tra_loi_2_roi_go_duong_thi_separate_o_duong_do(repo, nha, tmp_path):
     assert kq["mode"] == "separate" and len(ask.da_hoi) == 2
     cay_tram_ok(dich)
     assert Path(doc_local(repo)["station_path"]) == dich.resolve()
-    assert not (repo / SP.WORKSPACE).exists() and not (nha / ".marketing").exists()
+    assert not (repo / SP.WORKSPACE).exists() and not (nha / NHA_CU).exists()
 
 
 def test_tra_loi_2_roi_Enter_rong_khong_co_goi_y_thi_DUNG_khong_ghi_gi(repo, nha):
@@ -201,13 +203,13 @@ def test_separate_khong_station_khong_nguoi_hoi_thi_ma_2_doi_station_va_khong_gh
     truoc = chup(repo, nha)
     with pytest.raises(SC.ContractError, match="--station"):
         IS.do_init(mode="separate", non_interactive=True)
-    assert chup(repo, nha) == truoc and not (nha / ".marketing").exists()
+    assert chup(repo, nha) == truoc and not (nha / NHA_CU).exists()
 
 
-def test_separate_khong_station_KHONG_roi_ve_nha_marketing(repo, nha):
+def test_separate_khong_station_KHONG_roi_ve_thu_muc_trong_nha(repo, nha):
     with pytest.raises(SC.ContractError):
         IS.chon_che_do(mode="separate", non_interactive=True)
-    assert not (nha / ".marketing").exists()
+    assert not (nha / NHA_CU).exists()
 
 
 def test_co_station_thi_separate_khong_hoi(repo, tmp_path):
@@ -220,7 +222,7 @@ def test_co_station_thi_separate_khong_hoi(repo, tmp_path):
 
 
 def test_MARKETING_STUDIO_DATA_da_dat_thi_TU_CHON_separate(repo, tmp_path, monkeypatch):
-    """Máy Đức: biến đã có từ trước ⇒ không hỏi, và KHÔNG BAO GIỜ tạo workspace/."""
+    """Máy Đức: biến đã có từ trước ⇒ không hỏi, và KHÔNG BAO GIỜ tạo workspaces/."""
     ngoai = tmp_path / "tram-cu"
     ngoai.mkdir()
     monkeypatch.setenv("MARKETING_STUDIO_DATA", str(ngoai))
@@ -234,7 +236,7 @@ def test_MARKETING_STUDIO_DATA_da_dat_thi_TU_CHON_separate(repo, tmp_path, monke
 def test_bien_tram_nang_luc_da_dat_thi_van_separate_nhung_KHONG_doan_duong(
         bien, repo, tmp_path, nha, monkeypatch):
     """Biến của trạm giọng/video nói "máy này theo mô hình trạm ngoài" nhưng KHÔNG nói trạm
-    nội dung ở đâu: không workspace/ trong repo, không đoán `~/.marketing` — hỏi đường."""
+    nội dung ở đâu: không workspaces/ trong repo, không đoán thư mục trong nhà — hỏi đường."""
     ngoai = tmp_path / "tram-cu"
     ngoai.mkdir()
     monkeypatch.setenv(bien, str(ngoai))
@@ -242,7 +244,7 @@ def test_bien_tram_nang_luc_da_dat_thi_van_separate_nhung_KHONG_doan_duong(
     ask = tra_loi(str(dich))
     kq = IS.do_init(ask=ask)
     assert kq["mode"] == "separate" and bien in kq["reason"]
-    assert not (repo / SP.WORKSPACE).exists() and not (nha / ".marketing").exists()
+    assert not (repo / SP.WORKSPACE).exists() and not (nha / NHA_CU).exists()
     assert Path(kq["station"]) == dich.resolve() and len(ask.da_hoi) == 1
     # không hỏi được ⇒ dừng, nêu --station
     (repo / SP.LOCAL_CONFIG).unlink()
@@ -282,145 +284,150 @@ def test_duong_dan_dan_kem_ngoac_kep_bao_quanh_van_dung(bao, repo, tmp_path):
     assert '"' not in kq["station"] and "'" not in kq["station"]
 
 
-def tao_tram_cu(nha: Path) -> Path:
-    cu = nha / ".marketing"
+def tao_thu_muc_nha_kieu_cu(nha: Path) -> Path:
+    """Thư mục ẩn kiểu cũ trong nhà, mang CHANNELS.md. Không còn được dò/nhận/nhắc."""
+    cu = nha / NHA_CU
     cu.mkdir(parents=True)
     (cu / "CHANNELS.md").write_text("---\nchannels: []\n---\n# cua toi\n", encoding="utf-8")
     return cu
 
 
-def test_tram_cu_o_nha_KHONG_BAO_GIO_tu_nhan_ke_ca_voi_yes(repo, nha, capsys):
-    cu = tao_tram_cu(nha)
+def tao_bo_cuc_cu(repo: Path) -> Path:
+    """`<repo>/workspace` (số ít) của bản cài trước, mang dấu trạm."""
+    cu = repo / SP.WORKSPACE_CU
+    cu.mkdir()
+    (cu / "CHANNELS.md").write_text("---\nchannels: []\n---\n# cua toi\n", encoding="utf-8")
+    return cu
+
+
+@pytest.mark.parametrize("cach", ["yes", "hoi", "mode_embedded"])
+def test_thu_muc_nha_kieu_cu_KHONG_bao_gio_duoc_nhan_hay_nhac(cach, repo, nha, capsys):
+    cu = tao_thu_muc_nha_kieu_cu(nha)
     truoc = chup(cu)
-    kq = IS.do_init(yes=True, ask=khong_duoc_hoi)
+    kw = dict(yes=True, ask=khong_duoc_hoi) if cach == "yes" else \
+        dict(mode="embedded", ask=khong_duoc_hoi) if cach == "mode_embedded" else dict(ask=tra_loi(""))
+    kq = IS.do_init(**kw)
     assert kq["mode"] == "embedded" and Path(kq["station"]) == (repo / SP.WORKSPACE).resolve()
     assert chup(cu) == truoc and (cu / "CHANNELS.md").read_text(encoding="utf-8").endswith("cua toi\n")
-    dong = [d for d in capsys.readouterr().err.splitlines() if str(cu) in d]
-    assert len(dong) == 1 and "--station" in dong[0], dong
+    assert NHA_CU not in capsys.readouterr().err and NHA_CU not in kq["reason"]
 
 
-def test_tram_cu_o_nha_khong_nguoi_hoi_va_khong_yes_thi_ma_2_chua_ghi_gi(repo, nha):
-    cu = tao_tram_cu(nha)
-    truoc = chup(repo, cu)
-    with pytest.raises(SC.ContractError):
-        IS.chon_che_do(non_interactive=True)
-    assert chup(repo, cu) == truoc and not (repo / SP.LOCAL_CONFIG).exists()
+def test_khong_con_ham_hay_hang_so_do_thu_muc_kieu_cu():
+    for ten in ("legacy_station", "tram_cu_o_nha", "_nhac_tram_cu", "CAU_HOI_TRAM_CU"):
+        assert not hasattr(IS, ten), ten
 
 
-def test_tram_cu_o_nha_tuong_tac_hoi_BA_duong_nhan_1_la_tram_moi(repo, nha):
-    cu = tao_tram_cu(nha)
-    ask = tra_loi("1")
-    kq = IS.do_init(ask=ask)
-    assert kq["mode"] == "embedded" and (repo / SP.WORKSPACE / "CHANNELS.md").is_file()
-    assert len(ask.da_hoi) == 1
-    cau = ask.da_hoi[0]
-    ws = str((repo / SP.WORKSPACE).resolve())
-    assert str(cu) in cau and "[1]" in cau and "[2]" in cau and "[3]" in cau
-    d1 = cau[cau.index("[1]"):cau.index("[2]")]
-    assert ws in d1, "nhãn [1] phải khớp đường thật sẽ dùng"
+def test_init_moi_tao_dung_workspaces_va_KHONG_bao_gio_tao_workspace_so_it(repo):
+    kq = IS.do_init(yes=True)
+    cay_tram_ok(repo / "workspaces")
+    assert Path(kq["station"]) == (repo / "workspaces").resolve()
+    assert not (repo / SP.WORKSPACE_CU).exists()
+    assert doc_local(repo)["station_path"] == "workspaces"
+
+
+def test_bo_cuc_cu_workspace_so_it_duoc_nhan_va_nhac_doi_ten_mot_dong(repo, capsys):
+    cu = tao_bo_cuc_cu(repo)
+    truoc = chup(cu)
+    assert SP.resolve_station() == (cu.resolve(), SP.WORKSPACE_CU)      # trước khi init ghi gì
+    kq = IS.do_init(yes=True, ask=khong_duoc_hoi)
+    assert Path(kq["station"]) == cu.resolve() and not (repo / "workspaces").exists()
+    assert doc_local(repo)["station_path"] == "workspace"
     assert (cu / "CHANNELS.md").read_text(encoding="utf-8").endswith("cua toi\n")
+    dong = [d for d in capsys.readouterr().err.splitlines() if "workspaces" in d and "workspace" in d
+            and "[init]" in d and "đổi tên" in d]
+    assert len(dong) == 1, dong
+    assert SP.resolve_station()[0] == cu.resolve()
+    assert chup(cu) >= truoc
 
 
-def test_tram_cu_o_nha_tuong_tac_nhan_2_moi_la_nhan_tram_cu(repo, nha):
-    cu = tao_tram_cu(nha)
-    kq = IS.do_init(ask=tra_loi("2"))
-    assert kq["mode"] == "separate" and Path(kq["station"]) == cu.resolve()
-    assert not (repo / SP.WORKSPACE).exists()
-    assert not (cu / "README.md").exists(), "trạm có sẵn: không rải file mẫu vào đó"
-    assert Path(doc_local(repo)["station_path"]) == cu.resolve()
+def test_bo_cuc_cu_va_moi_cung_ton_tai_thi_uu_tien_workspaces_va_nhac(repo, capsys):
+    tao_bo_cuc_cu(repo)
+    (repo / "workspaces").mkdir()
+    assert SP.resolve_station() == ((repo / "workspaces").resolve(), "workspaces")
+    kq = IS.do_init(yes=True, ask=khong_duoc_hoi)
+    assert Path(kq["station"]) == (repo / "workspaces").resolve()
+    assert len([d for d in capsys.readouterr().err.splitlines() if "[init]" in d and "workspace" in d]) == 1
 
 
-def test_tram_cu_o_nha_tuong_tac_nhan_3_thi_dung_chi_cach_doi_tay_va_chua_ghi_gi(repo, nha):
-    cu = tao_tram_cu(nha)
-    truoc = chup(repo, cu)
-    with pytest.raises(SC.ContractError, match="migrate|--station"):
-        IS.do_init(ask=tra_loi("3"))
-    assert chup(repo, cu) == truoc and not (repo / SP.LOCAL_CONFIG).exists()
+def test_workspace_so_it_khong_co_dau_tram_thi_khong_duoc_nhan(repo):
+    (repo / SP.WORKSPACE_CU).mkdir()
+    assert SP.resolve_station() == ((repo / "workspaces").resolve(), "default")
+    kq = IS.do_init(yes=True, ask=khong_duoc_hoi)
+    assert Path(kq["station"]) == (repo / "workspaces").resolve()
 
 
-def test_tram_cu_o_nha_tra_loi_la_thi_dung_khong_ghi_gi(repo, nha):
-    tao_tram_cu(nha)
-    with pytest.raises(SC.ContractError):
-        IS.do_init(ask=tra_loi("abc"))
-    assert not (repo / SP.WORKSPACE).exists() and not (repo / SP.LOCAL_CONFIG).exists()
-
-
-def test_tram_cu_o_nha_khai_tuong_minh_bang_station_thi_nhan(repo, nha):
-    cu = tao_tram_cu(nha)
-    kq = IS.do_init(station=str(cu), ask=khong_duoc_hoi)
-    assert kq["mode"] == "separate" and kq["reason"] == "--station" and Path(kq["station"]) == cu.resolve()
-
-
-def test_tram_cu_o_nha_voi_mode_embedded_tuong_minh_thi_van_embedded(repo, nha, capsys):
-    cu = tao_tram_cu(nha)
-    kq = IS.do_init(mode="embedded", ask=khong_duoc_hoi)
-    assert kq["mode"] == "embedded"
-    assert len([d for d in capsys.readouterr().err.splitlines() if str(cu) in d]) == 1
-
-
-def test_tram_cu_o_nha_voi_mode_separate_khong_nhan_tram_cu_ma_theo_luat_duong(repo, nha, tmp_path,
-                                                                                monkeypatch):
-    cu = tao_tram_cu(nha)
-    monkeypatch.setenv("OPCOS_WORKSPACES", str(tmp_path / "ws"))
-    mode, st, _ = IS.chon_che_do(mode="separate", non_interactive=True)
-    assert Path(st) == (tmp_path / "ws" / "marketing").resolve() and Path(st) != cu.resolve()
-    monkeypatch.delenv("OPCOS_WORKSPACES")
-    with pytest.raises(SC.ContractError, match="--station"):
-        IS.chon_che_do(mode="separate", non_interactive=True)
+def test_giong_PS_va_Python_ve_bo_cuc_cu_va_moi_dung_mot_dinh_nghia_co_that():
+    """Python: bố cục mới chỉ cần là thư mục, bố cục cũ phải mang CHANNELS.md — PowerShell cùng luật."""
+    ps = (ROOT / "scripts" / "runners" / "brand-paths.ps1").read_text(encoding="utf-8-sig")
+    assert "Join-Path $script:RepoRoot 'workspaces'" in ps and "-PathType Container" in ps
+    assert "Join-Path $cu 'CHANNELS.md'" in ps
 
 
 # ── BẢNG HÀNH VI CHUNG (cùng một bảng cho voice / video / marketing) ──────────────────
 #
-# {trạm cũ ở nhà: có/không} × {OPCOS_WORKSPACES: đặt/không} × kịch bản. Kết quả: (chế độ, đích)
-# với W = <repo>/workspace, V = <biến>/marketing, C = trạm cũ, P = đường người dùng gõ; hoặc
-# "LOI" = mã 2 và chưa ghi gì. `hoi` = số câu hỏi đã đưa ra; `nhac` = số dòng nhắc trạm cũ.
+# {bố cục trong repo: không có / `workspaces` / `workspace` cũ / cả hai} × {OPCOS_WORKSPACES:
+# đặt/không} × kịch bản. Kết quả: (chế độ, đích) với W = trạm nhúng (`<repo>/workspaces`, hoặc
+# `<repo>/workspace` cũ khi CHỈ có nó), V = <biến>/marketing, P = đường người dùng gõ; hoặc "LOI"
+# = mã 2 và chưa ghi gì. `hoi` = số câu hỏi đã đưa ra; `nhac` = số dòng khuyến nghị đổi tên bố cục
+# cũ (chỉ khi kết quả là embedded và còn `workspace` cũ).
+# Có biến + có người ngồi + không --mode: Enter ra thẳng V (không có bảng chế độ).
 
-W, V, C, P, LOI = "W", "V", "C", "P", "LOI"
+W, V, P, LOI = "W", "V", "P", "LOI"
+BO_CUC = ["khong", "moi", "cu", "ca-hai"]
 
 
-def _mong(kich_ban, cu, bien):
-    """-> (kết quả, số câu hỏi, số dòng nhắc trạm cũ)"""
-    if kich_ban in ("Enter", "1"):
-        if not cu:
-            return ("embedded", W), 1, 0
-        return (("separate", V) if bien else ("embedded", W)), (2 if bien else 1), 0
-    if kich_ban == "2":
-        if cu:
-            return ("separate", C), 1, 0
-        return ("separate", V if bien else P), 2, 0
-    if kich_ban == "3":
+def _mong(kich_ban, bo_cuc, bien):
+    """-> (kết quả, số câu hỏi, số dòng nhắc đổi tên bố cục cũ)"""
+    nhac = 1 if bo_cuc in ("cu", "ca-hai") else 0
+    if kich_ban == "Enter":
+        return (("separate", V), 1, 0) if bien else (("embedded", W), 1, nhac)
+    if kich_ban == "2":                                   # chỉ khi KHÔNG có biến (bảng chế độ)
+        return ("separate", P), 2, 0
+    if kich_ban == "3":                                   # chỉ khi KHÔNG có biến: lựa chọn sai
         return LOI, 1, 0
-    nhac = 1 if cu else 0
     if kich_ban in ("yes", "ni_yes", "mode_embedded"):
         return ("embedded", W), 0, nhac
     if kich_ban == "ni":
-        return LOI, 0, nhac
+        return LOI, 0, 0
     if kich_ban in ("mode_separate_ni", "mode_separate_yes"):
-        return (("separate", V) if bien else LOI), 0, nhac
+        return (("separate", V) if bien else LOI), 0, 0
     if kich_ban == "mode_separate_hoi":
-        return ("separate", V if bien else P), 1, nhac
+        return ("separate", V if bien else P), 1, 0
     raise AssertionError(kich_ban)
 
 
-KICH_BAN = ["Enter", "1", "2", "3", "yes", "ni", "ni_yes", "mode_embedded",
+KICH_BAN = ["Enter", "2", "3", "yes", "ni", "ni_yes", "mode_embedded",
             "mode_separate_ni", "mode_separate_yes", "mode_separate_hoi"]
 
 
-@pytest.mark.parametrize("bien", [False, True], ids=["khong-bien", "co-bien"])
-@pytest.mark.parametrize("cu", [False, True], ids=["khong-tram-cu", "co-tram-cu"])
-@pytest.mark.parametrize("kich_ban", KICH_BAN)
-def test_bang_hanh_vi_chung(kich_ban, cu, bien, repo, nha, tmp_path, monkeypatch, capsys):
-    tram_cu = tao_tram_cu(nha) if cu else None
+def _to_hop():
+    for kb in KICH_BAN:
+        for bc in BO_CUC:
+            for bien in (False, True):
+                if kb in ("2", "3") and bien:
+                    continue
+                yield pytest.param(kb, bc, bien, id=f"{kb}-{bc}-{'co-bien' if bien else 'khong-bien'}")
+
+
+@pytest.mark.parametrize("kich_ban,bo_cuc,bien", list(_to_hop()))
+def test_bang_hanh_vi_chung(kich_ban, bo_cuc, bien, repo, nha, tmp_path, monkeypatch, capsys):
+    if bo_cuc in ("moi", "ca-hai"):
+        (repo / "workspaces").mkdir()
+    cu = tao_bo_cuc_cu(repo) if bo_cuc in ("cu", "ca-hai") else None
     if bien:
         monkeypatch.setenv("OPCOS_WORKSPACES", str(tmp_path / "ws"))
     duong_go = tmp_path / "tram-go"
-    moc = {W: (repo / SP.WORKSPACE).resolve(), V: (tmp_path / "ws" / "marketing").resolve(),
-           P: duong_go.resolve(), C: tram_cu.resolve() if tram_cu else None}
+    nhung = cu if bo_cuc == "cu" else (repo / "workspaces")
+    moc = {W: nhung.resolve(), V: (tmp_path / "ws" / "marketing").resolve(), P: duong_go.resolve()}
     # câu trả lời chuẩn bị sẵn; câu hỏi đường: có biến thì Enter (nhận đề xuất), không thì gõ P
     cau_duong = "" if bien else str(duong_go)
     kw, tra = {}, []
-    if kich_ban in ("Enter", "1", "2", "3"):
-        tra = [{"Enter": "", "1": "1", "2": "2", "3": "3"}[kich_ban], cau_duong]
+    if kich_ban == "Enter":
+        tra = [""]
+    elif kich_ban == "2":
+        tra = ["2", cau_duong]
+    elif kich_ban == "3":
+        tra = ["3"]
     elif kich_ban == "yes":
         kw = dict(yes=True, ask=khong_duoc_hoi)
     elif kich_ban == "ni":
@@ -439,36 +446,34 @@ def test_bang_hanh_vi_chung(kich_ban, cu, bien, repo, nha, tmp_path, monkeypatch
     ask = tra_loi(*tra) if tra else None
     if ask:
         kw["ask"] = ask
-    mong, hoi, nhac = _mong(kich_ban, cu, bien)
-    truoc = chup(repo, tram_cu) if tram_cu else chup(repo)
+    mong, hoi, nhac = _mong(kich_ban, bo_cuc, bien)
+    truoc = chup(repo)
     if mong == LOI:
         with pytest.raises(SC.ContractError):
             IS.chon_che_do(**kw)
-        assert (chup(repo, tram_cu) if tram_cu else chup(repo)) == truoc
+        assert chup(repo) == truoc
     else:
         mode, st, _ = IS.chon_che_do(**kw)
         assert (mode, Path(st)) == (mong[0], moc[mong[1]]), (mode, st)
     assert (len(ask.da_hoi) if ask else 0) == hoi
     dong = [d for d in capsys.readouterr().err.splitlines()
-            if tram_cu and str(tram_cu) in d and "--station" in d]
+            if "[init]" in d and "workspace" in d and ("đổi tên" in d or "bố cục cũ" in d)]
     assert len(dong) == nhac, dong
-    if ask and cu and kich_ban in ("Enter", "1", "2", "3"):
-        cau = ask.da_hoi[0]
-        d1 = cau[cau.index("[1]"):cau.index("[2]")]
-        assert str(moc[V] if bien else moc[W]) in d1, "nhãn [1] phải in đường thật của trạm mới"
+    if ask and kich_ban == "2":                          # bảng chế độ nêu đúng đường embedded
+        assert "<repo>/workspaces/" in ask.da_hoi[0] and "workspaces/marketing" not in ask.da_hoi[0]
 
 
-def test_changelog_chua_phat_hanh_noi_dung_cach_nhan_tram_cu_va_ca_exit_2():
+def test_changelog_chua_phat_hanh_noi_dung_cach_dung_bo_cuc_moi_va_ca_exit_2():
     t = (ROOT / "CHANGELOG.md").read_text(encoding="utf-8")
     khoi = t[t.index("### Chưa phát hành"):t.index("## 2.0.0")]
-    assert "`--station <đường>`" in khoi and "[2]" in khoi
-    assert "không nhận được trạm ở thư mục nhà" in khoi, "migrate chỉ dời, không nhận trạm cũ"
+    assert NHA_CU not in khoi, "khối chưa phát hành không được nhắc tên thư mục kiểu cũ"
+    assert "`--station <đường>`" in khoi
+    assert "`<biến>/marketing`" in khoi and "`<repo>/workspaces`" in khoi
     assert "VOICE_STATION" in khoi and "mã 2" in khoi, "init --yes + biến trạm giọng/video thiếu biến OpcOS"
 
 
-def test_may_da_chon_tu_truoc_thi_khong_hoi_lai_ve_tram_cu(repo, nha):
-    """Chạy lại `init` trên bản cài đã chọn: dùng lựa chọn cũ, không lôi trạm cũ ra hỏi."""
-    tao_tram_cu(nha)
+def test_may_da_chon_tu_truoc_thi_khong_hoi_lai(repo):
+    """Chạy lại `init` trên bản cài đã chọn: dùng lựa chọn cũ, không hỏi."""
     IS.do_init(yes=True)
     kq = IS.do_init(ask=khong_duoc_hoi)
     assert kq["mode"] == "embedded"
@@ -491,7 +496,7 @@ def test_khong_co_nguoi_tra_loi_thi_ma_2_va_KHONG_ghi_gi(repo, nha, capsys):
     assert ma == SC.CONTRACT_ERROR
     assert "embedded" in err and "separate" in err and "--mode" in err
     assert json.loads(out.strip().splitlines()[-1])["ok"] is False
-    assert chup(repo) == truoc and not (nha / ".marketing").exists()
+    assert chup(repo) == truoc and not (nha / NHA_CU).exists()
 
 
 def test_tra_loi_bay_la_ma_2_va_KHONG_ghi_gi(repo):
@@ -510,7 +515,7 @@ def test_dry_run_khong_ghi_gi(repo, nha):
     truoc = chup(repo)
     kq = IS.do_init(yes=True, dry_run=True)
     assert kq["mode"] == "embedded" and kq["dry_run"] is True
-    assert chup(repo) == truoc and not (nha / ".marketing").exists()
+    assert chup(repo) == truoc and not (nha / NHA_CU).exists()
 
 
 # ── cross-repo (F17.3): bộ cài ghi lại trạm giọng/video đã có ──────────────────────────
@@ -671,7 +676,6 @@ def test_non_interactive_KHONG_doan_che_do(repo, tmp_path, monkeypatch):
     embedded có sẵn lựa chọn cũ, và `chon_che_do` đọc nó thay vì dừng (P1-8)."""
     for b in IS.BIEN_NHAN_DIEN:
         monkeypatch.delenv(b, raising=False)
-    monkeypatch.setattr(IS, "legacy_station", lambda: tmp_path / "khong-co")
     with pytest.raises(IS.SC.ContractError) as e:
         IS.chon_che_do(non_interactive=True)
     assert "chọn chế độ" in str(e.value)
@@ -699,19 +703,19 @@ def test_mode_separate_mac_dinh_tram_OPCOS_va_ghi_station_path_tuyet_doi(repo, o
     assert doc_local(repo)["station_path"] == os.path.abspath(opcos)
     assert os.path.isabs(doc_local(repo)["station_path"])
     assert chup(opcos) == truoc, "không tạo thư mục/file nào trong trạm OpcOS"
-    assert not (repo / SP.WORKSPACE).exists() and not (nha / ".marketing").exists()
+    assert not (repo / SP.WORKSPACE).exists() and not (nha / NHA_CU).exists()
 
 
-def test_tra_loi_tuong_tac_duoc_de_xuat_tram_OPCOS(repo, opcos):
-    bang = []
-    kq = IS.do_init(ask=lambda b: bang.append(b) or "2")
-    assert str(opcos) in bang[0] and "OPCOS_WORKSPACES" in bang[0]
+def test_co_nguoi_ngoi_va_bien_OPCOS_thi_ra_thang_tram_OPCOS_da_mang_dau_khong_hoi(repo, opcos):
+    """Trạm OpcOS đã dựng sẵn (mang dấu): dùng luôn, không có bảng chế độ, không dựng thêm gì."""
+    kq = IS.do_init(ask=khong_duoc_hoi)
     assert kq["mode"] == "separate"
     assert doc_local(repo)["station_path"] == os.path.abspath(opcos)
+    assert not (repo / SP.WORKSPACE).exists()
 
 
-def test_tra_loi_tuong_tac_embedded_thi_van_embedded(repo, opcos):
-    kq = IS.do_init(ask=lambda b: "1")
+def test_mode_embedded_ep_embedded_du_co_bien_OPCOS_va_co_nguoi_ngoi(repo, opcos):
+    kq = IS.do_init(mode="embedded", ask=khong_duoc_hoi)
     assert kq["mode"] == "embedded"
     assert (repo / SP.WORKSPACE).is_dir()
     assert doc_local(repo)["station_path"] == SP.WORKSPACE
@@ -741,16 +745,18 @@ def test_yes_bo_qua_thu_muc_OPCOS_khong_CHANNELS(repo, tmp_path, monkeypatch):
     kq = IS.do_init(yes=True, ask=khong_duoc_hoi)
     assert kq["mode"] == "embedded"
     assert doc_local(repo)["station_path"] == SP.WORKSPACE
-    # tương tác cũng không đề xuất gì
-    bang = []
+    # có người ngồi thì ra <biến>/marketing sau MỘT câu xác nhận (thư mục chưa mang dấu)
+    ask = tra_loi("")
     (repo / SP.LOCAL_CONFIG).unlink()
-    IS.do_init(ask=lambda b: bang.append(b) or "")
-    assert "OPCOS_WORKSPACES" not in bang[0]
+    kq2 = IS.do_init(ask=ask)
+    assert kq2["mode"] == "separate" and len(ask.da_hoi) == 1
+    assert "OPCOS_WORKSPACES" in ask.da_hoi[0]
+    assert Path(kq2["station"]) == (tmp_path / "ws" / "marketing").resolve()
 
 
 def test_lan_chon_truoc_separate_khong_station_path_KHONG_ra_tram_OPCOS(repo, opcos, nha):
     """Nhánh `truoc == "separate"` (studio.local.json) đứng TRƯỚC nhánh OpcOS: không station_path
-    ⇒ resolve_station() = default (`<repo>/workspace`), tuyệt đối không nhảy sang trạm OpcOS."""
+    ⇒ resolve_station() = default (`<repo>/workspaces`), tuyệt đối không nhảy sang trạm OpcOS."""
     (repo / SP.LOCAL_CONFIG).write_text(json.dumps({"mode": "separate"}), encoding="utf-8")
     kq = IS.chon_che_do(ask=khong_duoc_hoi)
     assert kq[0] == "separate"
@@ -767,7 +773,7 @@ def test_mode_separate_voi_thu_muc_OPCOS_chua_mang_dau_thi_HOI_xac_nhan_de_xuat(
     de_xuat = (tmp_path / "ws" / "marketing").resolve()
     assert mode == "separate" and Path(st) == de_xuat
     assert len(ask.da_hoi) == 1 and str(de_xuat) in ask.da_hoi[0]
-    assert not (nha / ".marketing").exists()
+    assert not (nha / NHA_CU).exists()
 
 
 def test_bien_OPCOS_tuong_tac_go_duong_khac_thi_dung_duong_khac(repo, tmp_path, monkeypatch):
@@ -801,18 +807,37 @@ def test_khong_bien_OPCOS_thi_hoi_duong_va_KHONG_nhac_OPCOS(repo, nha, tmp_path)
     kq = IS.do_init(ask=ask)
     assert all("OPCOS_WORKSPACES" not in b for b in ask.da_hoi)
     assert kq["mode"] == "separate" and Path(kq["station"]) == dich.resolve()
-    assert not (nha / ".marketing").exists()
+    assert not (nha / NHA_CU).exists()
 
 
-def test_bang_lua_chon_va_tai_lieu_KHONG_con_mac_dinh_nha_marketing():
-    assert ".marketing" not in IS.BANG_LUA_CHON and ".marketing" not in IS.BANG_TRAM_OPCOS
+def test_KHONG_con_chu_thu_muc_nha_kieu_cu_o_ma_test_docs_help_template():
+    """Mọi tệp văn bản của repo (trừ CHANGELOG — lịch sử các bản đã phát hành) không còn nhắc
+    thư mục ẩn kiểu cũ trong nhà, và không còn mô tả `workspace/` số ít như trạm embedded."""
     import re
-    cu = re.compile(r"mặc định\s+(?:là\s+)?`?~/\.marketing")
-    files = [ROOT / f for f in ("docs/ONBOARDING.md", "docs/WORKSPACE.md", "examples/README.md")]
-    for d in ("templates", "docs", "examples"):
-        files += [p for p in (ROOT / d).rglob("*") if p.is_file() and p.suffix in (".md", ".txt")]
-    for p in set(files):
-        assert not cu.search(p.read_text(encoding="utf-8")), p
+    cu = re.compile(r"(?<![A-Za-z0-9_])\." + "marketing" + r"(?![A-Za-z0-9_-])")
+    so_it = re.compile(r"<repo>/workspace(?![s\w])")
+    bo_qua = {".git", ".venv", "node_modules", "__pycache__", "workspaces", ".pytest_cache"}
+    nhan = {".md", ".py", ".ps1", ".sh", ".json", ".toml", ".yml", ".yaml", ".txt", ".html",
+            ".plist", ".example", ".cfg", ""}
+    ngoai_le_so_it = {"studio_paths.py", "test_init_both_modes.py", "test_studio_paths.py",
+                      "test_migrate_ask.py", "init_station.py", "doctor.py", "brand-paths.ps1",
+                      "test_runner_brand_paths.py", "test_gitignore_guard.py", "CHANGELOG.md",
+                      "pre_commit_guard.py", "conftest.py", "WORKSPACE.md", "ONBOARDING.md"}
+    loi = []
+    for p in ROOT.rglob("*"):
+        if not p.is_file() or p.suffix not in nhan or bo_qua & set(p.relative_to(ROOT).parts):
+            continue
+        if p.name == "CHANGELOG.md":
+            continue
+        try:
+            t = p.read_text(encoding="utf-8-sig")
+        except UnicodeDecodeError:
+            continue
+        if cu.search(t):
+            loi.append(f"{p.relative_to(ROOT)}: chữ thư mục nhà kiểu cũ")
+        if p.name not in ngoai_le_so_it and so_it.search(t):
+            loi.append(f"{p.relative_to(ROOT)}: còn `workspace/` số ít làm trạm embedded")
+    assert not loi, "\n".join(loi)
 
 
 def test_OPCOS_WORKSPACES_tuong_doi_ghi_station_path_TUYET_DOI_va_resolve_tu_cwd_khac(

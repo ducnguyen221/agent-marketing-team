@@ -116,7 +116,7 @@ Lệnh cụ thể và thứ tự sáu bước: [`RUNBOOK-DOI-MAY.md`](../../docs
 
 | Biến | Nghĩa | Không đặt thì |
 |---|---|---|
-| `MARKETING_STUDIO_DATA` | gốc trạm nội dung | `--station` → `studio.local.json` → `<repo>/workspace/` (không lùi về thư mục nhà) |
+| `MARKETING_STUDIO_DATA` | gốc trạm nội dung | `--station` → `studio.local.json` → `<repo>/workspaces/` (không lùi về thư mục nhà) |
 | `MARKETING_STUDIO_HOME` | thư mục repo nội dung | `run.ps1` đi lên từ thư mục chiến dịch tìm repo (embedded: cha của trạm); không thấy thì DỪNG |
 | `MARKETING_STUDIO_PY` | Python chạy các `.ps1` | `<repo>/.venv` → `python` → `python3` → `py`; khai mà hỏng thì **DỪNG** |
 | `VOICE_STATION` | gốc trạm giọng | tên cũ `OMNIVOICE_DIR` (trỏ **thư mục engine** bên trong, lùi một cấp là ra gốc) → `studio.local.json` → trạm của repo anh em `agent-voice-studio` cùng thư mục cha → coi như chưa cài |

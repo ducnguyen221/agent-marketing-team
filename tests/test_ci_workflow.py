@@ -12,7 +12,7 @@ Repo này chạy lịch thật trên Windows (PowerShell 5.1, Task Scheduler) v�
 · **Chạy đúng `python -m pytest -q`** trên các phụ thuộc khai trong `requirements.txt`.
 · **Quyền tối thiểu** (`contents: read`) — workflow chỉ đọc mã, không cần gì hơn.
 · **Có job "cài embedded rồi pytest trần"** trên cả hai OS (P1-8): bộ test phải xanh trên
-  máy ĐÃ CÀI, không chỉ trên checkout sạch — 12 test từng đọc `workspace/` thật của repo.
+  máy ĐÃ CÀI, không chỉ trên checkout sạch — 12 test từng đọc `workspaces/` thật của repo.
 
 File này không chứng minh CI xanh — nó chỉ giữ cho cấu hình CI không trôi khỏi bốn điều đó.
 """
@@ -145,7 +145,7 @@ def test_job_cai_dung_BO_CAI_THAT_che_do_embedded_TRUOC_pytest(wf):
 
 
 def test_job_cai_chay_pytest_TRAN_doi_powershell_that(wf):
-    """TRẦN = không chỉ đích `tests/`: chính việc gom nhầm `workspace/` là thứ phải bắt."""
+    """TRẦN = không chỉ đích `tests/`: chính việc gom nhầm `workspaces/` là thứ phải bắt."""
     buoc = [st for st in _job_cai(wf)["steps"] if "pytest" in str(st.get("run", ""))]
     assert len(buoc) == 1
     assert "python -m pytest -q" in buoc[0]["run"] and "tests" not in buoc[0]["run"]

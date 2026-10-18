@@ -1,7 +1,7 @@
 {
   "name": "agent-marketing-team",
   "version": "2.1.0",
-  "description": "Multi-channel marketing campaign engine: four skills (campaign pipeline, content production, hooks, threads), seven-stage workflow with three human approval gates. Skills and scripts run from this repository; campaign content lives in a station outside git (workspace/ by default).",
+  "description": "Multi-channel marketing campaign engine: four skills (campaign pipeline, content production, hooks, threads), seven-stage workflow with three human approval gates. Skills and scripts run from this repository; campaign content lives in a station outside git (workspaces/ by default).",
   "author": {
     "name": "Nguyễn Quang Đức",
     "email": "ducnguyen.ams@gmail.com",

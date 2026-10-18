@@ -9,11 +9,11 @@ sau): [`RUNBOOK-DOI-MAY.md`](RUNBOOK-DOI-MAY.md).
 
 Bộ cài phân giải trạm theo đúng thứ tự của mọi script khác (`studio_paths.resolve_station`):
 
-    --station → MARKETING_STUDIO_DATA → studio.local.json → <repo>/workspace/
+    --station → MARKETING_STUDIO_DATA → studio.local.json → <repo>/workspaces/
 
-Ở chế độ **embedded** (mặc định, không đặt biến trạm nào) trạm là `<repo>/workspace/`, nên
-file khai là `<repo>/workspace/launchd.json`. Dòng đầu của mọi lần chạy in trạm và nguồn:
-`[launchd] trạm: … (nguồn: workspace)`.
+Ở chế độ **embedded** (mặc định, không đặt biến trạm nào) trạm là `<repo>/workspaces/`, nên
+file khai là `<repo>/workspaces/launchd.json`. Dòng đầu của mọi lần chạy in trạm và nguồn:
+`[launchd] trạm: … (nguồn: workspaces)`.
 
 ## Định dạng `launchd.json`
 

@@ -8,7 +8,7 @@
 - **Trạm nội dung không bao giờ vào git.** `brand.md` (hồ sơ cá nhân của tác giả) và
   `publish.json` (link thật, ID bài) không được commit lên repo công khai. `channel.yml` chỉ
   ghi **TÊN biến môi trường** của secret, không bao giờ ghi giá trị.
-  Chế độ cài `embedded` đặt trạm ở `<repo>/workspace/` cho tiện — và vì nó nằm trong repo,
+  Chế độ cài `embedded` đặt trạm ở `<repo>/workspaces/` cho tiện — và vì nó nằm trong repo,
   nó có **ba** lớp rào, không phải một: `.gitignore` (`/workspace/`, `.env`, `.env.*`,
   `studio.local.json`), hook `templates/hooks/pre-commit` (chặn cả `git add -f` và dòng thêm
   mới trông giống token), và `scripts/pipeline/doctor.py` đo lại rằng hai lớp trên còn sống.

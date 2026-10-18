@@ -161,20 +161,24 @@ function Find-SiblingStation {
   <#
     Trạm của một repo ANH EM nằm cùng thư mục cha với repo này — nhận bằng NỘI DUNG
     (`pyproject.toml` có `name = "<Package>"`), không bằng tên thư mục. Trạm của nó:
-    `studio.local.json: station_path` -> `<repo anh em>/workspace`. Không thấy -> $null.
+    `studio.local.json: station_path` -> `<repo anh em>/workspaces` -> `<repo anh em>/workspace`
+    (bố cục cũ). Không thấy -> $null.
     BẢN SONG SINH của `studio_paths.repo_anh_em` + `tram_cua_repo` (PS không gọi được Python
     mà không tốn một tiến trình); cổng `test_runner_brand_paths.py` so hai bản trên cùng cây giả.
   #>
   param([Parameter(Mandatory)][string]$Package)
   $d = Find-SiblingRepo $Package
   if (-not $d) { return $null }
-  $q = Join-Path $d 'workspace'
   $lc = Read-JsonFile (Join-Path $d 'studio.local.json')
   if ($lc -and $lc.station_path) {
     $q = Resolve-Home ([string]$lc.station_path)
     if (-not [System.IO.Path]::IsPathRooted($q)) { $q = Join-Path $d $q }
+    if (Test-Path -LiteralPath $q -PathType Container) { return [System.IO.Path]::GetFullPath($q) }
+    return $null
   }
-  if (Test-Path -LiteralPath $q -PathType Container) { return [System.IO.Path]::GetFullPath($q) }
+  foreach ($q in @((Join-Path $d 'workspaces'), (Join-Path $d 'workspace'))) {
+    if (Test-Path -LiteralPath $q -PathType Container) { return [System.IO.Path]::GetFullPath($q) }
+  }
   return $null
 }
 
@@ -198,7 +202,9 @@ function Get-StationRoot {
       2. đi LÊN từ bản chụp `-Config` (nằm trong `<chiến dịch>/logs/`)
       3. MARKETING_STUDIO_DATA
       4. `<repo>/studio.local.json: station_path`
-      5. `<repo>/workspace` (chế độ embedded) khi có `CHANNELS.md`
+      5. `<repo>/workspaces` (chế độ embedded) khi là thư mục; chưa có thì nhận
+         `<repo>/workspace` (bố cục cũ còn sót) khi có `CHANNELS.md` — cùng luật với
+         `studio_paths.tram_nhung`
     Không thấy gì -> NÉM, nêu tên biến. Đoán một thư mục là tạo ra một trạm thứ hai: KHÔNG có
     nấc "thư mục cũ trong thư mục nhà" (cùng luật `studio_paths.resolve_station`).
 
@@ -224,10 +230,12 @@ function Get-StationRoot {
     return $sp
   }
   if ($script:RepoRoot) {
-    $ws = Join-Path $script:RepoRoot 'workspace'
-    if (Test-Path -LiteralPath (Join-Path $ws 'CHANNELS.md')) { return $ws }
+    $moi = Join-Path $script:RepoRoot 'workspaces'
+    if (Test-Path -LiteralPath $moi -PathType Container) { return $moi }
+    $cu = Join-Path $script:RepoRoot 'workspace'
+    if (Test-Path -LiteralPath (Join-Path $cu 'CHANNELS.md')) { return $cu }
   }
-  throw 'Get-StationRoot: khong xac dinh duoc tram. Dat MARKETING_STUDIO_DATA (hoac cai che do embedded: <repo>/workspace).'
+  throw 'Get-StationRoot: khong xac dinh duoc tram. Dat MARKETING_STUDIO_DATA (hoac cai che do embedded: <repo>/workspaces).'
 }
 
 function Get-VoiceStation {
