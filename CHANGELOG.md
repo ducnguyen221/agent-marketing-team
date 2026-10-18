@@ -7,6 +7,13 @@ Mỗi mục là một phiên bản. Mục đầu luôn là số trong `pyproject
 
 Station contract: bỏ fallback ẩn `~/.<station>`, trạm phải được chọn tường minh. Thêm thông tin tác giả vào metadata và ghi chú tác giả.
 
+### Chưa phát hành (sau 2.1.0; chưa gắn tag, version giữ 2.1.0)
+
+- `init`: chọn `separate` mà không có `--station` không còn rơi về `~/.marketing`. Có `OPCOS_WORKSPACES` thì đề xuất `<biến>/marketing` (hỏi xác nhận khi có người, dùng luôn và in một dòng khi không); không có biến thì hỏi đường (Enter rỗng là dừng), không có người thì dừng mã 2 và đòi `--station`. `--yes` không bao giờ hỏi đường.
+- `init`: trạm cũ ở `~/.marketing` (có `CHANNELS.md`) không bao giờ được tự nhận, kể cả với `--yes`. Có người thì hỏi ba đường (trạm mới / nhận trạm cũ / dừng; Enter là trạm mới, nhãn ghi đường thật: `<OPCOS_WORKSPACES>/marketing` nếu biến đặt — rồi xác nhận hoặc đổi — không thì `<repo>/workspace`). `--yes` (có hay không có terminal) không bao giờ hỏi: dùng trạm mới là `<repo>/workspace` và in một dòng nêu cách nhận trạm cũ bằng `--station`. `--non-interactive` thiếu cả `--yes` lẫn `--mode` thì dừng mã 2 (không tự chọn chế độ). Chạy lại `init` trên bản cài đã chọn thì dùng lựa chọn cũ. Ai quen `--mode separate` để nhận trạm cũ nay dùng `--station <đường>`, `studio.py migrate` hoặc trả lời [2] ở bảng hỏi.
+- `studio.py migrate --to separate`: không còn đích ngầm. Có người thì hỏi nơi dời, in đường tuyệt đối cùng số file và dung lượng, xin xác nhận `y/N` trước khi dời; không có người thì mã 2 đòi `--station`. Gợi ý chỉ có khi đặt `OPCOS_WORKSPACES`. Đích nằm trong chính trạm nguồn hoặc là một file bị từ chối; dời thất bại thì thư mục đích rỗng có sẵn của bạn vẫn còn nguyên.
+- Mọi chỗ người dùng gõ đường dẫn chấp nhận đường dán kèm cặp ngoặc kép ("Copy as path"); đường gõ được đổi thành tuyệt đối trước khi ghi vào `studio.local.json`.
+
 ## 2.0.0 — 2026-10-15
 
 Đổi tên dự án `agent-marketing-studio` → `agent-marketing-team` (SPR-15). Mức MAJOR vì đổi mã plugin (`agent-marketing-team@agent-marketing-team`), tên repo và địa chỉ Pages: người đã cài theo bản cũ phải gỡ mã cũ rồi cài mã mới (xem INSTALL). Không đổi hành vi của pipeline; biến `MARKETING_STUDIO_*` và tên trạm giữ nguyên. Địa chỉ cũ của repo và trang Pages vẫn chuyển hướng.
