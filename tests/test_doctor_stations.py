@@ -477,3 +477,34 @@ def test_hang_duong_tracked_KHONG_ngan_hon_thuc_te():
     assert len(dai_nhat) <= DR.DUONG_TRACKED_DAI_NHAT, (
         f"{dai_nhat} dài {len(dai_nhat)} > DUONG_TRACKED_DAI_NHAT={DR.DUONG_TRACKED_DAI_NHAT}"
         " — nâng hằng trong scripts/pipeline/doctor.py (hoặc rút ngắn đường)")
+
+
+# ── check `opcos-station` (OPCOS_WORKSPACES) ─────────────────────────────
+
+def test_doctor_hints_init_when_opcos_station_unused(may, repo_gia, tmp_path, monkeypatch):
+    ws = tmp_path / "ws" / "marketing"
+    ws.mkdir(parents=True)
+    (ws / "CHANNELS.md").write_text("x", encoding="utf-8")
+    monkeypatch.setenv("OPCOS_WORKSPACES", str(tmp_path / "ws"))
+    monkeypatch.delenv("MARKETING_STUDIO_DATA")             # nguồn rơi về `default`
+    kq = DR.kham()
+    dong = [x for x in kq["warn"] + kq["info"] if "init_station.py --mode separate --station" in x]
+    assert len(dong) == 1 and str(ws) in dong[0], kq
+
+
+def test_doctor_silent_when_station_env_set(may, tmp_path, monkeypatch):
+    ws = tmp_path / "ws" / "marketing"
+    ws.mkdir(parents=True)
+    (ws / "CHANNELS.md").write_text("x", encoding="utf-8")
+    monkeypatch.setenv("OPCOS_WORKSPACES", str(tmp_path / "ws"))
+    kq = DR.kham()                                           # MARKETING_STUDIO_DATA đã đặt (may)
+    assert not [x for x in kq["warn"] + kq["info"] if "OPCOS_WORKSPACES" in x or "--station" in x]
+
+
+def test_doctor_notes_opcos_dir_without_marker(may, tmp_path, monkeypatch):
+    (tmp_path / "ws" / "marketing").mkdir(parents=True)
+    monkeypatch.setenv("OPCOS_WORKSPACES", str(tmp_path / "ws"))
+    kq = DR.kham()
+    dong = [x for x in kq["warn"] + kq["info"] if "OPCOS_WORKSPACES" in x]
+    assert len(dong) == 1 and str(tmp_path / "ws") in dong[0] and "chưa là trạm" in dong[0]
+    assert kq["code"] == SC.OK

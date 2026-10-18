@@ -11,7 +11,7 @@ pháp PowerShell chung cho mọi `.ps1`, file này giữ phần riêng của b�
 2. **Không tên thư mục engine dùng chung cũ**, không `cmd /c`, không bộ dựng cũ trong trạm giọng.
 3. **Registry `'User'` chỉ đọc sau điều kiện Windows** (P0-1): macOS không có registry,
    đọc trần trả chuỗi rỗng và runner lặng lẽ bỏ qua upload mà vẫn báo ✅.
-4. **Thư mục cũ trong thư mục nhà chỉ là đường lùi CUỐI, có tên trong danh sách** (P1-5):
+4. **Thư mục cũ trong thư mục nhà chỉ là đường lùi CUỐI, có tên trong danh sách**:
    literal `.marketing`/`.voice`/`.tts`/`.video` chỉ được ở đúng chỗ phân giải có WARN.
 5. **Bộ chạy tối thiểu của `engine_dir` có trong repo** — `run.ps1` tìm runner ở
    `<repo>/scripts/runners` trước `<trạm>/engine`.
@@ -45,14 +45,6 @@ PS1 = _files(".ps1")
 
 def _ten(p: Path) -> str:
     return p.relative_to(ROOT).as_posix()
-
-
-# Miễn luật 2 và 4 (có LÝ DO): khuôn `run.ps1` của chiến dịch được CHÉP vào trạm của máy cũ và
-# giữ đường lùi cho trạm chưa dọn — chính các đường lùi đó có kiểm thử riêng.
-MIEN_DUONG_LUI = {
-    "templates/station/_channel/_campaign/run.ps1":
-        "đường lùi trạm/engine cũ cho trạm chưa dọn; kiểm bởi tests/test_run_args.py",
-}
 
 
 def _doc(p: Path) -> str:
@@ -113,8 +105,6 @@ CAM = [
 
 @pytest.mark.parametrize("p", MA, ids=_ten)
 def test_khong_engine_cu_khong_cmd_c(p):
-    if _ten(p) in MIEN_DUONG_LUI:
-        pytest.skip(MIEN_DUONG_LUI[_ten(p)])
     xau = [f"  dòng {i}: {d.strip()[:110]} -> {vs}" for i, d in _dong_ma(p)
            for pat, vs in CAM if pat.search(d)]
     assert not xau, f"{_ten(p)}:\n" + "\n".join(xau)
@@ -155,20 +145,22 @@ def test_tu_kiem_luat_registry():
     assert _registry_tran(khoi) == []
 
 
-# ── Luật 4 — thư mục cũ trong thư mục nhà: chỉ ở chỗ phân giải có WARN (P1-5) ────
+# ── Luật 4 — thư mục cũ trong thư mục nhà: không file nào còn được dò ────
 _CU = re.compile(r"""['"]\.(marketing|voice|tts|video)['"]""")
-# {file: số literal được phép} — mỗi chỗ là NẤC CUỐI của một hàm phân giải, có WARN, chỉ dùng
-# khi thư mục có thật. Thêm một chỗ nữa là thêm một đường tạo trạm thứ hai trên máy mới.
+# {file: số literal được phép}. Hiện RỖNG: không file nào còn được dò thư mục nhà cũ. Thêm một
+# mục là thêm một đường tạo trạm thứ hai trên máy mới — phải có lý do và một ca test riêng.
 CHO_PHEP_CU = {
-    "scripts/runners/brand-paths.ps1": 4,   # Get-StationRoot · Get-VoiceStation (2) · Get-VideoStation
-    "scripts/runners/paths.py": 1,          # station()
+    # brand-paths.ps1 hết ba khối dò thư mục nhà (`.marketing`,
+    # `.voice`/`.tts`, `.video`) nên không còn literal nào; run.ps1 (template) hết `.marketing` và
+    # `.news/engine`, không còn được miễn. Mục của brand-paths.ps1 gỡ ⇒ `test_thu_muc_cu_chi_o_cho_phan_giai`
+    # đòi 0 cho cả hai.
+    # paths.py::station() hết đường lùi ~/.marketing nên không còn
+    # literal nào — bỏ mục này để `test_thu_muc_cu_chi_o_cho_phan_giai` đòi 0 cho file đó.
 }
 
 
 @pytest.mark.parametrize("p", MA, ids=_ten)
 def test_thu_muc_cu_chi_o_cho_phan_giai(p):
-    if _ten(p) in MIEN_DUONG_LUI:
-        pytest.skip(MIEN_DUONG_LUI[_ten(p)])
     n = sum(len(_CU.findall(d)) for _, d in _dong_ma(p))
     cho = CHO_PHEP_CU.get(_ten(p), 0)
     assert n <= cho, (f"{_ten(p)}: {n} literal thư mục cũ trong thư mục nhà (được {cho}). Phân "

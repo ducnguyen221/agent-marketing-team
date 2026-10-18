@@ -13,7 +13,8 @@
 # THỨ TỰ PHÂN GIẢI (mọi đường, mọi OS) — một luật, không ngoại lệ:
 #   biến môi trường (Windows: thêm registry User) → `<repo>/.env` (chỉ chế độ embedded)
 #   → repo anh em cùng thư mục cha, nhận bằng NỘI DUNG (`pyproject.toml: name`)
-#   → đường cũ trong thư mục nhà, CHỈ khi có thật, kèm một dòng WARN.
+#   → hết. KHÔNG có nấc "đường cũ trong thư mục nhà": không thấy thì trạm NÉM, hai trạm
+#     năng lực trả $null — đoán một thư mục trong nhà là tạo ra một trạm thứ hai.
 # Tên thư mục chứa repo (`Code`, `Repo`, gì cũng được) không bao giờ là một giả định.
 
 # ── Phân giải đường, KHÔNG chạm đĩa trừ khi nói rõ ───────────────────────────
@@ -41,12 +42,6 @@ function Resolve-Home {
     return (Join-Path $HOME $P.Substring(2))
   }
   return $P
-}
-
-function Write-PathWarn {
-  # Đường lùi cũ vẫn dùng được nhưng phải NÓI RA: im lặng là cách hai máy lệch nhau.
-  param([string]$Msg)
-  Write-Host ('WARN: ' + $Msg)
 }
 
 function Get-StudioRepo {
@@ -204,8 +199,8 @@ function Get-StationRoot {
       3. MARKETING_STUDIO_DATA
       4. `<repo>/studio.local.json: station_path`
       5. `<repo>/workspace` (chế độ embedded) khi có `CHANNELS.md`
-      6. thư mục cũ `.marketing` trong thư mục nhà — chỉ khi có thật, kèm WARN
-    Không thấy gì -> NÉM, nêu tên biến. Đoán một thư mục là tạo ra một trạm thứ hai.
+    Không thấy gì -> NÉM, nêu tên biến. Đoán một thư mục là tạo ra một trạm thứ hai: KHÔNG có
+    nấc "thư mục cũ trong thư mục nhà" (cùng luật `studio_paths.resolve_station`).
 
     Nấc 1–2 quan trọng nhất: `run.ps1` cũng đi lên từ thư mục chiến dịch, nên runner và
     `run.ps1` không bao giờ trỏ HAI trạm khác nhau trong cùng một lượt. Bản trong repo bỏ
@@ -232,11 +227,6 @@ function Get-StationRoot {
     $ws = Join-Path $script:RepoRoot 'workspace'
     if (Test-Path -LiteralPath (Join-Path $ws 'CHANNELS.md')) { return $ws }
   }
-  $cu = Join-Path $HOME '.marketing'
-  if (Test-Path -LiteralPath (Join-Path $cu 'CHANNELS.md')) {
-    Write-PathWarn ('tram lay theo duong cu ' + $cu + ' - dat MARKETING_STUDIO_DATA cho ro rang.')
-    return $cu
-  }
   throw 'Get-StationRoot: khong xac dinh duoc tram. Dat MARKETING_STUDIO_DATA (hoac cai che do embedded: <repo>/workspace).'
 }
 
@@ -244,7 +234,7 @@ function Get-VoiceStation {
   <#
     Gốc trạm giọng. Thứ tự: VOICE_STATION -> thư mục CHA của OMNIVOICE_DIR (tên cũ, trỏ
     engine) -> `studio.local.json: voice_station` -> repo anh em `agent-voice-studio`
-    -> thư mục cũ trong thư mục nhà (chỉ khi có thật, WARN) -> $null.
+    -> $null (không dò thư mục cũ trong thư mục nhà).
 
     Hàm này chỉ GHÉP đường; phần fail-closed nằm ở `Find-OmniVoicePython`, nơi thực sự cần
     một trình thông dịch chạy được.
@@ -257,19 +247,12 @@ function Get-VoiceStation {
   if ($lc -and $lc.voice_station) { return (Resolve-Home ([string]$lc.voice_station)) }
   $v = Find-SiblingStation 'agent-voice-studio'
   if ($v) { return $v }
-  foreach ($ten in @('.voice', '.tts')) {
-    $cu = Join-Path $HOME $ten
-    if (Test-Path -LiteralPath $cu) {
-      Write-PathWarn ('tram giong lay theo duong cu ' + $cu + ' - dat VOICE_STATION.')
-      return $cu
-    }
-  }
   return $null
 }
 
 function Get-VideoStation {
   # Gốc trạm video: VIDEO_STATION -> VIDEO_ROOT (tên cũ) -> `studio.local.json: video_station`
-  # -> repo anh em `agent-video-studio` -> thư mục cũ (chỉ khi có thật, WARN) -> $null.
+  # -> repo anh em `agent-video-studio` -> $null (không dò thư mục cũ trong thư mục nhà).
   $v = Get-EnvVar 'VIDEO_STATION'
   if ($v) { return (Resolve-Home $v) }
   $v = Get-EnvVar 'VIDEO_ROOT'
@@ -278,12 +261,20 @@ function Get-VideoStation {
   if ($lc -and $lc.video_station) { return (Resolve-Home ([string]$lc.video_station)) }
   $v = Find-SiblingStation 'agent-video-studio'
   if ($v) { return $v }
-  $cu = Join-Path $HOME '.video'
-  if (Test-Path -LiteralPath $cu) {
-    Write-PathWarn ('tram video lay theo duong cu ' + $cu + ' - dat VIDEO_STATION.')
-    return $cu
-  }
   return $null
+}
+
+function Get-BgmDir {
+  <#
+    Thư viện nhạc nền: VOICE_BGM_DIR -> `<trạm video>/assets/news-bgm`. Cả hai vắng -> '' kèm WARN
+    nêu tên biến (bản cũ lấy `~/.video` nên nhạc nền vẫn có; nay tắt thì phải NÓI RA). Nhạc nền là
+    tuỳ chọn nên KHÔNG dừng pipeline — dừng sẽ làm hỏng video đã lên lịch.
+  #>
+  $v = Get-EnvVar 'VOICE_BGM_DIR'
+  if ($v) { return (Resolve-Home $v) }
+  if ($script:VideoStation) { return [System.IO.Path]::Combine($script:VideoStation, 'assets', 'news-bgm') }
+  Write-Host 'WARN: khong co nhac nen - dat VOICE_BGM_DIR hoac VIDEO_STATION (tram video). Video van dung, khong nhac.'
+  return ''
 }
 
 function Find-Python {

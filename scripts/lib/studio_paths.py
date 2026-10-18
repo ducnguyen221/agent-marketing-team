@@ -153,6 +153,26 @@ def workspace_dir(repo=None) -> Path | None:
     return (repo / WORKSPACE) if repo else None
 
 
+def goc_opcos(ten: str = "marketing") -> tuple[str, str] | None:
+    """Điểm đọc DUY NHẤT của `OPCOS_WORKSPACES`: `(giá trị biến, đường tuyệt đối <biến>/<ten>)`,
+    hoặc None khi biến vắng/rỗng. Chỉ đọc `os.environ` — KHÔNG đọc `.env` của repo. Không kiểm
+    thư mục có tồn tại hay không (việc của `tram_opcos`). `tram_opcos` và `doctor` cùng gọi."""
+    bien = (os.environ.get("OPCOS_WORKSPACES") or "").strip()
+    if not bien:
+        return None
+    return bien, os.path.abspath(os.path.join(os.path.expanduser(bien), ten))
+
+
+def tram_opcos(ten: str = "marketing") -> Path | None:
+    """`<OPCOS_WORKSPACES>/<ten>` khi biến có, khác rỗng và thư mục đó **mang dấu trạm**
+    (`CHANNELS.md`); không thì None. Tuỳ chọn tích hợp OpcOS.
+
+    CHỈ `init` (đề xuất) và `doctor` (nhắc) gọi hàm này. `resolve_station()` KHÔNG BAO GIỜ
+    gọi: biến này không được tự đổi trạm của ai. Không tạo, không ghi, không cảnh báo."""
+    d = goc_opcos(ten)
+    return Path(d[1]) if d and (Path(d[1]) / SO_KENH).is_file() else None
+
+
 # ── bí mật: biến môi trường → <repo>/.env (chỉ embedded) → kho secret của máy ──────────
 
 # Chốt của BỘ TEST (P1-18): `.env` của bản clone ghi trong biến này KHÔNG được đọc. Máy chạy

@@ -52,7 +52,7 @@ if (-not $syspy) { throw 'khong thay Python 3.10+ (dat MARKETING_STUDIO_PY).' }
 $media = @('-m', (@('video_studio', 'templates', 'news', 'daily_news_media') -join '.'))
 # Thư viện nhạc nền (AI chọn theo nội dung). Manifest = nguồn chân lý.
 # VOICE_BGM_DIR -> <trạm video>/assets/news-bgm. AI chỉ được chọn style CÓ mp3 (Get-BgmCatalog).
-$bgmDir  = if (Get-EnvVar 'VOICE_BGM_DIR') { Resolve-Home (Get-EnvVar 'VOICE_BGM_DIR') } elseif ($VideoStation) { [System.IO.Path]::Combine($VideoStation, 'assets', 'news-bgm') } else { '' }
+$bgmDir  = Get-BgmDir
 $bgmCat  = Get-BgmCatalog $bgmDir
 $bgmLib  = $bgmCat.lib
 $bgmListText = $bgmCat.text

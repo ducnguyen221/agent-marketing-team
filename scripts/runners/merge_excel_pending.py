@@ -13,9 +13,10 @@ from openpyxl import load_workbook
 from openpyxl.styles import Font
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from paths import auto_task_xlsx, desktop, station  # noqa: E402
+from paths import auto_task_xlsx, desktop, station, station_hoac_thoat  # noqa: E402
 
 HERE = os.path.dirname(os.path.abspath(__file__))
+station_hoac_thoat()          # thiếu trạm: thoát gọn nêu MARKETING_STUDIO_DATA, không traceback
 DESK = desktop()
 XLSX = auto_task_xlsx()
 # Bản pending có thể nằm ở 4 nơi: trong trạm (mặc định TỪ 21/09/2026), cạnh script

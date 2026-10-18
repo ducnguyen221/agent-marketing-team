@@ -25,6 +25,18 @@ def _png(w, h):
     return sig + bytes(4) + b"IHDR" + w.to_bytes(4, "big") + h.to_bytes(4, "big") + b"0" * 64
 
 
+@pytest.fixture(autouse=True)
+def _anh_tam_trong_tmp_path(tmp_path, monkeypatch):
+    """Mọi lượt make() trong file này lưu ảnh tạm dưới tmp_path, không chạm `.tmp/fb-images` của repo
+    (rác cũ ở đó từng làm test đỏ giả; test cũng không được để rác lại)."""
+    that = M.make
+
+    def make(*a, **kw):
+        kw.setdefault("tam_dir", tmp_path / "anh-tam")
+        return that(*a, **kw)
+    monkeypatch.setattr(M, "make", make)
+
+
 @pytest.fixture
 def post(tmp_path):
     d = tmp_path / "NEN-001_bai"
@@ -55,7 +67,7 @@ def _cau_gia(*, ve=(1920, 1080), code=0, ok=True, ghi=True):
     return run
 
 
-def test_sinh_anh_chuyen_sang_bai_va_ghi_ho_so_CHUA_SOAT(post):
+def test_sinh_anh_chuyen_sang_bai_va_ghi_ho_so_CHUA_SOAT(post, tmp_path):
     d, cau = post
     run = _cau_gia()
     code, kq = M.make(d, cau=cau, run=run)
@@ -67,7 +79,22 @@ def test_sinh_anh_chuyen_sang_bai_va_ghi_ho_so_CHUA_SOAT(post):
     assert "--origin" in cmd and cmd[cmd.index("--origin") + 1] == "human"
     assert cmd[cmd.index("--access") + 1] == "workspace"
     assert PROMPT.strip() in viec, "prompt phải đi NGUYÊN VĂN"
-    assert not list((M.REPO / ".tmp" / "fb-images").glob("NEN-001_bai-*")), "để lại rác trong .tmp"
+    assert not list((tmp_path / "anh-tam").glob("NEN-001_bai-*")), "để lại rác trong thư mục ảnh tạm"
+
+
+def test_khong_de_lai_file_trong_repo(post, tmp_path):
+    """Test không đọc/ghi cây repo (kể cả thư mục bị git bỏ qua) và không bị rác cũ làm đỏ giả."""
+    d, cau = post
+    cua_repo = M.REPO / ".tmp" / "fb-images"
+    truoc = sorted(cua_repo.glob("*")) if cua_repo.exists() else None
+    run = _cau_gia()
+    code, _ = M.make(d, cau=cau, run=run)
+    assert code == 0
+    viec = run.goi[0][1]
+    out = Path(viec.split("đường dẫn:\n", 1)[1].split("\n", 1)[0].strip())
+    assert tmp_path in out.parents and cua_repo not in out.parents, f"ảnh tạm không nằm dưới tmp_path: {out}"
+    sau = sorted(cua_repo.glob("*")) if cua_repo.exists() else None
+    assert sau == truoc, "make() đã đổi nội dung .tmp/fb-images của repo"
 
 
 def test_da_co_anh_thi_KHONG_ghi_de(post):

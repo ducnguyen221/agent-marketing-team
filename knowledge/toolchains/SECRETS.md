@@ -154,6 +154,7 @@ user thì mọi tiến trình con đọc được và nó lọt vào log.
 |---|---|---|
 | `MARKETING_STUDIO_DATA` | `studio_paths.py`, `run.ps1` — gốc trạm | script Python: `studio.local.json` → `<repo>/workspace/`; `run.ps1` đi lên tìm `CHANNELS.md` trước |
 | `MARKETING_STUDIO_HOME` | `run.ps1` — thư mục repo | đi lên từ thư mục chiến dịch tìm `scripts/pipeline/campaign_cfg.py` (embedded: cha của trạm); không thấy thì DỪNG |
+| `OPCOS_WORKSPACES` | `init_station.py` (đề xuất), `doctor.py` (nhắc) — tuỳ chọn | không làm gì; có thì `init` đề xuất `<đó>/marketing` nếu mang `CHANNELS.md`, không bao giờ tự đổi trạm. Chỉ đọc từ môi trường thật: đặt cấp user (`setx` / plist), **`.env` KHÔNG được đọc** |
 | `MARKETING_STUDIO_PY` | mọi `.ps1` gọi Python (`Find-Python`) | `<repo>/.venv` → `python` → `python3` → `py`; khai mà hỏng thì DỪNG |
 | `AGENT_CALL_ENGINES` | `agent_call.py` — đường tới `engines.json` (model, thứ tự fallback, đường CLI) | `<gốc trạm>/_agent-call/engines.json` → `<gốc trạm>/engine/engines.json`; thiếu cả hai thì dùng mặc định trong mã. File này là **cấu hình theo MÁY** — nó đi theo gói `station.py export`, nên máy vừa nhận gói đang chạy thứ tự engine của máy cũ; xem `docs/RUNBOOK-DOI-MAY.md` bước 5 |
 | `TG_CHAT` | `telegram_io.py` — tên chat trong file cấu hình | `mac_dinh` |

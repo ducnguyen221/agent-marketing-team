@@ -31,7 +31,7 @@ kênh · `{station}` gốc trạm · `{skills}` skill khai ở `runtime.writer_s
 `writer_cmd`) · `{web}` URL bài đã lên trang (chỉ có ở `youtube_cmd` và `facebook_cmd`).
 
 `{channel}` = đi lên từ chiến dịch tới `channel.yml`. `{station}` = đi lên tới `CHANNELS.md`,
-rồi `MARKETING_STUDIO_DATA`, rồi `~/.marketing` — cùng luật với `run.ps1`. Script đặt ở trạm
+rồi `MARKETING_STUDIO_DATA`, rồi `studio.local.json`, rồi `<repo>/workspace/` — không có thì dừng, không đoán thư mục trong nhà. Script đặt ở trạm
 thì trỏ qua hai ô này, **đừng ghi cứng đường của một máy**: chép trạm sang máy khác (hay sang
 macOS) là lệnh vẫn đúng. Ô không phân giải được (vd chiến dịch không nằm trong kênh nào) ⇒
 hook đó **hỏng có lý do**, không chạy với chuỗi rỗng. Ngoặc nhọn khác (`{khac}`, JSON) được

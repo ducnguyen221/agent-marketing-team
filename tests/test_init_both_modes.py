@@ -408,3 +408,122 @@ def test_non_interactive_KHONG_doan_che_do(repo, tmp_path, monkeypatch):
     assert "chọn chế độ" in str(e.value)
     # nhưng khai rõ thì vẫn chạy, không hỏi ai
     assert IS.chon_che_do(station=str(tmp_path / "t"), non_interactive=True)[0] == "separate"
+
+
+# ── trạm OpcOS (OPCOS_WORKSPACES) — chỉ đề xuất, không bao giờ tự nhận ────────
+
+@pytest.fixture
+def opcos(repo, tmp_path, monkeypatch):
+    """Máy có OPCOS_WORKSPACES và `<ws>/marketing` mang dấu trạm."""
+    ws = tmp_path / "ws"
+    tram = ws / "marketing"
+    tram.mkdir(parents=True)
+    (tram / SP.SO_KENH).write_text("---\nchannels: []\n---\n", encoding="utf-8")
+    monkeypatch.setenv("OPCOS_WORKSPACES", str(ws))
+    return tram
+
+
+def test_mode_separate_mac_dinh_tram_OPCOS_va_ghi_station_path_tuyet_doi(repo, opcos, nha):
+    truoc = chup(opcos)
+    kq = IS.do_init(mode="separate", ask=khong_duoc_hoi)
+    assert kq["mode"] == "separate"
+    assert doc_local(repo)["station_path"] == os.path.abspath(opcos)
+    assert os.path.isabs(doc_local(repo)["station_path"])
+    assert chup(opcos) == truoc, "không tạo thư mục/file nào trong trạm OpcOS"
+    assert not (repo / SP.WORKSPACE).exists() and not (nha / ".marketing").exists()
+
+
+def test_tra_loi_tuong_tac_duoc_de_xuat_tram_OPCOS(repo, opcos):
+    bang = []
+    kq = IS.do_init(ask=lambda b: bang.append(b) or "2")
+    assert str(opcos) in bang[0] and "OPCOS_WORKSPACES" in bang[0]
+    assert kq["mode"] == "separate"
+    assert doc_local(repo)["station_path"] == os.path.abspath(opcos)
+
+
+def test_tra_loi_tuong_tac_embedded_thi_van_embedded(repo, opcos):
+    kq = IS.do_init(ask=lambda b: "1")
+    assert kq["mode"] == "embedded"
+    assert (repo / SP.WORKSPACE).is_dir()
+    assert doc_local(repo)["station_path"] == SP.WORKSPACE
+
+
+def test_yes_voi_bien_OPCOS_van_embedded(repo, opcos):
+    kq = IS.do_init(yes=True, ask=khong_duoc_hoi)
+    assert kq["mode"] == "embedded"
+    assert doc_local(repo)["station_path"] == SP.WORKSPACE
+
+
+def test_mode_embedded_van_duoc_khi_co_bien_OPCOS(repo, opcos):
+    kq = IS.do_init(mode="embedded", ask=khong_duoc_hoi)
+    assert kq["mode"] == "embedded" and (repo / SP.WORKSPACE).is_dir()
+
+
+def test_init_lai_clone_embedded_KHONG_bi_lat(repo, opcos):
+    (repo / SP.LOCAL_CONFIG).write_text(json.dumps({"mode": "embedded"}), encoding="utf-8")
+    kq = IS.do_init(ask=khong_duoc_hoi)
+    assert kq["mode"] == "embedded"
+    assert doc_local(repo)["station_path"] == SP.WORKSPACE
+
+
+def test_yes_bo_qua_thu_muc_OPCOS_khong_CHANNELS(repo, tmp_path, monkeypatch):
+    (tmp_path / "ws" / "marketing").mkdir(parents=True)
+    monkeypatch.setenv("OPCOS_WORKSPACES", str(tmp_path / "ws"))
+    kq = IS.do_init(yes=True, ask=khong_duoc_hoi)
+    assert kq["mode"] == "embedded"
+    assert doc_local(repo)["station_path"] == SP.WORKSPACE
+    # tương tác cũng không đề xuất gì
+    bang = []
+    (repo / SP.LOCAL_CONFIG).unlink()
+    IS.do_init(ask=lambda b: bang.append(b) or "")
+    assert "OPCOS_WORKSPACES" not in bang[0]
+
+
+def test_lan_chon_truoc_separate_khong_station_path_KHONG_ra_tram_OPCOS(repo, opcos, nha):
+    """Nhánh `truoc == "separate"` (studio.local.json) đứng TRƯỚC nhánh OpcOS: không station_path
+    ⇒ resolve_station() = default (`<repo>/workspace`), tuyệt đối không nhảy sang trạm OpcOS."""
+    (repo / SP.LOCAL_CONFIG).write_text(json.dumps({"mode": "separate"}), encoding="utf-8")
+    kq = IS.chon_che_do(ask=khong_duoc_hoi)
+    assert kq[0] == "separate"
+    assert Path(kq[1]) == SP.resolve_station()[0] == (repo / SP.WORKSPACE).resolve()
+    assert Path(kq[1]) != Path(os.path.abspath(opcos))
+
+
+def test_mode_separate_voi_thu_muc_OPCOS_chua_mang_dau_thi_ve_mac_dinh(repo, tmp_path,
+                                                                        monkeypatch):
+    (tmp_path / "ws" / "marketing").mkdir(parents=True)          # có thư mục, KHÔNG có CHANNELS.md
+    monkeypatch.setenv("OPCOS_WORKSPACES", str(tmp_path / "ws"))
+    mode, st, _ = IS.chon_che_do(mode="separate", ask=khong_duoc_hoi)
+    assert mode == "separate" and Path(st) == IS.nha_marketing()
+
+
+def test_khong_bien_OPCOS_thi_nhu_cu(repo, nha):
+    bang = []
+    kq = IS.do_init(ask=lambda b: bang.append(b) or "2")
+    assert "OPCOS_WORKSPACES" not in bang[0]
+    assert kq["mode"] == "separate" and Path(kq["station"]) == (nha / ".marketing").resolve()
+
+
+def test_OPCOS_WORKSPACES_tuong_doi_ghi_station_path_TUYET_DOI_va_resolve_tu_cwd_khac(
+        repo, tmp_path, monkeypatch):
+    """Biến là đường TƯƠNG ĐỐI (tính theo cwd lúc `init`): `station_path` phải ghi dạng tuyệt đối,
+    để chạy lại từ cwd khác (repo, cron) vẫn ra đúng trạm — không trôi theo thư mục hiện hành."""
+    tram = tmp_path / "ws" / "marketing"
+    tram.mkdir(parents=True)
+    (tram / SP.SO_KENH).write_text("---\nchannels: []\n---\n", encoding="utf-8")
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setenv("OPCOS_WORKSPACES", "ws")
+    IS.do_init(mode="separate", ask=khong_duoc_hoi)
+    ghi = doc_local(repo)["station_path"]
+    assert os.path.isabs(ghi) and Path(ghi) == tram.resolve()
+    monkeypatch.chdir(repo)
+    assert SP.resolve_station()[0] == tram.resolve()
+
+
+def test_non_interactive_bang_lua_chon_co_chu_OPCOS_WORKSPACES(repo, opcos, capsys):
+    """Agent đọc bảng ở stderr rồi chạy lại với --mode; bảng phải nêu biến + đường trạm."""
+    with pytest.raises(SC.ContractError):
+        IS.chon_che_do(non_interactive=True)
+    err = capsys.readouterr().err
+    assert "OPCOS_WORKSPACES" in err and str(opcos) in err
+

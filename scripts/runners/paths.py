@@ -11,8 +11,7 @@ Thứ tự, không ngoại lệ (cùng luật với `brand-paths.ps1` và `scrip
     MARKETING_STUDIO_DATA
     → `studio_paths.resolve_station()` của repo (`studio.local.json` → `<repo>/workspace`),
       chỉ nhận khi nơi đó CÓ `CHANNELS.md`
-    → thư mục cũ `.marketing` trong thư mục nhà — CHỈ khi có thật, kèm một dòng WARN
-    → DỪNG, nêu tên biến.
+    → DỪNG bằng `StationMissing`, nêu tên biến. KHÔNG dò thư mục nhà.
 
 Hàm này KHÔNG BAO GIỜ tạo thư mục trạm: một lượt chạy tay không đặt biến từng lặng lẽ tạo
 một trạm rỗng trong thư mục nhà của máy mới, và từ đó hai máy ghi sổ vào hai chỗ.
@@ -71,13 +70,26 @@ def station():
     t = _tram_repo()
     if t:
         return t
-    cu = os.path.join(os.path.expanduser("~"), ".marketing")
-    if os.path.isfile(os.path.join(cu, "CHANNELS.md")):
-        print(f"WARN: trạm lấy theo đường cũ {cu} — đặt MARKETING_STUDIO_DATA cho rõ ràng.",
-              file=sys.stderr)
-        return cu
-    raise SystemExit("paths.station: không xác định được trạm — đặt MARKETING_STUDIO_DATA "
-                     "(hoặc cài chế độ embedded: <repo>/workspace có CHANNELS.md).")
+    msg = ("không xác định được trạm: đặt MARKETING_STUDIO_DATA hoặc chạy `scripts/pipeline/init_station.py` "
+           "(chế độ embedded: <repo>/workspace có CHANNELS.md)")
+    if _LIB not in sys.path:
+        sys.path.insert(0, _LIB)
+    try:
+        import studio_contract as SC
+    except ImportError:             # runner chép đi nơi không có lib/: vẫn dừng, nêu tên biến
+        raise SystemExit("paths.station: " + msg)
+    raise SC.StationMissing(msg)
+
+
+def station_hoac_thoat():
+    """Như `station()` nhưng cho runner chạy TRỰC TIẾP: thiếu trạm ⇒ thoát gọn bằng thông điệp
+    nêu tên biến (SystemExit), không phun traceback của `StationMissing`."""
+    try:
+        return station()
+    except Exception as e:  # noqa: BLE001
+        if type(e).__name__ == "StationMissing":
+            raise SystemExit("paths.station: " + str(e)) from None
+        raise
 
 
 def auto_task_xlsx():

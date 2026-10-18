@@ -26,9 +26,10 @@ import sys
 import time
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from paths import auto_task_xlsx, station  # noqa: E402
+from paths import auto_task_xlsx, station, station_hoac_thoat  # noqa: E402
 
 HERE = os.path.dirname(os.path.abspath(__file__))
+station_hoac_thoat()          # thiếu trạm: thoát gọn nêu MARKETING_STUDIO_DATA, không traceback
 XLSX = auto_task_xlsx()
 # Hàng đợi nằm trong TRẠM, không trong engine: engine là mã dùng chung đi theo gói
 # sang máy khác, còn những dòng Excel chưa ghi được là dữ liệu riêng của một máy.

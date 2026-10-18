@@ -52,6 +52,54 @@ def _khong_cham_secret_that(monkeypatch):
     monkeypatch.setenv(_SP.BIEN_CHAN_ENV_FILE, str(_REPO_THAT))
 
 
+@pytest.fixture(autouse=True)
+def _khong_thay_tram_that(monkeypatch):
+    """Test KHÔNG BAO GIỜ thấy trạm thật của máy đang chạy.
+
+    Biến User trên máy chạy thật (`MARKETING_STUDIO_DATA`, `MARKETING_STUDIO_HOME`,
+    `OPCOS_WORKSPACES`…) trỏ trạm và checkout thật; fixture trên chỉ gỡ secret. Gỡ sạch bốn
+    biến rồi đặt `MARKETING_STUDIO_HOME` = bản clone đang test, nên `repo_root()` luôn về đúng
+    worktree này chứ không về checkout chính. Test cần biến nào thì tự `setenv` sau fixture này."""
+    for ten in ("MARKETING_STUDIO_DATA", "MARKETING_STUDIO_HOME", "OPCOS_WORKSPACES",
+                "OPCOS_ROOT"):
+        monkeypatch.delenv(ten, raising=False)
+    monkeypatch.setenv("MARKETING_STUDIO_HOME", str(_REPO_THAT))
+
+
+# Biến trạm/OpcOS mà `sandbox_home` gỡ (cùng danh sách với video/voice).
+_BIEN_TRAM_SANDBOX = ("VIDEO_STATION", "VIDEO_ROOT", "VOICE_STATION", "OMNIVOICE_DIR",
+                      "MARKETING_STUDIO_DATA", "MARKETING_STUDIO_HOME", "VIDEO_STUDIO_REPO",
+                      "VOICE_STUDIO_REPO", "OPCOS_WORKSPACES", "OPCOS_ROOT")
+
+
+@pytest.fixture
+def sandbox_home(tmp_path, monkeypatch):
+    """Nhà GIẢ không junction: `tmp_path/home` có `.marketing/CHANNELS.md` MỒI (một trạm giả).
+
+    Đặt cả bốn biến nhà — Python `expanduser` đọc `HOME`/`USERPROFILE`, tiến trình con PowerShell
+    5.1 tính lại từ `HOMEDRIVE`+`HOMEPATH` — và gỡ mọi biến trạm/`OPCOS_*`. Dùng để chứng minh
+    không đường nào còn "đoán" `~/.marketing`. Đặt TRƯỚC `repo_gia` khi dùng chung (fixture này
+    gỡ `MARKETING_STUDIO_HOME`; `repo_gia` đặt lại). Không symlink/junction."""
+    nha = tmp_path / "home"
+    nha.mkdir()
+    ve, duoi = os.path.splitdrive(str(nha))
+    monkeypatch.setenv("HOME", str(nha))
+    monkeypatch.setenv("USERPROFILE", str(nha))
+    monkeypatch.setenv("HOMEDRIVE", ve)
+    monkeypatch.setenv("HOMEPATH", duoi)
+    for ten in _BIEN_TRAM_SANDBOX:
+        monkeypatch.delenv(ten, raising=False)
+    # Hai biến checkout ĐẶT (không gỡ) trỏ thư mục rỗng trong nhà giả: gỡ thì resolver tự dò ra checkout thật.
+    for ten, con in (("VIDEO_STUDIO_REPO", "no-video-repo"), ("VOICE_STUDIO_REPO", "no-voice-repo")):
+        (nha / con).mkdir()
+        monkeypatch.setenv(ten, str(nha / con))
+    moi = nha / ".marketing"
+    moi.mkdir()
+    (moi / "CHANNELS.md").write_text("---\nschema: channels/1\nchannels: []\n---\n",
+                                    encoding="utf-8")
+    return nha
+
+
 def pytest_report_header(config):
     return (f"encoding máy: PYTHONUTF8={os.environ.get('PYTHONUTF8', '(không đặt)')} · "
             f"PYTHONIOENCODING={os.environ.get('PYTHONIOENCODING', '(không đặt)')}")

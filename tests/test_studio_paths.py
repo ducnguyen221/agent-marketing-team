@@ -6,6 +6,7 @@ thay vì đọc CHANNELS.md thì kênh ngoài trở nên vô hình, và nó vô 
 lệnh chạy xong, chỉ là không thấy kênh đó đâu.
 """
 import json
+import os
 import sys
 from pathlib import Path
 
@@ -402,3 +403,100 @@ def test_CODEX_BRIDGE_khai_trong_env_thi_thanh_mac_dinh_cua_co(repo_env):
     sys.path.insert(0, str(ROOT / "scripts" / "pipeline"))
     import make_fb_image as MF
     assert str(MF._bridge_mac_dinh()) == str(Path("D:/cau/cli.mjs"))
+
+
+# ── nhà giả, trạm OpcOS (chỉ init/doctor đọc), runner không lùi về nhà ───────
+
+def _tram_mang_dau(d):
+    d.mkdir(parents=True, exist_ok=True)
+    (d / SP.SO_KENH).write_text("x", encoding="utf-8")
+    return d
+
+
+def test_sandbox_home_che_het_nha_that(sandbox_home, tmp_path):
+    import os
+    assert os.path.expanduser("~").startswith(str(tmp_path))
+    assert Path.home().is_relative_to(tmp_path)
+    for b in ("OPCOS_WORKSPACES", "OPCOS_ROOT", "MARKETING_STUDIO_DATA", "VIDEO_STATION",
+              "VOICE_STATION", "OMNIVOICE_DIR"):
+        assert b not in os.environ, b
+    assert (sandbox_home / ".marketing" / SP.SO_KENH).is_file()      # trạm mồi
+    # Hai biến checkout bị ĐẶT (không gỡ) trỏ thư mục rỗng trong nhà giả: gỡ thì resolver tự dò ra checkout thật.
+    for b in ("VIDEO_STUDIO_REPO", "VOICE_STUDIO_REPO"):
+        assert b in os.environ, b
+        d = Path(os.environ[b])
+        assert d.is_relative_to(sandbox_home), b
+        assert d.is_dir() and not any(d.iterdir()), b
+
+
+def test_tram_opcos_co_CHANNELS_thi_thay(tmp_path, monkeypatch):
+    tram = _tram_mang_dau(tmp_path / "ws" / "marketing")
+    monkeypatch.setenv("OPCOS_WORKSPACES", str(tmp_path / "ws"))
+    assert SP.tram_opcos() == Path(str(tram))
+    assert SP.tram_opcos().is_absolute()
+
+
+def test_tram_opcos_khong_CHANNELS_thi_None(tmp_path, monkeypatch):
+    (tmp_path / "ws" / "marketing").mkdir(parents=True)
+    monkeypatch.setenv("OPCOS_WORKSPACES", str(tmp_path / "ws"))
+    assert SP.tram_opcos() is None
+    monkeypatch.delenv("OPCOS_WORKSPACES")
+    assert SP.tram_opcos() is None
+
+
+def test_tram_opcos_rong_file_hoac_dau_nga(sandbox_home, tmp_path, monkeypatch):
+    f = tmp_path / "la-mot-file"
+    f.write_text("x", encoding="utf-8")
+    for gia in ("", "  ", str(f)):
+        monkeypatch.setenv("OPCOS_WORKSPACES", gia)
+        assert SP.tram_opcos() is None, repr(gia)
+    tram = _tram_mang_dau(sandbox_home / "ws" / "marketing")
+    monkeypatch.setenv("OPCOS_WORKSPACES", "~/ws")
+    assert SP.tram_opcos() == Path(str(tram))
+
+
+def test_resolve_station_KHONG_doc_OPCOS_WORKSPACES(repo_gia, tmp_path, monkeypatch):
+    _tram_mang_dau(tmp_path / "ws" / "marketing")
+    monkeypatch.setenv("OPCOS_WORKSPACES", str(tmp_path / "ws"))
+    assert SP.resolve_station() == ((repo_gia / SP.WORKSPACE).resolve(), "default")
+
+
+def test_runners_paths_KHONG_lui_ve_nha_khi_khong_cau_hinh(sandbox_home, repo_gia):
+    import importlib.util
+    import studio_contract as SC
+    spec = importlib.util.spec_from_file_location(
+        "runners_paths_tk4", ROOT / "scripts" / "runners" / "paths.py")
+    m = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(m)
+    with pytest.raises(SC.StationMissing, match="MARKETING_STUDIO_DATA"):
+        m.station()
+
+
+def test_tram_opcos_KHONG_doc_env_file_chi_doc_os_environ(repo_embedded, tmp_path, monkeypatch):
+    """`OPCOS_WORKSPACES` khai trong `<repo>/.env` mà KHÔNG có trong môi trường ⇒ None.
+    Máy chạy lịch dùng `.env`; nếu hàm đọc qua `secret_env` thì `.env` đổi trạm hộ người dùng."""
+    _tram_mang_dau(tmp_path / "ws" / "marketing")
+    (repo_embedded / ".env").write_text(f"OPCOS_WORKSPACES={tmp_path / 'ws'}\n", encoding="utf-8")
+    monkeypatch.setenv("MARKETING_STUDIO_HOME", str(repo_embedded))
+    monkeypatch.delenv("OPCOS_WORKSPACES", raising=False)
+    monkeypatch.delenv(SP.BIEN_CHAN_ENV_FILE, raising=False)       # để `.env` của repo giả ĐỌC được
+    assert SP.doc_env_file(repo_embedded).get("OPCOS_WORKSPACES"), "tiền đề: .env phải đọc được"
+    assert SP.secret_env("OPCOS_WORKSPACES", repo_embedded), "tiền đề: secret_env THẤY biến"
+    assert SP.tram_opcos() is None
+    assert SP.goc_opcos() is None
+
+
+def test_triage_thieu_tram_thoat_gon_co_ten_bien_khong_traceback(sandbox_home, repo_gia):
+    """`triage.append_excel` thiếu trạm ⇒ thông điệp nêu tên biến, không phun traceback
+    `StationMissing` (đường lùi `station()` ở hai chỗ phải đi qua `station_hoac_thoat`)."""
+    import subprocess
+    code = ("import sys; sys.path.insert(0, r'%s'); import triage; triage.append_excel({})"
+            % (ROOT / "scripts" / "runners"))
+    env = {k: v for k, v in os.environ.items() if k != "MARKETING_STUDIO_DATA"}
+    env["MARKETING_STUDIO_HOME"] = str(repo_gia)
+    r = subprocess.run([sys.executable, "-c", code], capture_output=True, text=True,
+                       encoding="utf-8", env=env)
+    assert r.returncode != 0
+    assert "MARKETING_STUDIO_DATA" in r.stderr
+    assert "Traceback" not in r.stderr and "StationMissing" not in r.stderr
+

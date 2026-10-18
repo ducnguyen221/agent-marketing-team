@@ -226,8 +226,8 @@ def append_excel(row):
         # Đường lùi neo vào TRẠM, không vào engine: engine là mã dùng chung đi theo gói
         # sang máy khác, còn sổ là dữ liệu của một máy. Ghi sổ vào engine nghĩa là lần
         # đóng gói kế tiếp mang theo số liệu của máy cũ.
-        from paths import station
-        xlsx = os.path.join(station(), "Auto Task.xlsx")
+        from paths import station_hoac_thoat as station
+        xlsx =os.path.join(station(), "Auto Task.xlsx")
     try:
         import openpyxl
         if os.path.isfile(xlsx):
@@ -245,8 +245,8 @@ def append_excel(row):
         wb.save(xlsx)
         return xlsx
     except Exception as e:
-        from paths import station
-        pend = os.path.join(station(), "_xlsx-pending")
+        from paths import station_hoac_thoat as station
+        pend =os.path.join(station(), "_xlsx-pending")
         os.makedirs(pend, exist_ok=True)
         name = datetime.datetime.now().strftime("trierr-%Y%m%d-%H%M%S.json")
         try:

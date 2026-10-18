@@ -56,7 +56,7 @@ PROBE_KHONG_BRAND = """param(
 
 
 def _tram(tmp_path: Path, runner_args: str, probe: str = PROBE,
-          channels: bool = True) -> Path:
+          channels: bool = True, engine: bool = False) -> Path:
     """Dựng trạm tối thiểu 1 kênh + 1 chiến dịch, trả về thư mục chiến dịch.
 
     `run.ps1` được chép NGUYÊN TỪNG BYTE từ template — không vá dòng nào. Trạm tìm bằng
@@ -67,6 +67,10 @@ def _tram(tmp_path: Path, runner_args: str, probe: str = PROBE,
     campaign.mkdir(parents=True)
     if channels:
         (tmp_path / "CHANNELS.md").write_text("# Kênh\n", encoding="utf-8")
+    if engine:
+        # Mặc định KHÔNG có `<trạm>/engine`: trạm vừa `init` không tạo nó (docs/WORKSPACE.md: xoá được).
+        # Test cần engine thì truyền `engine=True`.
+        (tmp_path / "engine").mkdir(exist_ok=True)
     (campaign.parent / "channel.yml").write_text(
         'schema: channel/1\nid: kenh-thu\nlabel: "Kênh thử"\n'
         "platforms:\n  - channel: youtube\n    post_formats: [youtube_video]\n",
@@ -84,10 +88,9 @@ def _tram(tmp_path: Path, runner_args: str, probe: str = PROBE,
 def _nha(tmp_path: Path) -> Path:
     """Thư mục nhà GIẢ của một lượt test.
 
-    `run.ps1` lùi về `$HOME/.marketing` và
-    `$HOME/.news/engine`. Kế thừa nhà THẬT thì máy nào có sẵn mấy thứ đó sẽ chạy một nhánh
-    khác hẳn CI — hai môi trường, hai kết quả, không cổng nào biết. Tệ hơn: một test khai
-    `runner` trùng tên với runner thật trong `<nhà>/.news/engine` sẽ CHẠY runner thật.
+    Kế thừa nhà THẬT thì máy nào có sẵn `.marketing`/`.news/engine` sẽ chạy một nhánh khác hẳn CI
+    nếu `run.ps1` còn đoán trong nhà — hai môi trường, hai kết quả, không cổng nào biết. Tệ hơn:
+    một test khai `runner` trùng tên với runner thật trong nhà sẽ CHẠY runner thật.
     """
     d = tmp_path / "nha-gia"
     d.mkdir(exist_ok=True)
@@ -258,46 +261,92 @@ def test_khong_co_CHANNELS_thi_lui_ve_MARKETING_STUDIO_DATA(tmp_path):
 
 def test_engine_la_thu_muc_engine_CO_DINH_trong_tram(tmp_path):
     """Trạm có sẵn `engine/` thì dùng nó — không đường lùi nào được thắng."""
-    (tmp_path / "engine").mkdir()
-    r = _chay(_tram(tmp_path, "-Brand ai"))
+    r = _chay(_tram(tmp_path, "-Brand ai", engine=True))
     assert r.returncode == 0, r.stdout + r.stderr
     m = _DONG.search(r.stdout)
     assert m and _cung(m.group(2), tmp_path / "engine"), r.stdout
 
 
-# ── Đường lùi engine `<nhà>/.news/engine` (tạm, gỡ ở 3A.4) ──────────────────
-# Nhánh SỐNG CÒN của P1-G5: ngay sau khi chép template sang trạm thì `<trạm>/engine` CHƯA
-# tồn tại, nên mọi lượt lịch thật đi qua đúng nhánh này. Không có test thì nó là nhánh duy
-# nhất chưa ai đo mà lại chạy thật mỗi ngày.
+# ── Không đường lùi về thư mục nhà  ───────────────────────
+# Bản trước có hai đường lùi ẩn: `$HOME/.marketing` (không CHANNELS.md, không biến) và
+# `$HOME/.news/engine` (trạm chưa có `engine/`). Cả hai đều ĐOÁN một thư mục trong nhà — đoán
+# trạm là tạo ra trạm thứ hai, đoán engine là chạy runner của máy khác. Nay `run.ps1` NÉM
+# (mã thoát ≠ 0, thông báo nêu tên biến / đường engine thiếu).
 #
-# Test PHẢI dựng thư mục nhà GIẢ (`_chay` trỏ HOME/USERPROFILE vào tmp): nếu để kế thừa nhà
-# thật thì máy có `<nhà>/.news/engine` chạy một nhánh, CI không có thì chạy nhánh khác, và
-# không test nào khẳng định nhánh nào — cổng xanh ở cả hai nơi mà chẳng đo gì.
+# Test PHẢI dựng nhà GIẢ có MỒI (`_chay` trỏ HOME/USERPROFILE vào tmp): có mồi mà vẫn dừng mới
+# chứng minh KHÔNG đọc nhà; nhà trống thì dừng cũng không nói lên điều gì.
 
-def test_duong_lui_engine_NHA_news_engine_khi_tram_chua_co_engine(tmp_path):
-    """`<trạm>/engine` chưa có + `<nhà>/.news/engine` có runner ⇒ dùng nó, CÓ cảnh báo."""
-    campaign = _tram(tmp_path, "-Brand ai")
-    (campaign / "probe.ps1").unlink()          # không có ở chiến dịch, cũng không ở repo
-    engine_cu = _nha(tmp_path) / ".news" / "engine"
-    engine_cu.mkdir(parents=True)
-    (engine_cu / "probe.ps1").write_text(PROBE, encoding="utf-8-sig")
+def _gon(s: str) -> str:
+    """Bỏ xuống dòng/khoảng trắng: PowerShell ngắt dòng thông báo lỗi dài theo độ rộng cửa sổ."""
+    return re.sub(r"\s+", "", s)
 
+
+def test_khong_CHANNELS_khong_bien_thi_NEM_nen_MARKETING_STUDIO_DATA_khong_lay_nha(tmp_path):
+    campaign = _tram(tmp_path, "-Brand ai", channels=False)
+    nha_cu = _nha(tmp_path) / ".marketing"
+    (nha_cu / "engine").mkdir(parents=True)               # mồi: trạm cũ ĐẦY ĐỦ trong nhà giả
+    (nha_cu / "CHANNELS.md").write_text("# mồi\n", encoding="utf-8")
+    (nha_cu / "engine" / "probe.ps1").write_text(PROBE, encoding="utf-8-sig")
     r = _chay(campaign)
-    assert r.returncode == 0, r.stdout + r.stderr
-    assert "duong lui, go o 3A.4" in r.stdout, "thiếu cảnh báo đường lùi: " + r.stdout
-    m = _DONG.search(r.stdout)
-    assert m and _cung(m.group(2), engine_cu), r.stdout
-    assert "Brand=[ai]" in r.stdout, "runner cua engine cu khong chay: " + r.stdout
+    assert r.returncode != 0, "khong tram ma van thoat 0: " + r.stdout + r.stderr
+    assert "MARKETING_STUDIO_DATA" in r.stderr + r.stdout, r.stdout + r.stderr
+    assert "PROBE" not in r.stdout, "van chay runner cua tram trong nha: " + r.stdout
+    assert "run.ps1: station=" not in r.stdout, "van chon mot tram: " + r.stdout
+
+
+def test_tram_thieu_engine_thi_NEM_nen_duong_engine_khong_do_nha_news(tmp_path):
+    campaign = _tram(tmp_path, "-Brand ai", engine=False)
+    (campaign / "probe.ps1").unlink()                     # không có ở chiến dịch, cũng không ở repo
+    engine_cu = _nha(tmp_path) / ".news" / "engine"
+    engine_cu.mkdir(parents=True)                         # mồi: engine cũ CÓ runner
+    (engine_cu / "probe.ps1").write_text(PROBE, encoding="utf-8-sig")
+    r = _chay(campaign)
+    ra = r.stdout + r.stderr
+    assert r.returncode != 0, "thieu engine ma van thoat 0: " + ra
+    assert _gon("khong co engine: " + str(tmp_path / "engine")) in _gon(ra), ra
+    assert "PROBE" not in r.stdout, "van chay runner cua engine cu: " + r.stdout
+    assert ".news" not in ra, "van nhac toi engine cu trong nha: " + ra
+    # Thông báo phải nói runner nào đang tìm và hai đường đã dò, để gõ sai tên không bị đọc là thiếu engine.
+    assert "probe.ps1" in ra, ra
+    assert _gon("khong co o chien dich: " + str(campaign)) in _gon(ra), ra
+    assert _gon("cung khong o repo: " + str(GOC / "scripts" / "runners")) in _gon(ra), ra
 
 
 def test_khong_co_engine_nao_thi_DUNG_va_noi_khong_thay_runner(tmp_path):
-    """Không `<trạm>/engine`, không `<nhà>/.news/engine` ⇒ exit 2, KHÔNG đoán bừa."""
-    campaign = _tram(tmp_path, "-Brand ai")
+    """Có `<trạm>/engine` nhưng runner không có ở cả ba nấc ⇒ exit 2, KHÔNG đoán bừa."""
+    campaign = _tram(tmp_path, "-Brand ai", engine=True)
     (campaign / "probe.ps1").unlink()
     r = _chay(campaign)
     assert r.returncode == 2, f"phai dung han, ma exit={r.returncode}: {r.stdout}"
     assert "khong thay runner probe.ps1" in r.stdout, r.stdout
     assert "PROBE" not in r.stdout, r.stdout
+
+
+def test_tram_moi_khong_engine_van_chay_runner_cua_chien_dich_va_cua_repo(tmp_path):
+    """Trạm vừa `init` KHÔNG có `engine/` (docs/WORKSPACE.md: xoá được). Runner ở nấc 1 (chiến dịch)
+    hoặc nấc 2 (repo) thì chạy bình thường — engine chỉ bắt buộc khi phải tìm tới nấc 3."""
+    campaign = _tram(tmp_path, "-Brand ai")
+    assert not (tmp_path / "engine").exists()
+    r = _chay(campaign)
+    assert r.returncode == 0, r.stdout + r.stderr
+    assert "Brand=[ai]" in r.stdout, r.stdout
+    sub = tmp_path / "hai"
+    sub.mkdir()
+    campaign2, ban_sao = _tram_runner_repo(sub, "probe-chung.ps1")
+    assert not (sub / "engine").exists()
+    r2 = _chay(campaign2, MARKETING_STUDIO_HOME=str(ban_sao.parent))
+    assert r2.returncode == 0, r2.stdout + r2.stderr
+    assert "PROBE" in r2.stdout, r2.stdout
+
+
+def test_duong_co_ngoac_vuong_van_nhan_tram_va_runner(tmp_path):
+    """`Test-Path` không `-LiteralPath` coi `[1]` là ký tự đại diện ⇒ báo thiếu CHANNELS.md/runner."""
+    goc = tmp_path / "t[1]"
+    goc.mkdir()
+    r = _chay(_tram(goc, "-Brand ai"))
+    assert r.returncode == 0, r.stdout + r.stderr
+    assert "Brand=[ai]" in r.stdout, r.stdout
+    assert _cung(_DONG.search(r.stdout).group(1), goc), r.stdout
 
 
 def test_bo_test_KHONG_dung_thu_muc_nha_THAT_cua_may(tmp_path):

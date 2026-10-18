@@ -58,7 +58,7 @@ $covered  = Join-Path $brandDir 'covered-repos.json'
 $logdir   = if ($cfg.log_dir) { [string]$cfg.log_dir } else { Join-Path $brandDir 'logs' }
 # VOICE_BGM_DIR -> <trạm video>/assets/news-bgm. Runner truyền TÊN style trong spec và đặt
 # VOICE_BGM_DIR cho engine. AI chỉ được chọn style CÓ mp3 (Get-BgmCatalog).
-$bgmDir   = if (Get-EnvVar 'VOICE_BGM_DIR') { Resolve-Home (Get-EnvVar 'VOICE_BGM_DIR') } elseif ($VideoStation) { [System.IO.Path]::Combine($VideoStation, 'assets', 'news-bgm') } else { '' }
+$bgmDir   = Get-BgmDir
 $bgmCat   = Get-BgmCatalog $bgmDir
 $bgmLib   = $bgmCat.lib
 $bgmListText = $bgmCat.text

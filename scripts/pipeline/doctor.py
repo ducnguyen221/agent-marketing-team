@@ -258,6 +258,23 @@ def _kham_duong_clone(so: So, repo: Path | None) -> None:
                 "true`, hoặc clone vào đường ngắn hơn (xem docs/troubleshooting.md).")
 
 
+def _kham_tram_opcos(so: So, nguon: str) -> None:
+    """Check `opcos-station`: biến vắng/rỗng ⇒ im. Có và `<biến>/marketing` mang dấu trạm mà
+    nguồn hiện tại là `workspace`/`default` ⇒ nhắc lệnh `init`. Có mà chưa mang dấu ⇒ một dòng
+    ghi đường đã thử. Nguồn đã là biến trạm/`studio.local.json` ⇒ im."""
+    d = SP.goc_opcos()
+    if d is None:
+        return
+    bien, goc = d
+    tram = SP.tram_opcos()
+    if tram is None:
+        so.nhac(f"OPCOS_WORKSPACES={bien}: {goc} chưa là trạm (không có {SP.SO_KENH}) — "
+                "bỏ qua, không ảnh hưởng.")
+    elif nguon in (SP.WORKSPACE, "default"):
+        so.nhac(f"máy có trạm OpcOS {tram} nhưng trạm đang dùng là {nguon}. Muốn dùng trạm "
+                f"OpcOS: `python scripts/pipeline/init_station.py --mode separate --station {tram}`.")
+
+
 def kham(station=None) -> dict:
     so = So()
     repo = SP.repo_root()
@@ -278,6 +295,9 @@ def kham(station=None) -> dict:
     if ws and ws.is_dir() and ws.resolve() != st:
         so.hong(f"hai nguồn sự thật: {ws} tồn tại nhưng trạm đang dùng là {st} (nguồn {nguon}). "
                 f"Giữ MỘT chỗ: dời {ws} đi, hoặc gỡ biến/`{SP.LOCAL_CONFIG}` đang trỏ chỗ kia.")
+
+    # 2b. Trạm OpcOS (OPCOS_WORKSPACES) — chỉ NHẮC, không bao giờ đổi trạm hộ
+    _kham_tram_opcos(so, nguon)
 
     # 3. Rào của chế độ embedded
     if repo and che_do == "embedded":

@@ -38,8 +38,8 @@ sẵn làm câu trả lời. Thứ tự, cho mọi đường:
 
     biến môi trường (Windows: + registry User) → <repo>/.env (chỉ embedded)
     → repo anh em cùng thư mục cha (nhận bằng pyproject.toml: name)
-    → thư mục cũ trong thư mục nhà — CHỈ khi có thật, kèm dòng WARN
-    → DỪNG, nêu tên biến
+    → hết: không có nấc "thư mục cũ trong thư mục nhà". Trạm không thấy thì DỪNG, nêu tên biến;
+      trạm giọng / video không thấy thì trả $null (runner tự xử); nhạc nền không thấy thì tắt kèm WARN
 
 | Cần gì | Nguồn |
 |---|---|

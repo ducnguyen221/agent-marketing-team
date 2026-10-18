@@ -143,8 +143,12 @@ def trang_thai_soat(anh: Path) -> tuple[bool, str]:
 
 
 def make(post: Path, *, cau: Path | None = None, force: bool = False,
-         run=None, now: datetime | None = None) -> tuple[int, dict]:
-    """Trả (mã thoát, kết quả). 0 xong hoặc đã có · 1 hỏng · 2 cầu chặn · 3 thiếu đầu vào."""
+         run=None, now: datetime | None = None,
+         tam_dir: Path | None = None) -> tuple[int, dict]:
+    """Trả (mã thoát, kết quả). 0 xong hoặc đã có · 1 hỏng · 2 cầu chặn · 3 thiếu đầu vào.
+
+    `tam_dir`: nơi Codex lưu ảnh tạm; mặc định `<repo>/.tmp/fb-images` (test truyền thư mục tạm riêng).
+    Chạy thật mà truyền `tam_dir` ngoài repo: sandbox Codex (`--access workspace --cwd REPO`) có thể chặn ghi ảnh ở đó."""
     run = run or (lambda cmd, **kw: subprocess.run(cmd, **kw))
     now = now or datetime.now()
     f_prompt, anh = PP.p(post, "fb_prompt"), PP.p(post, "fb_image")
@@ -165,7 +169,7 @@ def make(post: Path, *, cau: Path | None = None, force: bool = False,
     if not Path(cau).is_file():
         return 3, {"status": "failed", "reason": f"không thấy cầu Codex: {cau}"}
 
-    tam_dir = REPO / ".tmp" / "fb-images"
+    tam_dir = Path(tam_dir) if tam_dir is not None else REPO / ".tmp" / "fb-images"
     tam_dir.mkdir(parents=True, exist_ok=True)
     nhan = f"{post.name[:40]}-{now.strftime('%Y%m%d%H%M%S')}"
     out = tam_dir / f"{nhan}.png"

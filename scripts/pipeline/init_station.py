@@ -88,6 +88,13 @@ video, và lúc đó chương trình sẽ nói đúng lệnh phải chạy.
 Sau này đổi ý được: `python scripts/pipeline/studio.py migrate --to separate`.
 """.format(kho=KHO_SECRET)
 
+# Chỉ nối vào bảng khi OPCOS_WORKSPACES đã đặt VÀ <đó>/marketing mang dấu trạm.
+BANG_TRAM_OPCOS = """
+Máy này có trạm OpcOS (OPCOS_WORKSPACES đã đặt): {duong}
+  Chọn [2] sẽ dùng đúng trạm đó (không tạo thêm, không dời gì) thay vì ~/.marketing.
+  Enter vẫn là [1] embedded.
+"""
+
 
 # ── nhận diện máy đã có trạm ngoài (F17.2) ────────────────────────────────────────────
 
@@ -154,15 +161,19 @@ def chon_che_do(station=None, mode=None, yes=False, ask=None, non_interactive=Fa
         elif yes:
             mode, ly_do = "embedded", "--yes (nhận khuyến nghị)"
         else:
+            bang = BANG_LUA_CHON
+            opcos = SP.tram_opcos()
+            if opcos:
+                bang += BANG_TRAM_OPCOS.format(duong=opcos)
             if ask is None:
                 if non_interactive or not _co_nguoi_tra_loi():
-                    SC.log(BANG_LUA_CHON)
+                    SC.log(bang)
                     raise SC.ContractError(
                         "cần người dùng chọn chế độ cài. Agent: trình bảng ở trên cho người "
                         "dùng, rồi chạy lại với --mode embedded|separate (hoặc --yes = embedded).")
                 ask = _hoi_ban_phim
             try:
-                tra = (ask(BANG_LUA_CHON) or "").strip().lower()
+                tra = (ask(bang) or "").strip().lower()
             except EOFError:
                 # Windows: stdin là NUL vẫn báo isatty() = True — hết dữ liệu nghĩa là
                 # không có ai ngồi đó.
@@ -183,6 +194,9 @@ def chon_che_do(station=None, mode=None, yes=False, ask=None, non_interactive=Fa
                 "chế độ embedded cần chạy từ bản clone repo; không xác định được gốc repo "
                 "(đặt MARKETING_STUDIO_HOME trỏ vào đó).")
         return "embedded", (repo / SP.WORKSPACE).resolve(), ly_do
+    opcos = SP.tram_opcos()
+    if opcos:
+        return "separate", opcos, f"trạm OpcOS: OPCOS_WORKSPACES đã đặt và {opcos} là một trạm"
     return "separate", nha_marketing(), ly_do
 
 
@@ -339,6 +353,8 @@ def do_init(station=None, mode=None, yes=False, existing=False, dry_run=False, a
     mode, st, ly_do = chon_che_do(station=station, mode=mode, yes=yes, ask=ask,
                                   non_interactive=non_interactive)
     repo = SP.repo_root()
+    if mode == "separate" and not station and SP.tram_opcos() == st:
+        existing = True        # trạm OpcOS đã dựng sẵn: không rải file mẫu vào đó
     kq = {"mode": mode, "station": str(st), "reason": ly_do, "repo": str(repo) if repo else None,
           "dry_run": bool(dry_run), "created": [], "hook": None}
     if existing and not st.is_dir():

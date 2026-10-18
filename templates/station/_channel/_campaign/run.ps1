@@ -75,8 +75,9 @@ $cam = $PSScriptRoot
 # Cùng một file chạy ở Windows (PS 5.1) và macOS (pwsh 7), nên không có ổ đĩa, không có
 # thư mục người dùng nào được viết sẵn ở đây.
 #   Trạm   : đi LÊN từ thư mục chiến dịch tới thư mục có CHANNELS.md
-#            -> biến MARKETING_STUDIO_DATA -> $HOME/.marketing
-#   Engine : <trạm>/engine — tên cố định
+#            -> biến MARKETING_STUDIO_DATA -> không có thì DỪNG (không đoán thư mục trong nhà)
+#   Engine : <trạm>/engine — tên cố định; chỉ BẮT BUỘC khi runner không có ở chiến dịch lẫn repo
+#            (nấc 3 bên dưới), thiếu lúc đó thì DỪNG nêu đường thiếu. Không bao giờ dò `.news`
 #   Repo   : biến MARKETING_STUDIO_HOME -> đi LÊN từ thư mục chiến dịch tới thư mục có
 #            scripts/pipeline/campaign_cfg.py (embedded: repo = CHA của trạm workspace/)
 #            -> không có thì DỪNG. Không đoán thư mục chứa repo (`Code`, `Repo`…): tên đó
@@ -84,32 +85,23 @@ $cam = $PSScriptRoot
 $station = $null
 $d = $cam
 while ($d) {
-  if (Test-Path (Join-Path $d 'CHANNELS.md')) { $station = $d; break }
+  if (Test-Path -LiteralPath (Join-Path $d 'CHANNELS.md')) { $station = $d; break }
   $cha = Split-Path $d -Parent
   if ($cha -eq $d) { break }
   $d = $cha
 }
 if (-not $station) {
   if ($env:MARKETING_STUDIO_DATA) { $station = $env:MARKETING_STUDIO_DATA }
-  else { $station = Join-Path $HOME '.marketing' }
+  else { throw 'khong xac dinh duoc tram: khong thay CHANNELS.md phia tren va MARKETING_STUDIO_DATA chua dat' }
 }
 $engine = Join-Path $station 'engine'
-# ĐƯỜNG LÙI TẠM — gỡ ở bước 3A.4 của kế hoạch chuyển máy, khi engine đã vào trạm.
-# Tới lúc đó engine dùng chung còn nằm ở thư mục `.news/engine` trong thư mục nhà.
-if (-not (Test-Path $engine)) {
-  $engineCu = Join-Path $HOME (Join-Path '.news' 'engine')
-  if (Test-Path $engineCu) {
-    Write-Host ('run.ps1: chua co ' + $engine + ' -> tam dung engine cu ' + $engineCu + ' (duong lui, go o 3A.4)')
-    $engine = $engineCu
-  }
-}
 $cfgRel = Join-Path 'scripts' (Join-Path 'pipeline' 'campaign_cfg.py')
 $repo = $null
 if ($env:MARKETING_STUDIO_HOME) { $repo = $env:MARKETING_STUDIO_HOME }
 else {
   $d = $cam
   while ($d) {
-    if (Test-Path (Join-Path $d $cfgRel)) { $repo = $d; break }
+    if (Test-Path -LiteralPath (Join-Path $d $cfgRel)) { $repo = $d; break }
     $cha = Split-Path $d -Parent
     if ($cha -eq $d) { break }
     $d = $cha
@@ -122,7 +114,7 @@ if (-not $repo) {
 }
 $cfgpy = Join-Path $repo $cfgRel
 Write-Host ('run.ps1: station=' + $station + ' engine=' + $engine + ' repo=' + $repo)
-if (-not (Test-Path $cfgpy)) {
+if (-not (Test-Path -LiteralPath $cfgpy)) {
   Write-Host ('run.ps1: khong thay ' + $cfgpy + ' -> DUNG. Dat bien MARKETING_STUDIO_HOME = thu muc repo.')
   exit 2
 }
@@ -143,7 +135,7 @@ if ($LASTEXITCODE -ne 0) {
   exit 2
 }
 
-$cfg = Get-Content $snap -Raw -Encoding UTF8 | ConvertFrom-Json
+$cfg = Get-Content -LiteralPath $snap -Raw -Encoding UTF8 | ConvertFrom-Json
 if (-not $cfg.runner) { Write-Host 'run.ps1: campaign.md thieu runtime.runner -> DUNG.'; exit 2 }
 
 # Runner tìm theo BA chỗ, ưu tiên từ gần tới xa:
@@ -154,9 +146,13 @@ if (-not $cfg.runner) { Write-Host 'run.ps1: campaign.md thieu runtime.runner ->
 # hai nguồn thì sớm muộn lệch nhau.
 $repoScripts = Join-Path $repo 'scripts'
 $runner = Join-Path $cam $cfg.runner
-if (-not (Test-Path $runner)) { $runner = Join-Path $repoScripts (Join-Path 'runners' $cfg.runner) }
-if (-not (Test-Path $runner)) { $runner = Join-Path $engine $cfg.runner }
-if (-not (Test-Path $runner)) { Write-Host ('run.ps1: khong thay runner ' + $cfg.runner); exit 2 }
+if (-not (Test-Path -LiteralPath $runner)) { $runner = Join-Path $repoScripts (Join-Path 'runners' $cfg.runner) }
+if (-not (Test-Path -LiteralPath $runner)) {
+  # Nấc 3 chỉ tới khi nấc 1-2 trượt: lúc đó `<trạm>/engine` mới là BẮT BUỘC (trạm vừa init không có nó).
+  if (-not (Test-Path -LiteralPath $engine)) { throw ('khong co engine: ' + $engine + ' (runner ' + $cfg.runner + ' khong co o chien dich: ' + $cam + ' , cung khong o repo: ' + (Join-Path $repoScripts 'runners') + ' ; neu chi go sai runtime.runner thi sua ten runner, dung tao engine)') }
+  $runner = Join-Path $engine $cfg.runner
+}
+if (-not (Test-Path -LiteralPath $runner)) { Write-Host ('run.ps1: khong thay runner ' + $cfg.runner); exit 2 }
 
 # ── Đối số cho runner: BẢNG BĂM, KHÔNG phải mảng ────────────────────────────
 # ĐÃ TRẢ GIÁ 07–08/09/2026. Chỗ này từng là `& $runner @rargs -Config $snap` với `$rargs`

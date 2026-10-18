@@ -82,8 +82,8 @@ Chép nó sang chiến dịch mới là chạy được ngay.
 
 | | Thứ tự dò |
 |---|---|
-| Trạm | đi lên từ thư mục chiến dịch tới thư mục có `CHANNELS.md` → `MARKETING_STUDIO_DATA` → `~/.marketing` |
-| Engine | `<trạm>/engine` — tạm thời, chưa có thì lùi về engine cũ trong thư mục nhà và in cảnh báo (đường lùi sẽ gỡ khi engine dời xong) |
+| Trạm | đi lên từ thư mục chiến dịch tới thư mục có `CHANNELS.md` → `MARKETING_STUDIO_DATA` → không có thì DỪNG nêu tên biến (không đoán thư mục trong nhà) |
+| Engine | `<trạm>/engine` — tên cố định; chỉ bắt buộc khi runner không có ở chiến dịch lẫn `<repo>/scripts/runners`, thiếu lúc đó thì DỪNG nêu đường thiếu (không lùi về engine cũ trong thư mục nhà) |
 | Repo | `MARKETING_STUDIO_HOME` → đi lên từ thư mục chiến dịch tới thư mục có `scripts/pipeline/campaign_cfg.py` (embedded: cha của trạm) → DỪNG mã 2 |
 
 Task theo lịch vẫn phải đi qua wrapper báo cáo để có tin Telegram (✅ kèm mọi link sản phẩm,
