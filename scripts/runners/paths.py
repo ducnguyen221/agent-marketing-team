@@ -71,7 +71,8 @@ def station():
     if t:
         return t
     msg = ("không xác định được trạm: đặt MARKETING_STUDIO_DATA hoặc chạy `scripts/pipeline/init_station.py` "
-           "(chế độ embedded: <repo>/workspaces có CHANNELS.md)")
+           "(chế độ embedded: <repo>/workspaces có CHANNELS.md). "
+           "Có dữ liệu cũ ở nơi khác? Dùng --station <đường>.")      # = studio_contract.GOI_Y_DU_LIEU_CU
     if _LIB not in sys.path:
         sys.path.insert(0, _LIB)
     try:

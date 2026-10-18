@@ -55,6 +55,11 @@ class ContractError(StudioError):
     code = CONTRACT_ERROR
 
 
+# Câu chung gắn vào mọi thông báo mã 3 "lệnh cần trạm mà trạm chưa có" (và vào `doctor`): người
+# có dữ liệu ở nơi khác chỉ cần biết cách trỏ vào đó. KHÔNG nêu tên thư mục ẩn nào.
+GOI_Y_DU_LIEU_CU = "Có dữ liệu cũ ở nơi khác? Dùng --station <đường>."
+
+
 class StationMissing(StudioError):
     """Trạm hoặc repo năng lực chưa cài — `doctor` chỉ ra bước còn thiếu."""
     code = STATION_MISSING

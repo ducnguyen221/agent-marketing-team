@@ -213,7 +213,7 @@ def goi_y_doi_bo_cuc(repo) -> str | None:
         return (f"có cả {cu} (bố cục cũ) lẫn {moi}: đang dùng {moi}. Dời nội dung còn lại ở "
                 f"{cu.name}/ sang đó rồi xoá thư mục cũ.")
     return (f"trạm đang ở {cu} (bố cục cũ): vẫn chạy bình thường. Nên đổi tên/dời sang "
-            f"{moi} (ghi lại station_path trong {LOCAL_CONFIG} nếu có).")
+            f"{moi} — không phải sửa gì khác: {LOCAL_CONFIG} chỉ ghi tên, bộ phân giải tự theo thư mục có thật.")
 
 
 def duong_nguoi_go(s) -> str:

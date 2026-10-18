@@ -194,7 +194,8 @@ def _liet_ke(st: Path):
 def backup(out, station=None, with_env=False) -> dict:
     st = SP.root(station)
     if not st.is_dir():
-        raise SC.StationMissing(f"không có trạm ở {st} — chạy init_station.py trước")
+        raise SC.StationMissing(f"không có trạm ở {st} — chạy init_station.py trước. "
+                                + SC.GOI_Y_DU_LIEU_CU)
     files = list(_liet_ke(st))
     xau = [rel for _, rel in files if _giong_secret(rel)]
     if xau:

@@ -304,6 +304,30 @@ def test_station_path_la_TEN_nhung_PS_va_Python_cung_khong_tin_chuoi(bo_cuc_tron
     assert _cung(SP.resolve_station()[0], kq["station"])
 
 
+@pytest.mark.parametrize("mode,sp,la_ten", [
+    ("embedded", "Workspace", False),          # sai hoa/thường: KHÔNG phải tên nhúng, là một đường lạ
+    ("Embedded", "workspace", False),          # chế độ viết hoa: không phải `embedded`
+    ("embedded", "x/../workspace", True),      # chuẩn hoá như normpath => `workspace`
+    ("embedded", "./workspaces", True),
+    ("embedded", "workspace/", True),
+    ("embedded", "workspace\\", True),
+], ids=["Workspace", "mode-Embedded", "x-gap-workspace", "dot-workspaces", "workspace-slash", "workspace-backslash"])
+def test_gia_tri_khong_chuan_PS_va_Python_cung_ket_qua(bo_cuc_trong, monkeypatch, mode, sp, la_ten):
+    """Không bộ cài nào ghi ra các giá trị này, nhưng parity là mục tiêu: so ĐÚNG chữ và chuẩn hoá
+    đường tương đối như nhau ở hai ngôn ngữ. Bố cục có cả hai thư mục để mọi lệch đều lộ ra."""
+    mkt = bo_cuc_trong["mkt"]
+    _viet(mkt / "workspace" / "CHANNELS.md", "---\nchannels: []\n---\n")
+    _viet(mkt / "workspaces" / "CHANNELS.md", "---\nchannels: []\n---\n")
+    _viet(mkt / "studio.local.json", json.dumps({"mode": mode, "station_path": sp}))
+    kq = _ket_qua_ps(bo_cuc_trong)
+    SP = _py_voi_repo(monkeypatch, bo_cuc_trong)
+    assert _cung(SP.resolve_station()[0], kq["station"]), (kq, SP.resolve_station())
+    if la_ten:
+        assert _cung(kq["station"], mkt / "workspaces"), kq      # đi qua bộ phân giải nhúng
+    elif mode == "Embedded":
+        assert _cung(kq["station"], mkt / "workspace"), kq       # không phải embedded => tin đường
+
+
 def test_station_path_la_TEN_nhung_cua_repo_anh_em_PS_va_Python(bo_cuc_trong, monkeypatch):
     cha = bo_cuc_trong["cha"]
     giong = cha / "giong-x"

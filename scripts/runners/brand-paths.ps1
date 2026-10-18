@@ -165,12 +165,22 @@ function Test-TenNhung {
     `workspace` cũ mang CHANNELS.md). `separate` hoặc đường khác giữ nguyên.
   #>
   param($Sp, $Lc)
-  if (-not $Lc -or ([string]$Lc.mode).Trim() -ne 'embedded') { return $false }
+  # So SÁNH ĐÚNG CHỮ (-cne/-ceq) và chuẩn hoá đường tương đối như `os.path.normpath` bên Python
+  # (bỏ `.`, gập `..`, bỏ dấu phân cách thừa): `Workspace`, `mode: Embedded`, `x/../workspace`
+  # phải cho CÙNG kết quả ở hai ngôn ngữ.
+  if (-not $Lc -or ([string]$Lc.mode).Trim() -cne 'embedded') { return $false }
   $s = ([string]$Sp).Trim().Replace('\', '/')
   if ([System.IO.Path]::IsPathRooted($s) -or $s.StartsWith('~')) { return $false }
-  while ($s.StartsWith('./')) { $s = $s.Substring(2) }
-  $s = $s.TrimEnd('/')
-  return ($s -eq 'workspace' -or $s -eq 'workspaces')
+  $parts = New-Object System.Collections.Generic.List[string]
+  foreach ($p in $s.Split('/')) {
+    if ($p -eq '' -or $p -eq '.') { continue }
+    if ($p -eq '..') {
+      if ($parts.Count -gt 0 -and $parts[$parts.Count - 1] -cne '..') { $parts.RemoveAt($parts.Count - 1) }
+      else { $parts.Add('..') }
+    } else { $parts.Add($p) }
+  }
+  $n = $parts -join '/'
+  return ($n -ceq 'workspace' -or $n -ceq 'workspaces')
 }
 
 function Find-SiblingStation {
@@ -251,7 +261,7 @@ function Get-StationRoot {
     $cu = Join-Path $script:RepoRoot 'workspace'
     if (Test-Path -LiteralPath (Join-Path $cu 'CHANNELS.md')) { return $cu }
   }
-  throw 'Get-StationRoot: khong xac dinh duoc tram. Dat MARKETING_STUDIO_DATA (hoac cai che do embedded: <repo>/workspaces).'
+  throw 'Get-StationRoot: khong xac dinh duoc tram. Dat MARKETING_STUDIO_DATA (hoac cai che do embedded: <repo>/workspaces). Co du lieu cu o noi khac? Dung --station <duong> (hoac dat MARKETING_STUDIO_DATA).'
 }
 
 function Get-VoiceStation {

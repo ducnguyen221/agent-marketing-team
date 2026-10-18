@@ -258,10 +258,12 @@ def _kham_duong_clone(so: So, repo: Path | None) -> None:
                 "true`, hoặc clone vào đường ngắn hơn (xem docs/troubleshooting.md).")
 
 
-def _kham_tram_opcos(so: So, nguon: str) -> None:
+def _kham_tram_opcos(so: So, nguon: str, che_do: str | None = None) -> None:
     """Check `opcos-station`: biến vắng/rỗng ⇒ im. Có và `<biến>/marketing` mang dấu trạm mà
     nguồn hiện tại là `workspaces`/`workspace`/`default` ⇒ nhắc lệnh `init`. Có mà chưa mang dấu ⇒ một dòng
-    ghi đường đã thử. Nguồn đã là biến trạm/`studio.local.json` ⇒ im."""
+    ghi đường đã thử. Nguồn đã là biến trạm/`--station` ⇒ im. Người dùng ĐÃ chọn embedded
+    (`studio.local.json: mode`) ⇒ im: tên nhúng không còn được ghi nhận là nguồn `studio.local.json`
+    (nó đi qua bộ phân giải nhúng), nên phải nhìn chế độ chứ không nhìn nguồn."""
     d = SP.goc_opcos()
     if d is None:
         return
@@ -270,7 +272,7 @@ def _kham_tram_opcos(so: So, nguon: str) -> None:
     if tram is None:
         so.nhac(f"OPCOS_WORKSPACES={bien}: {goc} chưa là trạm (không có {SP.SO_KENH}) — "
                 "bỏ qua, không ảnh hưởng.")
-    elif nguon in (SP.WORKSPACE, SP.WORKSPACE_CU, "default"):
+    elif che_do != "embedded" and nguon in (SP.WORKSPACE, SP.WORKSPACE_CU, "default"):
         so.nhac(f"máy có trạm OpcOS {tram} nhưng trạm đang dùng là {nguon}. Muốn dùng trạm "
                 f"OpcOS: `python scripts/pipeline/init_station.py --mode separate --station {tram}`.")
 
@@ -286,9 +288,11 @@ def kham(station=None) -> dict:
 
     # 1. Trạm có thật chưa
     if not st.is_dir():
-        so.thieu(f"chưa có trạm ở {st} — chạy bộ cài: python scripts/pipeline/init_station.py")
+        so.thieu(f"chưa có trạm ở {st} — chạy bộ cài: python scripts/pipeline/init_station.py. "
+                 + SC.GOI_Y_DU_LIEU_CU)
     elif not (st / SP.SO_KENH).is_file():
-        so.thieu(f"{st} chưa có {SP.SO_KENH} — chạy lại bộ cài, hoặc trỏ --station đúng chỗ")
+        so.thieu(f"{st} chưa có {SP.SO_KENH} — chạy lại bộ cài, hoặc trỏ --station đúng chỗ. "
+                 + SC.GOI_Y_DU_LIEU_CU)
 
     # 2. HAI NGUỒN SỰ THẬT — lỗi nặng nhất của mô hình hai chế độ
     ws = SP.workspace_dir(repo)
@@ -305,7 +309,7 @@ def kham(station=None) -> dict:
         so.nhac(nhac_cu)
 
     # 2b. Trạm OpcOS (OPCOS_WORKSPACES) — chỉ NHẮC, không bao giờ đổi trạm hộ
-    _kham_tram_opcos(so, nguon)
+    _kham_tram_opcos(so, nguon, che_do)
 
     # 3. Rào của chế độ embedded
     if repo and che_do == "embedded":

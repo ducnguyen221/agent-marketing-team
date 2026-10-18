@@ -438,7 +438,8 @@ def do_init(station=None, mode=None, yes=False, existing=False, dry_run=False, a
           "dry_run": bool(dry_run), "created": [], "hook": None}
     if existing and not st.is_dir():
         raise SC.StationMissing(
-            f"--existing nhưng không có thư mục trạm: {st}. Bỏ --existing để dựng mới.")
+            f"--existing nhưng không có thư mục trạm: {st}. Bỏ --existing để dựng mới. "
+            + SC.GOI_Y_DU_LIEU_CU)
     if dry_run:
         return kq
     _kiem_cho_dung(st, existing)

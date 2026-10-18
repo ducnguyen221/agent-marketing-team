@@ -213,7 +213,8 @@ def thu_muc_log(tram: Path, giong: Path | None) -> list[Path]:
 def lam(a) -> dict:
     tram, nguon = SP.resolve_station(a.station)
     if not tram.is_dir():
-        raise SC.StationMissing(f"chưa có trạm marketing {tram} (nguồn: {nguon})")
+        raise SC.StationMissing(f"chưa có trạm marketing {tram} (nguồn: {nguon}). "
+                                + SC.GOI_Y_DU_LIEU_CU)
     giong, video = SP.voice_station(), SP.video_station()
     hom_nay = _dt.date.today()
     rac = tram / TRASH

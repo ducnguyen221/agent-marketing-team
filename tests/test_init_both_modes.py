@@ -856,6 +856,41 @@ def test_khong_bien_OPCOS_thi_hoi_duong_va_KHONG_nhac_OPCOS(repo, nha, tmp_path)
     assert not (nha / NHA_CU).exists()
 
 
+def test_doctor_KHONG_canh_bao_tram_OPCOS_khi_nguoi_dung_da_chon_embedded(repo, opcos):
+    """Sau khi tên nhúng đi qua bộ phân giải nhúng, nguồn không còn là `studio.local.json`; phải nhìn
+    CHẾ ĐỘ đã chọn. Chưa chọn gì thì vẫn nhắc."""
+    nhac = lambda kq: [w for w in kq["warn"] if "trạm OpcOS" in w]       # noqa: E731
+    (repo / "workspaces").mkdir()
+    assert nhac(DR.kham()), "chưa chọn chế độ: vẫn phải nhắc có trạm OpcOS"
+    IS.do_init(mode="embedded", ask=khong_duoc_hoi)
+    assert doc_local(repo)["mode"] == "embedded"
+    assert not nhac(DR.kham())
+
+
+def test_cau_chung_du_lieu_cu_o_noi_khac_co_trong_moi_thong_bao_ma_3(repo, tmp_path):
+    cau = SC.GOI_Y_DU_LIEU_CU
+    assert "--station" in cau and "dữ liệu cũ" in cau
+    assert ("." + "marketing") not in cau and "~/." not in cau, "không nêu tên thư mục ẩn nào"
+    # doctor: chưa có trạm
+    kq = DR.kham()
+    assert kq["code"] == SC.STATION_MISSING and any(cau in x for x in kq["fail"]), kq
+    # backup, init --existing, runner paths.station()
+    import studio as ST
+    with pytest.raises(SC.StationMissing, match="Có dữ liệu cũ"):
+        ST.backup(str(tmp_path / "x.zip"))
+    with pytest.raises(SC.StationMissing, match="Có dữ liệu cũ"):
+        IS.do_init(station=str(tmp_path / "khong-co"), existing=True)
+    import importlib.util
+    spec = importlib.util.spec_from_file_location("paths_runner", ROOT / "scripts" / "runners" / "paths.py")
+    m = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(m)
+    with pytest.raises(SC.StationMissing, match="Có dữ liệu cũ"):
+        m.station()
+    # PowerShell: cùng ý (ASCII, không dấu)
+    ps = (ROOT / "scripts" / "runners" / "brand-paths.ps1").read_text(encoding="utf-8-sig")
+    assert "Co du lieu cu o noi khac? Dung --station" in ps
+
+
 def test_KHONG_con_chu_thu_muc_nha_kieu_cu_o_ma_test_docs_help_template():
     """Mọi tệp văn bản của repo (trừ CHANGELOG — lịch sử các bản đã phát hành) không còn nhắc
     thư mục ẩn kiểu cũ trong nhà, và không còn mô tả `workspace/` số ít như trạm embedded."""
@@ -873,20 +908,25 @@ def test_KHONG_con_chu_thu_muc_nha_kieu_cu_o_ma_test_docs_help_template():
                       "test_migrate_ask.py", "init_station.py", "doctor.py", "brand-paths.ps1",
                       "test_runner_brand_paths.py", "test_gitignore_guard.py", "CHANGELOG.md",
                       "pre_commit_guard.py", "conftest.py", "WORKSPACE.md", "ONBOARDING.md"}
-    loi = []
+    loi, da_quet = [], 0
     for p in ROOT.rglob("*"):
         if not p.is_file() or p.suffix not in nhan or bo_qua & set(p.relative_to(ROOT).parts):
-            continue
-        if p.name == "CHANGELOG.md":
             continue
         try:
             t = p.read_text(encoding="utf-8-sig")
         except UnicodeDecodeError:
             continue
+        if p.name == "CHANGELOG.md":
+            # Các bản ĐÃ phát hành là lịch sử, giữ nguyên chữ; riêng khối chưa phát hành là luật hiện hành.
+            if p != ROOT / "CHANGELOG.md":
+                continue
+            t = t[t.index("### Chưa phát hành"):t.index("## 2.0.0")]
+        da_quet += 1
         if cu.search(t):
             loi.append(f"{p.relative_to(ROOT)}: chữ thư mục nhà kiểu cũ")
         if p.name not in ngoai_le_so_it and so_it.search(t):
             loi.append(f"{p.relative_to(ROOT)}: còn `workspace/` số ít làm trạm embedded")
+    assert da_quet > 150, f"chỉ quét {da_quet} tệp - bộ lọc đang nuốt cả repo, test này không còn bảo vệ gì"
     assert not loi, "\n".join(loi)
 
 
