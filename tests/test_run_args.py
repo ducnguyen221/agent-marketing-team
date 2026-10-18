@@ -277,8 +277,10 @@ def test_engine_la_thu_muc_engine_CO_DINH_trong_tram(tmp_path):
 # chứng minh KHÔNG đọc nhà; nhà trống thì dừng cũng không nói lên điều gì.
 
 def _gon(s: str) -> str:
-    """Bỏ xuống dòng/khoảng trắng: PowerShell ngắt dòng thông báo lỗi dài theo độ rộng cửa sổ."""
-    return re.sub(r"\s+", "", s)
+    """Bỏ xuống dòng/khoảng trắng: PowerShell ngắt dòng thông báo lỗi dài theo độ rộng cửa sổ.
+    PowerShell 7 (macOS/Linux) còn chèn mã màu ANSI và cột `|` của ConciseView giữa các đoạn bị ngắt."""
+    s = re.sub(r"\x1b\[[0-9;]*[A-Za-z]", "", s)
+    return re.sub(r"[\s|]+", "", s)
 
 
 def test_khong_CHANNELS_khong_bien_thi_NEM_nen_MARKETING_STUDIO_DATA_khong_lay_nha(tmp_path):
