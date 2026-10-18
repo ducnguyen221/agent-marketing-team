@@ -3,6 +3,10 @@
 Mỗi mục là một phiên bản. Mục đầu luôn là số trong `pyproject.toml`
 (`tests/test_version_sync.py` giữ điều này). Phiên bản chưa gắn tag ghi rõ "chưa phát hành".
 
+## 2.1.0 — 2026-10-18
+
+Station contract: bỏ fallback ẩn `~/.<station>`, trạm phải được chọn tường minh. Thêm thông tin tác giả vào metadata và ghi chú tác giả.
+
 ## 2.0.0 — 2026-10-15
 
 Đổi tên dự án `agent-marketing-studio` → `agent-marketing-team` (SPR-15). Mức MAJOR vì đổi mã plugin (`agent-marketing-team@agent-marketing-team`), tên repo và địa chỉ Pages: người đã cài theo bản cũ phải gỡ mã cũ rồi cài mã mới (xem INSTALL). Không đổi hành vi của pipeline; biến `MARKETING_STUDIO_*` và tên trạm giữ nguyên. Địa chỉ cũ của repo và trang Pages vẫn chuyển hướng.
