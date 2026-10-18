@@ -329,7 +329,7 @@ def tp6_no_windows_hardcode():
     files = [os.path.join(HERE, f) for f in ("daily_truyen.py", "audio_truyen.py", "make_video.py",
                                              "read_story.py", "truyen_publish.py", "heal_agent.py")]
     files.append(os.path.join(RUNNERS, "run-daily-truyen.ps1"))
-    bad = re.compile(r"[A-Za-z]:\\\\?(Users|Windows)|\.tts[\\/]|import mcp_server|Scripts[\\/]+python\.exe")
+    bad = re.compile(r"[A-Za-z]:\\\\?(Users|Windows)|\." + r"tts[\\/]|import mcp_server|Scripts[\\/]+python\.exe")
     hits = []
     for f in files:
         with open(f, encoding="utf-8-sig") as fh:

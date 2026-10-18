@@ -151,9 +151,17 @@ def test_nhanh_3_studio_local_json(repo_gia, tmp_path):
 
 
 def test_nhanh_3b_station_path_tuong_doi_tinh_theo_REPO(repo_gia):
-    _ghi_local(repo_gia, mode="embedded", station_path=SP.WORKSPACE)
+    _ghi_local(repo_gia, mode="embedded", station_path="tram-rieng/con")
     st, nguon = SP.resolve_station()
-    assert st == (repo_gia / SP.WORKSPACE).resolve() and nguon == SP.LOCAL_CONFIG
+    assert st == (repo_gia / "tram-rieng" / "con").resolve() and nguon == SP.LOCAL_CONFIG
+
+
+def test_nhanh_3c_station_path_la_ten_nhung_thi_di_qua_tram_nhung(repo_gia):
+    """Tên `workspaces`/`workspace` của embedded KHÔNG được tin như đường (đổi tên theo gợi ý
+    không mất trạm; có cả hai thì `workspaces` thắng)."""
+    _ghi_local(repo_gia, mode="embedded", station_path="workspace")
+    (repo_gia / SP.WORKSPACE).mkdir()
+    assert SP.resolve_station() == ((repo_gia / SP.WORKSPACE).resolve(), SP.WORKSPACE)
 
 
 def test_nhanh_4_workspace_co_that(repo_gia):

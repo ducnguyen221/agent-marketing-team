@@ -26,6 +26,7 @@ import pytest
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts" / "lib"))
 sys.path.insert(0, str(ROOT / "scripts" / "pipeline"))
+import doctor as DR  # noqa: E402
 import init_station as IS  # noqa: E402
 import studio_contract as SC  # noqa: E402
 import studio_paths as SP  # noqa: E402
@@ -102,7 +103,7 @@ def test_Enter_nghia_la_embedded(repo, nha):
     assert lc["secrets"] == ".env"
     # mọi script từ giờ phân giải ra đúng trạm này
     st, nguon = SP.resolve_station()
-    assert st == ws.resolve() and nguon == SP.LOCAL_CONFIG
+    assert st == ws.resolve() and nguon == SP.WORKSPACE      # tên nhúng không được tin: đi qua tram_nhung
     assert not (nha / NHA_CU).exists(), "embedded không được tạo thư mục kiểu cũ trong nhà"
 
 
@@ -331,7 +332,7 @@ def test_bo_cuc_cu_workspace_so_it_duoc_nhan_va_nhac_doi_ten_mot_dong(repo, caps
     assert SP.resolve_station() == (cu.resolve(), SP.WORKSPACE_CU)      # trước khi init ghi gì
     kq = IS.do_init(yes=True, ask=khong_duoc_hoi)
     assert Path(kq["station"]) == cu.resolve() and not (repo / "workspaces").exists()
-    assert doc_local(repo)["station_path"] == "workspace"
+    assert doc_local(repo)["station_path"] == "workspaces"      # ghi tên MỚI; bộ phân giải không tin chuỗi
     assert (cu / "CHANNELS.md").read_text(encoding="utf-8").endswith("cua toi\n")
     dong = [d for d in capsys.readouterr().err.splitlines() if "workspaces" in d and "workspace" in d
             and "[init]" in d and "đổi tên" in d]
@@ -354,6 +355,47 @@ def test_workspace_so_it_khong_co_dau_tram_thi_khong_duoc_nhan(repo):
     assert SP.resolve_station() == ((repo / "workspaces").resolve(), "default")
     kq = IS.do_init(yes=True, ask=khong_duoc_hoi)
     assert Path(kq["station"]) == (repo / "workspaces").resolve()
+
+
+@pytest.mark.parametrize("config", ["cu-workspace", "moi-workspaces", "khong"])
+@pytest.mark.parametrize("bo_cuc", ["A-chi-cu", "B-chi-moi", "C-ca-hai"])
+def test_station_path_embedded_la_TEN_khong_duoc_tin_chuoi(bo_cuc, config, repo, capsys):
+    """(A) chỉ `workspace` cũ: nhận đúng và nhắc; (B) đã đổi tên theo gợi ý: KHÔNG mất trạm dù config
+    còn ghi `workspace`; (C) cả hai: `workspaces` thắng dù config ghi `workspace`."""
+    if bo_cuc != "B-chi-moi":
+        tao_bo_cuc_cu(repo)
+    if bo_cuc != "A-chi-cu":
+        (repo / "workspaces").mkdir()
+        (repo / "workspaces" / "CHANNELS.md").write_text("---\nchannels: []\n---\n", encoding="utf-8")
+    if config != "khong":
+        ten = "workspace" if config == "cu-workspace" else "workspaces"
+        (repo / SP.LOCAL_CONFIG).write_text(
+            json.dumps({"mode": "embedded", "station_path": ten}), encoding="utf-8")
+    mong = repo / ("workspace" if bo_cuc == "A-chi-cu" else "workspaces")
+    st, nguon = SP.resolve_station()
+    assert st == mong.resolve() and nguon in ("workspace", "workspaces", "default"), (st, nguon)
+    assert nguon != SP.LOCAL_CONFIG
+    # doctor nhắc đúng khi còn bố cục cũ (A, C), im khi không (B)
+    kq = DR.kham()
+    nhac = [w for w in kq["warn"] if "đổi tên" in w or "bố cục cũ" in w]
+    assert bool(nhac) == (bo_cuc != "B-chi-moi"), (bo_cuc, config, kq["warn"])
+    # init chạy lại: cùng trạm, nhắc một dòng khi còn bố cục cũ, ghi lại tên MỚI
+    kq2 = IS.do_init(mode="embedded", ask=khong_duoc_hoi)
+    assert Path(kq2["station"]) == mong.resolve()
+    dong = [d for d in capsys.readouterr().err.splitlines()
+            if "[init]" in d and ("đổi tên" in d or "bố cục cũ" in d or "workspace" in d and "cả" in d)]
+    assert len(dong) == (0 if bo_cuc == "B-chi-moi" else 1), dong
+    assert doc_local(repo)["station_path"] == "workspaces"
+
+
+def test_station_path_workspace_cua_separate_hoac_duong_khac_van_duoc_tin(repo, tmp_path):
+    (repo / "workspaces").mkdir()
+    (repo / "khac").mkdir()
+    for cfg, mong in ((  {"mode": "separate", "station_path": "workspace"}, repo / "workspace"),
+                      ({"mode": "embedded", "station_path": "khac"}, repo / "khac"),
+                      ({"mode": "embedded", "station_path": str(tmp_path / "ngoai")}, tmp_path / "ngoai")):
+        (repo / SP.LOCAL_CONFIG).write_text(json.dumps(cfg), encoding="utf-8")
+        assert SP.resolve_station() == (mong.resolve(), SP.LOCAL_CONFIG), cfg
 
 
 def test_giong_PS_va_Python_ve_bo_cuc_cu_va_moi_dung_mot_dinh_nghia_co_that():
@@ -467,6 +509,10 @@ def test_changelog_chua_phat_hanh_noi_dung_cach_dung_bo_cuc_moi_va_ca_exit_2():
     t = (ROOT / "CHANGELOG.md").read_text(encoding="utf-8")
     khoi = t[t.index("### Chưa phát hành"):t.index("## 2.0.0")]
     assert NHA_CU not in khoi, "khối chưa phát hành không được nhắc tên thư mục kiểu cũ"
+    assert ".- " not in khoi, "bullet dính dòng"
+    assert all(d.startswith("- ") or not d.strip() or d.startswith("###") for d in khoi.splitlines()), \
+        "mỗi ý của khối chưa phát hành là một bullet riêng"
+    assert "chỉ còn là tên" in khoi and "không tin chuỗi" in khoi
     assert "`--station <đường>`" in khoi
     assert "`<biến>/marketing`" in khoi and "`<repo>/workspaces`" in khoi
     assert "VOICE_STATION" in khoi and "mã 2" in khoi, "init --yes + biến trạm giọng/video thiếu biến OpcOS"
@@ -814,7 +860,11 @@ def test_KHONG_con_chu_thu_muc_nha_kieu_cu_o_ma_test_docs_help_template():
     """Mọi tệp văn bản của repo (trừ CHANGELOG — lịch sử các bản đã phát hành) không còn nhắc
     thư mục ẩn kiểu cũ trong nhà, và không còn mô tả `workspace/` số ít như trạm embedded."""
     import re
-    cu = re.compile(r"(?<![A-Za-z0-9_])\." + "marketing" + r"(?![A-Za-z0-9_-])")
+    # Mọi dạng ĐƯỜNG tới thư mục ẩn kiểu cũ của ba trạm (nội dung/giọng/video và tts): dạng `~` + `/.x`,
+    # `/.x/`, `$HOME/.x`, `%USERPROFILE%` + `\.x`, tên có ngoặc. Class CSS kiểu `.x-embed` không dính.
+    ten = "(?:" + "|".join(("voice", "video", "marketing", "tts")) + ")"
+    cu = re.compile(r"(?:~[/\\]|\$HOME[/\\]|%USERPROFILE%\\|\$env:USERPROFILE[/\\]|[/\\]|['\"`])\."
+                    + ten + r"(?![A-Za-z0-9_-])")
     so_it = re.compile(r"<repo>/workspace(?![s\w])")
     bo_qua = {".git", ".venv", "node_modules", "__pycache__", "workspaces", ".pytest_cache"}
     nhan = {".md", ".py", ".ps1", ".sh", ".json", ".toml", ".yml", ".yaml", ".txt", ".html",

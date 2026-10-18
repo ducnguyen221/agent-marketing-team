@@ -122,7 +122,7 @@ def test_CHUA_CAI_TRAM_GIONG_la_ma_3_kem_huong_dan(tmp_path, monkeypatch, reques
 
 
 def test_KHONG_con_duong_dan_cua_mot_may_trong_scripts():
-    """Cổng của gói P2-G3: `grep '.tts' scripts/` phải bằng 0."""
+    """Cổng của gói P2-G3: thư mục ẩn kiểu cũ của trạm giọng không còn xuất hiện trong `scripts/`."""
     xau = []
     for p in (ROOT / "scripts").rglob("*.py"):
         if "__pycache__" in p.parts:

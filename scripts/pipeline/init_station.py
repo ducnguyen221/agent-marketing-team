@@ -363,12 +363,10 @@ def _tram_nang_luc_da_co(repo: Path | None) -> dict:
 
 
 def _rel_nhung(repo: Path, st: Path) -> str:
-    """Đường tương đối (dấu /) của trạm embedded: `workspaces`, hoặc `workspace` khi
-    đang nhận bố cục cũ còn sót."""
-    try:
-        return st.resolve().relative_to(repo.resolve()).as_posix()
-    except ValueError:
-        return SP.WORKSPACE
+    """Giá trị `station_path` ghi cho embedded: luôn là tên MỚI `workspaces`, kể cả khi đang nhận
+    bố cục cũ `workspace` còn sót. Bộ phân giải không tin chuỗi này (đi qua `tram_nhung`), nên
+    đổi tên thư mục theo gợi ý không làm mất trạm và config cũ ghi `workspace` cũng được đọc đúng."""
+    return SP.WORKSPACE
 
 
 def _ghi_local(repo: Path, mode: str, st: Path, da_tao: list):

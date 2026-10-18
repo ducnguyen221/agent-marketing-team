@@ -113,7 +113,7 @@ def test_KHONG_co_anh_em_thi_fail_closed_kem_huong_dan(repo_gia):
         V.station()
     loi = str(e.value)
     assert "thư mục cha" in loi and "agent-voice-studio" in loi and "VOICE_STATION" in loi
-    for cam in ("~/" + "Code", "~/.voice", "~/Repo"):     # ghép: cổng literal quét cả file này
+    for cam in ("~/" + "Code", "~/." + "voice", "~/Repo"):     # ghép: cổng literal quét cả file này
         assert cam not in loi, loi
 
 

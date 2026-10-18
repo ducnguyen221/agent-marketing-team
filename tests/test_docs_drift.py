@@ -35,7 +35,7 @@ CAM = {
                     "có cột g3",
     "-Buoc ": "tham số của run-blog-campaign.ps1 là -Step (xem ValidateSet)",
     "~/.news": "engine là <trạm>/engine; repo public không trỏ vào bố cục của một máy",
-    "~/.tts": "trạm giọng phân giải qua OMNIVOICE_DIR, không đường cứng",
+    "~/." + "tts": "trạm giọng phân giải qua OMNIVOICE_DIR, không đường cứng",
     "news-media": "thư mục media của engine cũ, không đi theo engine mới",
     "soan ─": "bước `soan` đã đổi tên thành `write` (xem migrate_names.py)",
     # Chỉ đạo 21/09/2026 — phân tầng năng lực. `doctor` KHÔNG còn trả mã 3 vì thiếu trạm

@@ -121,6 +121,17 @@ def mode(repo=None) -> str | None:
     return m if m in MODES else None
 
 
+def _la_ten_nhung(sp: str, lc: dict) -> bool:
+    """`station_path` của một bản cài EMBEDDED chỉ là TÊN thư mục nhúng tương đối (`workspace` do
+    bộ cài cũ ghi, `workspaces` do bộ cài mới ghi). Chuỗi đó KHÔNG được tin: tin nó thì (B) đổi tên
+    thư mục theo gợi ý là mất trạm, (C) có cả hai thì vẫn dùng bố cục cũ. Những giá trị này đi qua
+    `tram_nhung`. Chế độ `separate` hoặc đường khác (tuyệt đối, tên lạ) giữ nguyên."""
+    if (lc.get("mode") or "").strip() != "embedded" or os.path.isabs(os.path.expanduser(sp)):
+        return False
+    chuan = os.path.normpath(sp.replace("\\", "/")).replace("\\", "/")
+    return chuan in (WORKSPACE, WORKSPACE_CU)
+
+
 def resolve_station(station=None) -> tuple[Path, str]:
     """-> (gốc trạm, nguồn). Nguồn ∈ `--station` · MARKETING_STUDIO_DATA · studio.local.json
     · workspace · default. Đọc lại MỖI LẦN gọi (không đóng băng lúc import).
@@ -137,8 +148,9 @@ def resolve_station(station=None) -> tuple[Path, str]:
         return Path(bien).expanduser().resolve(), "MARKETING_STUDIO_DATA"
     repo = repo_root()
     if repo:
-        sp = str(local_config(repo).get("station_path") or "").strip()
-        if sp:
+        lc = local_config(repo)
+        sp = str(lc.get("station_path") or "").strip()
+        if sp and not _la_ten_nhung(sp, lc):
             q = Path(sp).expanduser()
             return (q if q.is_absolute() else (repo / q)).resolve(), LOCAL_CONFIG
         ws, nguon = tram_nhung(repo)
@@ -443,10 +455,11 @@ def tram_cua_repo(r: Path) -> Path | None:
     từ repo đó) → `<repo>/workspaces/` (bố cục mới) → `<repo>/workspace/` (bố cục cũ số ít)
     nếu có thư mục. Chưa chọn/chưa init ⇒ None — không đoán."""
     try:
-        sp = str(_doc_json(Path(r) / LOCAL_CONFIG).get("station_path") or "").strip()
+        lc = _doc_json(Path(r) / LOCAL_CONFIG)
     except StudioPathsError:
         return None
-    if sp:
+    sp = str(lc.get("station_path") or "").strip()
+    if sp and not _la_ten_nhung(sp, lc):
         q = Path(sp).expanduser()
         q = q if q.is_absolute() else Path(r) / q
         return q.resolve() if q.is_dir() else None

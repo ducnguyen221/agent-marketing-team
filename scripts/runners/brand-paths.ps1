@@ -157,6 +157,22 @@ function Find-SiblingRepo {
   return $null
 }
 
+function Test-TenNhung {
+  <#
+    BẢN SONG SINH của `studio_paths._la_ten_nhung`: `station_path` của một bản cài EMBEDDED chỉ là
+    TÊN thư mục nhúng tương đối (`workspace` do bộ cài cũ ghi, `workspaces` do bộ cài mới ghi)
+    thì KHÔNG được tin — đi qua định nghĩa "có thật" chung (`workspaces` là thư mục, hoặc
+    `workspace` cũ mang CHANNELS.md). `separate` hoặc đường khác giữ nguyên.
+  #>
+  param($Sp, $Lc)
+  if (-not $Lc -or ([string]$Lc.mode).Trim() -ne 'embedded') { return $false }
+  $s = ([string]$Sp).Trim().Replace('\', '/')
+  if ([System.IO.Path]::IsPathRooted($s) -or $s.StartsWith('~')) { return $false }
+  while ($s.StartsWith('./')) { $s = $s.Substring(2) }
+  $s = $s.TrimEnd('/')
+  return ($s -eq 'workspace' -or $s -eq 'workspaces')
+}
+
 function Find-SiblingStation {
   <#
     Trạm của một repo ANH EM nằm cùng thư mục cha với repo này — nhận bằng NỘI DUNG
@@ -170,7 +186,7 @@ function Find-SiblingStation {
   $d = Find-SiblingRepo $Package
   if (-not $d) { return $null }
   $lc = Read-JsonFile (Join-Path $d 'studio.local.json')
-  if ($lc -and $lc.station_path) {
+  if ($lc -and $lc.station_path -and -not (Test-TenNhung $lc.station_path $lc)) {
     $q = Resolve-Home ([string]$lc.station_path)
     if (-not [System.IO.Path]::IsPathRooted($q)) { $q = Join-Path $d $q }
     if (Test-Path -LiteralPath $q -PathType Container) { return [System.IO.Path]::GetFullPath($q) }
@@ -224,7 +240,7 @@ function Get-StationRoot {
   $v = Get-EnvVar 'MARKETING_STUDIO_DATA'
   if ($v) { return (Resolve-Home $v) }
   $lc = Get-StudioLocal
-  if ($lc -and $lc.station_path) {
+  if ($lc -and $lc.station_path -and -not (Test-TenNhung $lc.station_path $lc)) {
     $sp = Resolve-Home ([string]$lc.station_path)
     if (-not [System.IO.Path]::IsPathRooted($sp)) { $sp = Join-Path $script:RepoRoot $sp }
     return $sp
@@ -275,7 +291,7 @@ function Get-VideoStation {
 function Get-BgmDir {
   <#
     Thư viện nhạc nền: VOICE_BGM_DIR -> `<trạm video>/assets/news-bgm`. Cả hai vắng -> '' kèm WARN
-    nêu tên biến (bản cũ lấy `~/.video` nên nhạc nền vẫn có; nay tắt thì phải NÓI RA). Nhạc nền là
+    nêu tên biến (bản cũ lấy thư mục ẩn của trạm video trong nhà nên nhạc nền vẫn có; nay tắt thì phải NÓI RA). Nhạc nền là
     tuỳ chọn nên KHÔNG dừng pipeline — dừng sẽ làm hỏng video đã lên lịch.
   #>
   $v = Get-EnvVar 'VOICE_BGM_DIR'

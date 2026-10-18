@@ -167,8 +167,8 @@ def test_khong_Config_thi_tram_embedded_la_workspace(bo_cuc):
 
 
 # ── bố cục `khong-gi-ca` và `sibling` — KHÔNG đoán thư mục nhà ───────────
-# Nhà giả (`sandbox_home`) mồi một thư mục ẩn kiểu cũ mang CHANNELS.md; thêm `.video`, `.voice`,
-# `.tts` mang dấu. Bản cũ thấy chúng là lấy làm trạm (kèm WARN). Nay: không biến, không
+# Nhà giả (`sandbox_home`) mồi một thư mục ẩn kiểu cũ mang CHANNELS.md; thêm các thư mục ẩn cũ
+# của trạm video/giọng mang dấu. Bản cũ thấy chúng là lấy làm trạm (kèm WARN). Nay: không biến, không
 # studio.local.json, không repo anh em, không <repo>/workspaces ⇒ `Get-StationRoot` NÉM nêu MARKETING_STUDIO_DATA,
 # `Get-VideoStation`/`Get-VoiceStation` trả `$null` — đúng như Python (`resolve_station` nguồn
 # "default" / `video_station()`/`voice_station()` là None).
@@ -183,7 +183,7 @@ def bo_cuc_trong(tmp_path, sandbox_home):
     _viet(mkt / "install.ps1")
     _viet(mkt / "pyproject.toml", '[project]\nname = "agent-marketing-team"\n')
     # Nhà giả mang dấu ở MỌI thư mục cũ mà bản trước dò.
-    for ten in (".video", ".voice", ".tts"):
+    for ten in ("." + "video", "." + "voice", "." + "tts"):      # ghép: test chống chữ cũ quét cả file này
         _viet(sandbox_home / ten / "station.json", "{}")
     assert any((d / "CHANNELS.md").is_file() for d in sandbox_home.iterdir() if d.is_dir())
     return {"cha": cha, "mkt": mkt, "nha": sandbox_home, "tmp": tmp_path}
@@ -236,7 +236,7 @@ def test_khong_gi_ca_thi_Video_Voice_la_null_va_Find_OmniVoicePython_dung(bo_cuc
     kq = json.loads(r.stdout.strip().splitlines()[-1])
     _kiem_phien_ban(kq["psver"])
     assert _cung(kq["station"], ws), kq
-    assert kq["voice"] is None and kq["video"] is None, f"còn lấy .voice/.tts/.video của nhà: {kq}"
+    assert kq["voice"] is None and kq["video"] is None, f"còn lấy thư mục ẩn kiểu cũ của nhà làm trạm giọng/video: {kq}"
     assert "WARN" not in r.stdout, r.stdout
     SP = _py_voi_repo(monkeypatch, bo_cuc_trong)
     assert SP.voice_station() is None and SP.video_station() is None
@@ -279,6 +279,41 @@ def test_sibling_bo_cuc_cu_workspace_so_it_PS_va_Python_cung_ket_qua(bo_cuc_tron
     kq = _ket_qua_ps(bo_cuc_trong)
     mong = giong / ("workspaces" if bo_cuc_anh_em == "ca-hai" else "workspace")
     assert _cung(kq["voice"], mong), kq
+    SP = _py_voi_repo(monkeypatch, bo_cuc_trong)
+    assert _cung(SP.voice_station(), kq["voice"])
+
+
+@pytest.mark.parametrize("config", ["cu-workspace", "moi-workspaces", "khong"])
+@pytest.mark.parametrize("bo_cuc", ["A-chi-cu", "B-chi-moi", "C-ca-hai"])
+def test_station_path_la_TEN_nhung_PS_va_Python_cung_khong_tin_chuoi(bo_cuc_trong, monkeypatch,
+                                                                     bo_cuc, config):
+    """`studio.local.json` embedded ghi `workspace` (bộ cài cũ) hay `workspaces`: cả hai ngôn ngữ đi
+    qua cùng định nghĩa "có thật" — (B) đổi tên thì không mất trạm, (C) có cả hai thì `workspaces`."""
+    mkt = bo_cuc_trong["mkt"]
+    if bo_cuc != "B-chi-moi":
+        _viet(mkt / "workspace" / "CHANNELS.md", "---\nchannels: []\n---\n")
+    if bo_cuc != "A-chi-cu":
+        _viet(mkt / "workspaces" / "CHANNELS.md", "---\nchannels: []\n---\n")
+    if config != "khong":
+        ten = "workspace" if config == "cu-workspace" else "workspaces"
+        _viet(mkt / "studio.local.json", json.dumps({"mode": "embedded", "station_path": ten}))
+    kq = _ket_qua_ps(bo_cuc_trong)
+    mong = mkt / ("workspace" if bo_cuc == "A-chi-cu" else "workspaces")
+    assert _cung(kq["station"], mong), kq
+    SP = _py_voi_repo(monkeypatch, bo_cuc_trong)
+    assert _cung(SP.resolve_station()[0], kq["station"])
+
+
+def test_station_path_la_TEN_nhung_cua_repo_anh_em_PS_va_Python(bo_cuc_trong, monkeypatch):
+    cha = bo_cuc_trong["cha"]
+    giong = cha / "giong-x"
+    _viet(giong / "pyproject.toml", '[project]\nname = "agent-voice-studio"\n')
+    _viet(giong / "studio.local.json", json.dumps({"mode": "embedded", "station_path": "workspace"}))
+    (giong / "workspace").mkdir()
+    (giong / "workspaces").mkdir()                       # đã đổi tên một phần: workspaces thắng
+    _viet(bo_cuc_trong["mkt"] / "workspaces" / "CHANNELS.md", "---\nchannels: []\n---\n")
+    kq = _ket_qua_ps(bo_cuc_trong)
+    assert _cung(kq["voice"], giong / "workspaces"), kq
     SP = _py_voi_repo(monkeypatch, bo_cuc_trong)
     assert _cung(SP.voice_station(), kq["voice"])
 
@@ -357,7 +392,7 @@ def test_local_config_PS_va_Python_cung_tram_station_path_tuong_doi(bo_cuc_trong
 
 
 # ── thiếu cả VOICE_BGM_DIR lẫn trạm video ⇒ nhạc nền tắt thì phải NÓI RA ───────────────────────
-# Bản cũ lấy `~/.video`; nay `$VideoStation` là `$null` trên máy cũ và `$bgmDir` thành '' — tắt nhạc
+# Bản cũ lấy thư mục ẩn của trạm video trong nhà; nay `$VideoStation` là `$null` trên máy cũ và `$bgmDir` thành '' — tắt nhạc
 # nền im lặng. Nhạc nền là tuỳ chọn nên KHÔNG dừng pipeline (dừng làm hỏng video đã lên lịch), chỉ WARN.
 
 def _bgm(b, env_them=None):
