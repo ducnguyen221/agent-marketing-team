@@ -3,9 +3,9 @@
 
 `test_no_identity_leak.py` giữ danh tính người/máy (đường thư mục nhà, email, token, tên
 thật). File này giữ một lớp khác: tên và đường dẫn của **hệ thống quản trị riêng** mà repo
-từng dựa vào khi còn chạy trên một máy duy nhất — tên hệ điều phối agent, kho tri thức
-cá nhân, đường nội bộ của cầu gọi agent. Chúng không phải secret, nhưng để trong repo
-public thì hai hậu quả: lộ cấu trúc hệ thống riêng, và người clone về gặp mặc định trỏ tới
+từng dựa vào khi còn chạy trên một máy duy nhất — kho tri thức cá nhân, đường nội bộ của
+cầu gọi agent. (Tên hệ điều phối agent không còn trong danh sách: đó là tên hệ sinh thái
+công khai, xem MAU.) Chúng không phải secret, nhưng để trong repo public thì hai hậu quả: lộ cấu trúc hệ thống riêng, và người clone về gặp mặc định trỏ tới
 một thứ không tồn tại trên máy họ.
 
 Luật:
@@ -35,18 +35,17 @@ def _s(*ma: int) -> str:
     return "".join(map(chr, ma))
 
 
-_HE_DIEU_PHOI = _s(111, 112, 99, 111, 115)             # tên hệ điều phối agent riêng
 _KHO_TRI_THUC = _s(66, 114, 97, 105, 110)              # tên kho tri thức cá nhân (viết hoa)
 _CAU = _s(98, 114, 105, 100, 103, 101, 115) + "/"       # thư mục nội bộ của cầu gọi agent
 
 MAU = {
-    # `opc-os`, `opc_os` cũng là cùng một tên.
-    "he-dieu-phoi": _HE_DIEU_PHOI[:3] + r"[-_]?" + _HE_DIEU_PHOI[3:],
+    # Đã BỎ mẫu `opc[-_]?os`: chủ dự án quyết 18/10 — OpcOS là tên hệ sinh thái công khai
+    # (tích hợp tuỳ chọn OPCOS_WORKSPACES). Các mẫu còn lại (kho tri thức, đường cầu) giữ nguyên.
     # Có ranh giới từ và PHÂN BIỆT hoa thường: "JetBrains Mono" (font) không phải rò rỉ.
     "kho-tri-thuc": r"(?<![A-Za-z])" + _KHO_TRI_THUC + r"(?![A-Za-z])",
     "duong-cau": re.escape(_CAU) + r"(?:lib|codex-bridge|claude-bridge|agy-bridge)\b",
 }
-KHONG_PHAN_BIET_HOA = {"he-dieu-phoi", "duong-cau"}
+KHONG_PHAN_BIET_HOA = {"duong-cau"}
 
 # (đường file, khoá) → số lần được phép. Mỗi dòng phải có LÝ DO.
 MIEN_TRU: dict[tuple[str, str], int] = {}  # đang 0 miễn trừ: mọi chỗ khớp đều đỏ
@@ -103,8 +102,6 @@ def test_mien_tru_khong_han():
 def test_mau_bat_dung_muc_tieu():
     """Đột biến: mỗi mẫu bắt được chuỗi nó nhắm tới, và KHÔNG bắt chuỗi lành."""
     thu = {
-        "he-dieu-phoi": ["~/." + _HE_DIEU_PHOI + "/x", _HE_DIEU_PHOI.upper() + "_BIEN",
-                         _HE_DIEU_PHOI[:3] + "-" + _HE_DIEU_PHOI[3:]],
         "kho-tri-thuc": ["~/" + _KHO_TRI_THUC + "/INDEX.md"],
         "duong-cau": [_CAU + "lib/failure.mjs", _CAU + "codex-bridge/cli.mjs"],
     }
