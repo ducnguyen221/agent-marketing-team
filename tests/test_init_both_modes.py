@@ -395,7 +395,7 @@ def _mong(kich_ban, cu, bien):
         return ("embedded", W), 0, nhac
     if kich_ban == "ni":
         return LOI, 0, nhac
-    if kich_ban == "mode_separate_ni":
+    if kich_ban in ("mode_separate_ni", "mode_separate_yes"):
         return (("separate", V) if bien else LOI), 0, nhac
     if kich_ban == "mode_separate_hoi":
         return ("separate", V if bien else P), 1, nhac
@@ -403,7 +403,7 @@ def _mong(kich_ban, cu, bien):
 
 
 KICH_BAN = ["Enter", "1", "2", "3", "yes", "ni", "ni_yes", "mode_embedded",
-            "mode_separate_ni", "mode_separate_hoi"]
+            "mode_separate_ni", "mode_separate_yes", "mode_separate_hoi"]
 
 
 @pytest.mark.parametrize("bien", [False, True], ids=["khong-bien", "co-bien"])
@@ -431,6 +431,8 @@ def test_bang_hanh_vi_chung(kich_ban, cu, bien, repo, nha, tmp_path, monkeypatch
         kw = dict(mode="embedded", ask=khong_duoc_hoi)
     elif kich_ban == "mode_separate_ni":
         kw = dict(mode="separate", non_interactive=True)
+    elif kich_ban == "mode_separate_yes":
+        kw = dict(mode="separate", yes=True, ask=khong_duoc_hoi)
     elif kich_ban == "mode_separate_hoi":
         tra = [cau_duong]
         kw = dict(mode="separate")
