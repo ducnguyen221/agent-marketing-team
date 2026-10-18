@@ -3,7 +3,9 @@
   "version": "2.0.0",
   "description": "Multi-channel marketing campaign engine: four skills (campaign pipeline, content production, hooks, threads), seven-stage workflow with three human approval gates. Skills and scripts run from this repository; campaign content lives in a station outside git (workspace/ by default).",
   "author": {
-    "name": "Duc Nguyen"
+    "name": "Nguyễn Quang Đức",
+    "email": "ducnguyen.ams@gmail.com",
+    "url": "https://ducnguyen.vn"
   },
   "homepage": "https://github.com/ducnguyen221/agent-marketing-team",
   "repository": "https://github.com/ducnguyen221/agent-marketing-team",

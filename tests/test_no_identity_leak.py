@@ -50,6 +50,14 @@ CAM_TUYET_DOI = [
 # Email cá nhân: dùng MẪU chứ không viết literal. Bản trước ghi thẳng địa chỉ vào đây rồi
 # tự miễn trừ chính file này — tức cổng mang sẵn thứ nó đi tìm, và không bao giờ thấy.
 MAU_EMAIL = re.compile(r"[\w.+-]+@(?:gmail|outlook|hotmail|yahoo|icloud)\.com", re.I)
+# Email liên hệ của tác giả: chủ dự án chủ động công khai (18/10) ở khối author/owner của
+# manifest và mục Tác giả của README. Đếm chính xác từng file; email ở file khác vẫn đỏ.
+EMAIL_MIEN_TRU = {
+    ".claude-plugin/plugin.json": 1,
+    ".claude-plugin/marketplace.json": 1,
+    ".codex-plugin/plugin.json": 1,
+    "README.md": 1,
+}
 # Token: cái này buộc phải là regex vì bắt theo hình dạng.
 MAU_TOKEN = [
     re.compile(r"gh[pousr]_[A-Za-z0-9]{20,}"),
@@ -106,9 +114,13 @@ def test_khong_ro_ri_danh_tinh(campaign):
 def test_khong_lo_token():
     dinh = []
     for p, text in FILES:
-        for mau in MAU_TOKEN + [MAU_EMAIL]:
+        rel = p.relative_to(ROOT).as_posix()
+        for mau in MAU_TOKEN:
             if mau.search(text):
-                dinh.append(f"{p.relative_to(ROOT).as_posix()} ({mau.pattern[:18]}…)")
+                dinh.append(f"{rel} ({mau.pattern[:18]}…)")
+        n = len(MAU_EMAIL.findall(text))
+        if n > EMAIL_MIEN_TRU.get(rel, 0):
+            dinh.append(f"{rel} ({MAU_EMAIL.pattern[:18]}… x{n})")
     assert not dinh, f"có chuỗi hình dạng token: {dinh}"
 
 
@@ -284,14 +296,22 @@ MIEN_TRU = {
     # URL repo công khai — nguồn DUY NHẤT mà hướng dẫn cài bảo agent tin (clone, kiểm
     # `git remote -v`, đọc INSTALL.md thô). Bỏ nó đi là bỏ luôn phép kiểm nguồn.
     ("INSTALL.md", "handle"): 8,
-    ("README.md", "handle"): 2,
+    ("README.md", "handle"): 4,         # +2: GitHub trong mục Tác giả
     # Bản chép ĐÚNG prompt của INSTALL.md (cổng test_install_docs giữ nguyên văn):
     # START-HERE = prompt VI (2 URL); trang /install/ = 2 prompt × 2 URL + link INSTALL,
     # START-HERE, troubleshooting trên GitHub.
     ("START-HERE.md", "handle"): 2,
     ("docs/install/index.html", "handle"): 7,
     # Dòng Copyright của repo trong NOTICE — cùng chức năng với LICENSE.
-    ("NOTICE", "ten-nguoi"): 1,
+    ("NOTICE", "ten-nguoi"): 2,         # +1: dòng Author
+    # Tên đầy đủ, website, GitHub của tác giả: chủ dự án chủ động công khai (18/10) ở khối
+    # author/owner của manifest, NOTICE và mục Tác giả của README. Đếm chính xác từng file.
+    ("NOTICE", "ten-mien"): 1,
+    (".claude-plugin/plugin.json", "ten-mien"): 1,
+    (".claude-plugin/marketplace.json", "ten-mien"): 1,
+    (".codex-plugin/plugin.json", "ten-mien"): 1,
+    ("README.md", "ten-mien"): 1,
+    ("README.md", "ten-nguoi"): 1,
     # `content/` là instance mẫu CỐ Ý đưa vào git (xem .gitignore dòng 1): một bộ nội
     # dung thật để người đọc thấy khuôn được điền ra sao. Nó là DỮ LIỆU, không phải máy.
     (_CT + "/01_" + _TO_CHUC[2] + "_Posts.md", "ten-mien"): 1,

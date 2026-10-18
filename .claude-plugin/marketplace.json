@@ -2,7 +2,9 @@
   "name": "agent-marketing-team",
   "description": "Multi-channel marketing campaign engine with human approval gates; skills run from the repository.",
   "owner": {
-    "name": "Duc Nguyen"
+    "name": "Nguyễn Quang Đức",
+    "email": "ducnguyen.ams@gmail.com",
+    "url": "https://ducnguyen.vn"
   },
   "plugins": [
     {

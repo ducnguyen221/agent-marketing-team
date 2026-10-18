@@ -211,6 +211,12 @@ python -m pytest -q
 - Cổng chống trôi tài liệu (`tests/test_docs_drift.py`) đỏ khi tài liệu gọi lệnh CLI không có,
   khi code đọc biến môi trường chưa khai, hoặc khi luật cũ quay lại.
 
+## Tác giả
+
+**Nguyễn Quang Đức** (Tobi) — nhà sáng lập, CEO KPIM và đồng sáng lập COMPA Class; chuyên gia Data/AI và giảng viên công nghệ tại Việt Nam.
+
+Website: https://ducnguyen.vn · GitHub: [@ducnguyen221](https://github.com/ducnguyen221) · Liên hệ: ducnguyen.ams@gmail.com
+
 ## 🤝 ACD Ecosystem Integration
 
 Khai báo vai của repo trong hệ thống nhiều repo ACD (Role, Upstream, Downstream, Bundles, Handoff) tại [ECOSYSTEM.md](ECOSYSTEM.md).
