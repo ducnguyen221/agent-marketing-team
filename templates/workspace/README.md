@@ -9,7 +9,7 @@ Trạm nằm ở đâu là tuỳ chế độ cài (xem `docs/WORKSPACE.md` trong
 | Chế độ | Trạm nằm ở | Biến cấu hình |
 |---|---|---|
 | `embedded` | `<repo>/workspace/` (bị git bỏ qua) | `<repo>/.env` |
-| `separate` | ngoài repo, mặc định `~/.marketing` | đặt ở cấp user (`setx` / plist launchd) |
+| `separate` | ngoài repo, ở thư mục bạn chọn lúc cài | đặt ở cấp user (`setx` / plist launchd) |
 
 ## Cây thư mục
 

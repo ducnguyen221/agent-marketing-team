@@ -44,11 +44,24 @@ Hai vỏ đó chỉ dò Python rồi giao việc cho `scripts/pipeline/init_stat
 | Chế độ | Nội dung của bạn nằm ở | Chọn khi |
 |---|---|---|
 | **`embedded`** (khuyến nghị cho người mới, Enter là nhận) | `<repo>/workspace/` — trong repo, nhưng bị `.gitignore` khoá và có hook `pre-commit` chặn | một máy, một bộ nội dung, muốn ít thứ phải nhớ |
-| **`separate`** | một thư mục ngoài repo (mặc định `~/.marketing`) | máy đã có trạm, hoặc nhiều repo/nhiều máy dùng chung một trạm |
+| **`separate`** | một thư mục ngoài repo do **bạn chọn đường** (không có đường mặc định ở thư mục nhà) | máy đã có trạm, hoặc nhiều repo/nhiều máy dùng chung một trạm |
 
-Bộ cài **tự chọn `separate` không hỏi** khi máy đã khai `MARKETING_STUDIO_DATA`,
-`VOICE_STATION`, `VIDEO_STATION`… hoặc `~/.marketing` đã có `CHANNELS.md`. Nó chỉ báo là
-đã nhận ra, không hỏi lại — nhận nhầm một trạm đang chạy là cách phá một trạm đang chạy.
+Chọn `separate` mà chưa chỉ đường: nếu máy có `OPCOS_WORKSPACES`, bộ cài đề xuất
+`<OPCOS_WORKSPACES>/marketing` (hỏi xác nhận, hoặc dùng luôn khi chạy không người); không có
+biến thì **hỏi đường** (Enter rỗng = dừng). Không người trả lời và không có biến thì dừng với mã
+2, đòi `--station <thư mục>`.
+
+Bộ cài **tự chọn `separate` không hỏi chế độ** khi máy đã khai `MARKETING_STUDIO_DATA` (đó
+chính là đường trạm). Biến `VOICE_STATION`, `VIDEO_STATION`… cũng báo "máy này theo mô hình trạm
+ngoài" nhưng không nói trạm nội dung ở đâu, nên bộ cài hỏi đường (và với `--yes` hoặc khi không
+có người thì dừng mã 2, đòi `--station`, trừ khi có `OPCOS_WORKSPACES`).
+
+**Trạm cũ ở `~/.marketing` (có `CHANNELS.md`) không bao giờ được tự nhận**, kể cả với `--yes`.
+Có người ngồi thì bộ cài hỏi ba đường: [1] dùng trạm mới (nhãn ghi đường thật), [2] nhận trạm
+cũ, [3] dừng để bạn tự dời; Enter là [1]. Nếu máy đặt `OPCOS_WORKSPACES` thì "trạm mới" ở [1] là
+`<OPCOS_WORKSPACES>/marketing` (bạn xác nhận hoặc đổi ở câu kế tiếp), không thì `<repo>/workspace`.
+`--yes` không bao giờ hỏi: dùng `<repo>/workspace` và in một dòng nêu trạm cũ cùng cách nhận nó
+(`--station <đường>`). `--non-interactive` thiếu cả `--yes` lẫn `--mode` thì dừng mã 2.
 
 Đổi ý sau: `python scripts/pipeline/studio.py migrate --to separate`.
 

@@ -7,8 +7,8 @@ Thư mục này là **một trạm nội dung hoàn chỉnh, thu nhỏ**: một 
 Nó ở đây để trả lời câu hỏi mà một file mẫu rỗng không trả lời được: *điền xong thì trông
 như thế nào?*
 
-> **Trạm thật của bạn KHÔNG nằm trong repo.** Nó nằm ở chỗ bạn chọn (mặc định `~/.marketing`,
-> nhưng có thể là bất cứ đâu — `CHANNELS.md` giữ địa chỉ). `brand.md` chứa thông tin cá
+> **Trạm thật của bạn KHÔNG nằm trong repo.** Nó nằm ở chỗ bạn chọn (bộ cài hỏi đường; không có
+> đường mặc định ở thư mục nhà — `CHANNELS.md` giữ địa chỉ). `brand.md` chứa thông tin cá
 > nhân, `publish.json` chứa link thật: không thứ nào nên đi vào một repo công khai.
 > File `brand.md` ở đây là **ví dụ bịa**, và mọi URL đều dùng `example.vn` / `EXAMPLE0001`
 > — tên miền dành riêng cho ví dụ, không trỏ vào đâu thật.

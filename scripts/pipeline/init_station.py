@@ -10,8 +10,9 @@ không bao giờ trôi khỏi nhau.
 
     embedded   trạm = <repo>/workspace/, biến cấu hình ở <repo>/.env (cả hai bị git bỏ qua)
                "mở một folder là thấy hết" — MẶC ĐỊNH và là khuyến nghị cho người mới
-    separate   trạm ngoài repo (mặc định ~/.marketing), biến đặt ở cấp user, bí mật ở kho
-               secret của máy — cho người nhiều máy, hoặc repo public của chính họ
+    separate   trạm ngoài repo — do bạn chọn đường (không có đường mặc định ở thư mục nhà),
+               biến đặt ở cấp user, bí mật ở kho secret của máy — cho người nhiều máy,
+               hoặc repo public của chính họ
 
 Lựa chọn ghi vào `<repo>/studio.local.json`; `studio_paths.resolve_station()` đọc lại nó
 cho MỌI script về sau.
@@ -78,7 +79,7 @@ video, và lúc đó chương trình sẽ nói đúng lệnh phải chạy.
       Chọn khi: một máy, muốn dùng được ngay, không rành kỹ thuật. Đang phân vân thì
               chọn cái này — đổi sang [2] sau được, đổi ngược lại cũng được.
 
-  [2] separate — trạm ngoài repo (mặc định ~/.marketing)
+  [2] separate — trạm ngoài repo (bạn chọn đường; sẽ hỏi ngay sau đây)
       Là gì : trạm ở thư mục riêng; bí mật ở kho secret của máy ({kho}).
       Lợi   : repo luôn sạch (an toàn khi repo là bản public của chính bạn); nhiều máy /
               nhiều repo dùng chung một trạm; cập nhật repo không đụng nội dung.
@@ -91,31 +92,69 @@ Sau này đổi ý được: `python scripts/pipeline/studio.py migrate --to sep
 # Chỉ nối vào bảng khi OPCOS_WORKSPACES đã đặt VÀ <đó>/marketing mang dấu trạm.
 BANG_TRAM_OPCOS = """
 Máy này có trạm OpcOS (OPCOS_WORKSPACES đã đặt): {duong}
-  Chọn [2] sẽ dùng đúng trạm đó (không tạo thêm, không dời gì) thay vì ~/.marketing.
+  Chọn [2] sẽ dùng đúng trạm đó (không tạo thêm, không dời gì).
   Enter vẫn là [1] embedded.
+"""
+
+# Chọn [2] mà chưa biết trạm ở đâu: hỏi đường. Có biến OPCOS_WORKSPACES thì đề xuất sẵn.
+CAU_HOI_DUONG = """\
+Trạm nội dung (separate) sẽ đặt ở đâu? Nhập đường dẫn thư mục (có thể chưa tồn tại).
+Không có đường mặc định ở thư mục nhà — chỗ nào cũng phải do bạn quyết.
+"""
+CAU_HOI_DUONG_DE_XUAT = """\
+Trạm nội dung (separate) sẽ đặt ở đâu?
+Đề xuất (từ OPCOS_WORKSPACES={bien}): {duong}
+Enter = nhận đề xuất; hoặc nhập đường dẫn khác.
 """
 
 
 # ── nhận diện máy đã có trạm ngoài (F17.2) ────────────────────────────────────────────
 
-def nha_marketing() -> Path:
+def legacy_station() -> Path:
+    """Thư mục `~/.marketing` của bản cài CŨ. KHÔNG còn là đường mặc định của ai: chỉ dùng để
+    NHẬN RA một trạm cũ đang có (có `CHANNELS.md`) — quyết định giữ hay dời là của người dùng."""
     return (Path.home() / ".marketing").resolve()
 
 
 def tram_ngoai_co_san():
     """-> (gốc trạm, lý do) nếu máy này đã theo mô hình trạm ngoài; không thì None.
 
+    Gốc trạm là None khi chỉ biết "đã theo mô hình trạm ngoài" (biến của trạm giọng/video)
+    mà không biết trạm nội dung ở đâu — người gọi phải hỏi đường, KHÔNG được đoán.
+
     KHÔNG ghi gì, không tạo gì — chỉ đọc biến và một lần `is_file()`.
     """
     ly_do = [b for b in BIEN_NHAN_DIEN if (os.environ.get(b) or "").strip()]
     if ly_do:
         bien_tram = (os.environ.get("MARKETING_STUDIO_DATA") or "").strip()
-        goc = Path(bien_tram).expanduser().resolve() if bien_tram else nha_marketing()
+        goc = Path(bien_tram).expanduser().resolve() if bien_tram else None
         return goc, "biến " + ", ".join(ly_do) + " đã đặt"
-    nha = nha_marketing()
-    if (nha / SP.SO_KENH).is_file():
-        return nha, f"{nha} đã là một trạm (có {SP.SO_KENH})"
     return None
+
+
+def tram_cu_o_nha():
+    """-> `~/.marketing` nếu nó mang dấu trạm (`CHANNELS.md`); không thì None.
+
+    Trạm CŨ dưới thư mục nhà KHÔNG BAO GIỜ được tự nhận (kể cả `--yes`): chỉ nhận khi người
+    dùng nói rõ — chọn [2] ở câu hỏi, hoặc `--station <đường>`."""
+    nha = legacy_station()
+    return nha if (nha / SP.SO_KENH).is_file() else None
+
+
+def _nhac_tram_cu(cu: Path) -> None:
+    SC.log(f"[init] máy có trạm cũ {cu} (có {SP.SO_KENH}) — KHÔNG tự nhận. Muốn dùng nó: "
+           f"chạy lại với --station {cu}")
+
+
+CAU_HOI_TRAM_CU = """\
+Máy này có một trạm CŨ ở thư mục nhà: {cu}
+Bộ cài không tự nhận nó. Chọn:
+  [1] dùng trạm MỚI: {moi}   ← Enter
+  [2] nhận trạm cũ {cu} (không rải file mẫu, không dời gì)
+  [3] dừng — tự dời trạm cũ trước (`python scripts/pipeline/studio.py migrate --to separate`
+      nếu nó đang nằm trong repo; còn trạm ở thư mục nhà thì chép tay sang chỗ mới), rồi chạy lại
+      với --station <đường>
+"""
 
 
 def _co_nguoi_tra_loi() -> bool:
@@ -132,14 +171,80 @@ def _hoi_ban_phim(bang: str) -> str:
     return input()
 
 
+def _hoi_tram_cu_ban_phim(cau: str) -> str:
+    SC.log(cau)
+    sys.stderr.write("Chọn [1/2/3] (Enter = 1, trạm mới): ")
+    sys.stderr.flush()
+    return input()
+
+
+def _hoi_duong_ban_phim(cau: str) -> str:
+    SC.log(cau)
+    sys.stderr.write("Đường trạm: ")
+    sys.stderr.flush()
+    return input()
+
+
+def chon_duong_separate(ask=None, non_interactive=False, yes=False):
+    """-> (đường trạm tuyệt đối, lý do) cho `separate` khi chưa ai chỉ đường. KHÔNG có đường
+    mặc định ở thư mục nhà.
+
+    · Có `OPCOS_WORKSPACES`: đề xuất `<biến>/marketing` (kể cả khi thư mục chưa mang dấu trạm).
+      Có người ⇒ hỏi xác nhận/đổi; không có người ⇒ dùng luôn (biến đã là lời khai tường minh)
+      và in đúng một dòng.
+    · Không có biến: có người ⇒ hỏi đường (Enter rỗng = dừng); không có người ⇒ mã 2, nêu
+      `--station`.
+    `--yes` nghĩa là "đừng hỏi": nó cũng không được hỏi đường."""
+    co_nguoi = not yes and (ask is not None or (not non_interactive and _co_nguoi_tra_loi()))
+    dx = SP.goc_opcos()
+    if dx and not co_nguoi:
+        SC.log(f"[init] separate: dùng {dx[1]} (từ OPCOS_WORKSPACES={dx[0]})")
+        return Path(dx[1]), f"OPCOS_WORKSPACES đã đặt → {dx[1]}"
+    if not co_nguoi:
+        raise SC.ContractError(
+            "chế độ separate cần biết đặt trạm ở đâu và không có người trả lời: không có đường "
+            "mặc định. Chạy lại với --station <thư mục> (hoặc đặt OPCOS_WORKSPACES).")
+    cau = (CAU_HOI_DUONG_DE_XUAT.format(bien=dx[0], duong=dx[1]) if dx else CAU_HOI_DUONG)
+    try:
+        tra = SP.duong_nguoi_go((ask or _hoi_duong_ban_phim)(cau))
+    except EOFError:
+        raise SC.ContractError(
+            "không đọc được đường trạm (stdin không có người). Chạy lại với --station <thư mục>.")
+    if not tra:
+        if not dx:
+            raise SC.ContractError(
+                "chưa nhập đường trạm nên dừng, chưa ghi gì. Chạy lại và nhập đường, hoặc dùng "
+                "--station <thư mục>.")
+        return Path(dx[1]), f"người dùng nhận đề xuất từ OPCOS_WORKSPACES → {dx[1]}"
+    return Path(os.path.abspath(os.path.expanduser(tra))), "người dùng nhập đường trạm"
+
+
 def chon_che_do(station=None, mode=None, yes=False, ask=None, non_interactive=False):
     """-> (chế độ, gốc trạm, lý do). Ném ContractError khi cần người chọn mà không hỏi được.
 
     `non_interactive` = người gọi TỰ KHAI "không có ai ngồi đây". Nó KHÔNG có nghĩa là
     "cứ đoán hộ tôi": thiếu `--yes`/`--mode`/`--station` thì vẫn là mã 2. Hai vỏ cài
     (`install.ps1 -NonInteractive`, `install.sh --non-interactive`) cùng đổ vào đây, nên
-    chúng không thể trôi khỏi nhau nữa (REVIEW-P2 N8)."""
+    chúng không thể trôi khỏi nhau nữa (REVIEW-P2 N8).
+
+    Trạm cũ ở `~/.marketing` không bao giờ được tự nhận: có người thì hỏi ba đường; không
+    có người (hoặc `--yes`) thì dùng trạm mới và in MỘT dòng nêu trạm cũ + cách nhận nó."""
+    cu = tram_cu_o_nha()
+    ra = {"da_hoi_cu": False}
+    try:
+        kq = _chon_che_do(station, mode, yes, ask, non_interactive, cu, ra)
+    except SC.ContractError:
+        if cu and not ra["da_hoi_cu"]:
+            _nhac_tram_cu(cu)
+        raise
+    if cu and not ra["da_hoi_cu"] and Path(kq[1]) != cu:
+        _nhac_tram_cu(cu)
+    return kq
+
+
+def _chon_che_do(station, mode, yes, ask, non_interactive, cu, ra):
     repo = SP.repo_root()
+    ask_duong = ask            # câu hỏi ĐƯỜNG dùng bàn phím riêng, không dùng chung câu hỏi chế độ
     if station:
         return "separate", Path(station).expanduser().resolve(), "--station"
     ngoai = tram_ngoai_co_san()
@@ -149,6 +254,9 @@ def chon_che_do(station=None, mode=None, yes=False, ask=None, non_interactive=Fa
                 f"máy này đã có trạm ngoài ({ngoai[1]}) — tạo thêm {SP.WORKSPACE}/ trong repo "
                 "sẽ thành hai nguồn sự thật cho cùng một repo. Bỏ --mode để dùng trạm đó, "
                 "hoặc gỡ biến / dời trạm cũ trước.")
+        if ngoai[0] is None:                 # biết "trạm ngoài" nhưng không biết ở đâu: hỏi
+            goc, ly = chon_duong_separate(ask_duong, non_interactive, yes)
+            return "separate", goc, f"nhận diện trạm có sẵn — {ngoai[1]}; {ly}"
         return "separate", ngoai[0], f"nhận diện trạm có sẵn — {ngoai[1]}"
     if mode:
         ly_do = "--mode"
@@ -160,6 +268,29 @@ def chon_che_do(station=None, mode=None, yes=False, ask=None, non_interactive=Fa
             mode, ly_do = truoc, f"{SP.LOCAL_CONFIG} (lần chọn trước)"
         elif yes:
             mode, ly_do = "embedded", "--yes (nhận khuyến nghị)"
+        elif cu and (ask is not None or (not non_interactive and _co_nguoi_tra_loi())):
+            ra["da_hoi_cu"] = True
+            dx = SP.goc_opcos()      # có biến: "trạm mới" = <biến>/marketing (xác nhận/đổi sau)
+            moi = dx[1] if dx else ((repo / SP.WORKSPACE).resolve() if repo
+                                    else "(không xác định được repo)")
+            try:
+                tra = (SP.duong_nguoi_go((ask or _hoi_tram_cu_ban_phim)(
+                    CAU_HOI_TRAM_CU.format(cu=cu, moi=moi))) or "1").lower()
+            except EOFError:
+                raise SC.ContractError(
+                    "không đọc được lựa chọn (stdin không có người) — chưa ghi gì. Chạy lại với "
+                    f"--yes (trạm mới) hoặc --station {cu} (nhận trạm cũ).")
+            if tra == "1":
+                mode = "separate" if dx else "embedded"
+                ly_do = f"người dùng chọn trạm mới (không nhận trạm cũ {cu})"
+            elif tra == "2":
+                return "separate", cu, f"người dùng nhận trạm cũ {cu}"
+            elif tra == "3":
+                raise SC.ContractError(
+                    f"đã dừng theo lựa chọn, chưa ghi gì. Dời trạm cũ {cu} sang chỗ mới trước, rồi "
+                    "chạy lại với --station <đường>; hoặc chạy lại và chọn [1] / [2].")
+            else:
+                raise SC.ContractError(f"lựa chọn không hợp lệ: {tra!r} (1, 2 hoặc 3) — chưa ghi gì.")
         else:
             bang = BANG_LUA_CHON
             opcos = SP.tram_opcos()
@@ -197,7 +328,8 @@ def chon_che_do(station=None, mode=None, yes=False, ask=None, non_interactive=Fa
     opcos = SP.tram_opcos()
     if opcos:
         return "separate", opcos, f"trạm OpcOS: OPCOS_WORKSPACES đã đặt và {opcos} là một trạm"
-    return "separate", nha_marketing(), ly_do
+    goc, ly = chon_duong_separate(ask_duong, non_interactive, yes)
+    return "separate", goc, f"{ly_do}; {ly}"
 
 
 # ── dựng cây ──────────────────────────────────────────────────────────────────────────
@@ -353,8 +485,8 @@ def do_init(station=None, mode=None, yes=False, existing=False, dry_run=False, a
     mode, st, ly_do = chon_che_do(station=station, mode=mode, yes=yes, ask=ask,
                                   non_interactive=non_interactive)
     repo = SP.repo_root()
-    if mode == "separate" and not station and SP.tram_opcos() == st:
-        existing = True        # trạm OpcOS đã dựng sẵn: không rải file mẫu vào đó
+    if mode == "separate" and not station and (st / SP.SO_KENH).is_file():
+        existing = True        # trạm đã dựng sẵn (OpcOS, trạm cũ được nhận): không rải file mẫu vào đó
     kq = {"mode": mode, "station": str(st), "reason": ly_do, "repo": str(repo) if repo else None,
           "dry_run": bool(dry_run), "created": [], "hook": None}
     if existing and not st.is_dir():
