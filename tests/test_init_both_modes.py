@@ -458,6 +458,14 @@ def test_bang_hanh_vi_chung(kich_ban, cu, bien, repo, nha, tmp_path, monkeypatch
         assert str(moc[V] if bien else moc[W]) in d1, "nhãn [1] phải in đường thật của trạm mới"
 
 
+def test_changelog_chua_phat_hanh_noi_dung_cach_nhan_tram_cu_va_ca_exit_2():
+    t = (ROOT / "CHANGELOG.md").read_text(encoding="utf-8")
+    khoi = t[t.index("### Chưa phát hành"):t.index("## 2.0.0")]
+    assert "`--station <đường>`" in khoi and "[2]" in khoi
+    assert "không nhận được trạm ở thư mục nhà" in khoi, "migrate chỉ dời, không nhận trạm cũ"
+    assert "VOICE_STATION" in khoi and "mã 2" in khoi, "init --yes + biến trạm giọng/video thiếu biến OpcOS"
+
+
 def test_may_da_chon_tu_truoc_thi_khong_hoi_lai_ve_tram_cu(repo, nha):
     """Chạy lại `init` trên bản cài đã chọn: dùng lựa chọn cũ, không lôi trạm cũ ra hỏi."""
     tao_tram_cu(nha)
