@@ -12,7 +12,9 @@ repo (xoá đi clone lại, `git clean`, chép tay) sẽ ăn mất nội dung c�
                GIỮ trạm, `.env` và repo.
     backup   = zip cả trạm. Mặc định KHÔNG kèm `.env`; kèm thì phải xin rõ `--with-env`.
     migrate  = đường ra khi người dùng lớn lên: dời `<repo>/workspace/` ra ngoài repo và
-               `.env` về kho secret của máy, rồi ghi lại lựa chọn.
+               `.env` về kho secret của máy, rồi ghi lại lựa chọn. Đích KHÔNG có mặc định
+               ngầm: không khai `--station` thì hỏi (có gợi ý, cho thấy số file/dung lượng,
+               xin y/N); không có người ngồi thì bắt buộc `--station`.
 
 `export/import` gói chuyển máy (có manifest + sha256, chọn file theo danh sách khai rõ) là
 việc của `station.py` — khác mục đích: `backup` là ảnh chụp cho chính mình, `export` là gói
@@ -269,7 +271,101 @@ def _doi_file(nguon: Path, dich: Path):
         nguon.unlink()
 
 
-def migrate_sang_separate(station=None, kho_secret=None) -> dict:
+def goi_y_dich(repo: Path) -> Path | None:
+    """Đích GỢI Ý (người dùng vẫn được chọn khác): `<OPCOS_WORKSPACES>/marketing` khi biến có,
+    luôn là đường tuyệt đối. Không có biến thì KHÔNG gợi ý (None): đoán từ vị trí của repo là
+    sai khi clone nằm trong một repo git khác — nội dung sẽ bị dời vào cây repo đó.
+    Biến chỉ đọc từ môi trường thật, qua đúng một điểm đọc (`SP.goc_opcos`)."""
+    d = SP.goc_opcos("marketing")
+    return Path(d[1]).resolve() if d else None
+
+
+def _kiem_dich_trong_nguon(dich: Path, ws: Path) -> None:
+    """Đích nằm TRONG (hoặc trùng) trạm nguồn: dời một cây vào chính nó là vô nghĩa và để lại
+    thư mục rỗng/nửa vời. Từ chối trước khi đụng byte nào."""
+    nguon = ws.resolve()
+    if dich == nguon or nguon in dich.parents:
+        raise SC.ContractError(
+            f"thư mục đích {dich} nằm trong chính trạm nguồn {nguon} — chọn chỗ NGOÀI repo "
+            "(--station). Chưa đụng gì.")
+
+
+def _co_nguoi_tra_loi() -> bool:
+    try:
+        return sys.stdin is not None and sys.stdin.isatty()
+    except Exception:            # noqa: BLE001 — stdin bị thay (pytest, dịch vụ nền)
+        return False
+
+
+def _hoi_ban_phim(nhac: str) -> str:
+    sys.stderr.write(nhac)
+    sys.stderr.flush()
+    return input()
+
+
+def _do_cay(ws: Path):
+    """-> (số file, tổng byte) của cây sẽ dời."""
+    n = b = 0
+    for dp, _dn, fn in os.walk(ws):
+        for t in fn:
+            n += 1
+            try:
+                b += (Path(dp) / t).stat().st_size
+            except OSError:
+                pass
+    return n, b
+
+
+def _dung_luong(b: int) -> str:
+    for don_vi in ("B", "KB", "MB", "GB"):
+        if b < 1024 or don_vi == "GB":
+            return f"{b} B" if don_vi == "B" else f"{b:.1f} {don_vi}"
+        b /= 1024
+
+
+def _hoi_noi_doi(repo: Path, ws: Path, ask, non_interactive: bool) -> Path:
+    """Không có `--station`: hỏi người dùng nơi dời. Không hỏi được ⇒ mã 2, không đoán."""
+    goi_y = goi_y_dich(repo)
+    if ask is None:
+        if non_interactive or not _co_nguoi_tra_loi():
+            raise SC.ContractError(
+                "không có người ngồi để hỏi nơi dời trạm — phải khai rõ đích: "
+                "`studio.py migrate --to separate --station <thư-mục-đích>`"
+                + (f" (gợi ý: {goi_y})" if goi_y else "") + ". Chưa đụng gì.")
+        ask = _hoi_ban_phim
+    try:
+        if goi_y:
+            tra = SP.duong_nguoi_go(
+                ask(f"Dời trạm ra ngoài repo. Gợi ý: {goi_y}\n"
+                    "Nơi dời [Enter = nhận gợi ý, hoặc gõ đường dẫn khác]: "))
+        else:
+            tra = SP.duong_nguoi_go(
+                ask("Dời trạm ra ngoài repo. Chưa có gợi ý nào (đặt OPCOS_WORKSPACES nếu muốn).\n"
+                    "Nơi dời [gõ đường dẫn thư mục đích; Enter rỗng = dừng]: "))
+    except EOFError:
+        raise SC.ContractError(
+            "không đọc được câu trả lời (stdin không có người) — chạy lại với "
+            "`--station <thư-mục-đích>`. Chưa đụng gì.")
+    if not tra and not goi_y:
+        raise SC.ContractError("chưa nhập nơi dời nên dừng — chưa đụng gì. Chạy lại và nhập "
+                               "đường, hoặc dùng `--station <thư-mục-đích>`.")
+    dich = Path(tra).expanduser().resolve() if tra else goi_y
+    _kiem_dich_trong_nguon(dich, ws)
+    if dich.exists() and (not dich.is_dir() or any(dich.iterdir())):
+        raise SC.ContractError(f"thư mục đích không rỗng: {dich} — chọn chỗ khác (--station).")
+    n, b = _do_cay(ws)
+    try:
+        xn = (ask(f"Sẽ dời {n} file ({_dung_luong(b)}) từ {ws.resolve()}\n"
+                  f"                          tới {dich}\n"
+                  "Dời thật? [y/N]: ") or "").strip().lower()
+    except EOFError:
+        raise SC.ContractError("không đọc được xác nhận — chưa đụng gì. Chạy lại với --station.")
+    if xn not in ("y", "yes"):
+        raise SC.ContractError("không xác nhận (cần gõ y) — chưa đụng gì.")
+    return dich
+
+
+def migrate_sang_separate(station=None, kho_secret=None, ask=None, non_interactive=False) -> dict:
     repo = SP.repo_root()
     if not repo:
         raise SC.ContractError("không xác định được gốc repo (đặt MARKETING_STUDIO_HOME).")
@@ -281,7 +377,11 @@ def migrate_sang_separate(station=None, kho_secret=None) -> dict:
     if not ws.is_dir():
         raise SC.StationMissing(f"không có {ws} — chưa có trạm nào nằm trong repo.")
     dich = Path(station).expanduser().resolve() if station else \
-        (Path.home() / ".marketing").resolve()
+        _hoi_noi_doi(repo, ws, ask, non_interactive)
+    _kiem_dich_trong_nguon(dich, ws)
+    if dich.exists() and not dich.is_dir():
+        raise SC.ContractError(f"đích {dich} là một FILE, không phải thư mục — chọn chỗ khác "
+                               "(--station). Chưa đụng gì.")
     if dich.exists() and any(dich.iterdir()):
         raise SC.ContractError(f"thư mục đích không rỗng: {dich} — chọn chỗ khác (--station).")
     kho = Path(kho_secret).expanduser().resolve() if kho_secret else KHO_SECRET_MAC_DINH
@@ -294,10 +394,17 @@ def migrate_sang_separate(station=None, kho_secret=None) -> dict:
         raise SC.ContractError(
             f"{env_dich} đã có — gộp tay rồi xoá {f_env}, sau đó chạy lại. Chưa đụng gì.")
 
-    if dich.is_dir():
+    da_co_thu_muc_rong = dich.is_dir()
+    if da_co_thu_muc_rong:
         dich.rmdir()
     dich.parent.mkdir(parents=True, exist_ok=True)
-    _doi_cay(ws, dich)
+    try:
+        _doi_cay(ws, dich)
+    except SC.ContractError:
+        # "CHƯA đụng gì" phải đúng cả với thư mục đích rỗng có sẵn của người dùng.
+        if da_co_thu_muc_rong and not dich.exists():
+            dich.mkdir()
+        raise
     if env_dich:
         kho.mkdir(parents=True, exist_ok=True)
         _doi_file(f_env, env_dich)
@@ -326,7 +433,10 @@ def main(argv=None) -> int:
 
     m = con.add_parser("migrate", help="dời trạm embedded ra ngoài repo")
     m.add_argument("--to", required=True, choices=["separate"])
-    m.add_argument("--station", help="đích (mặc định ~/.marketing)")
+    m.add_argument("--station", help="thư mục đích; bắt buộc khi không có người ngồi trả lời "
+                                     "(không khai thì chương trình hỏi, có gợi ý)")
+    m.add_argument("--non-interactive", action="store_true",
+                   help="không hỏi: thiếu --station thì dừng mã 2")
     m.add_argument("--secret-dir", help="kho secret nhận .env (mặc định ~/.secret/marketing-studio)")
 
     u = con.add_parser("uninstall", help="gỡ phần bộ cài sở hữu; GIỮ trạm, .env, repo")
@@ -355,7 +465,8 @@ def main(argv=None) -> int:
             for x in kq["kept"]:
                 SC.log(f"  giữ {x}")
         else:
-            kq = migrate_sang_separate(a.station, a.secret_dir)
+            kq = migrate_sang_separate(a.station, a.secret_dir,
+                                       non_interactive=a.non_interactive)
             SC.log(f"[migrate] trạm giờ ở {kq['station']} — đặt MARKETING_STUDIO_DATA trỏ vào đó")
             if kq["env_moved_to"]:
                 SC.log(f"[migrate] .env → {kq['env_moved_to']}")

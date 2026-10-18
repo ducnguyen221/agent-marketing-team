@@ -153,6 +153,16 @@ def workspace_dir(repo=None) -> Path | None:
     return (repo / WORKSPACE) if repo else None
 
 
+def duong_nguoi_go(s) -> str:
+    """Làm sạch một đường dẫn do NGƯỜI gõ/dán: bỏ khoảng trắng hai đầu và MỘT cặp ngoặc kép
+    (hoặc đơn) bao quanh toàn chuỗi — 'Copy as path' của Windows dán vào kèm `"..."`. Không
+    đụng ngoặc nằm giữa đường. Chuỗi rỗng giữ rỗng."""
+    s = (s or "").strip()
+    if len(s) >= 2 and s[0] == s[-1] and s[0] in "\"'":
+        s = s[1:-1].strip()
+    return s
+
+
 def goc_opcos(ten: str = "marketing") -> tuple[str, str] | None:
     """Điểm đọc DUY NHẤT của `OPCOS_WORKSPACES`: `(giá trị biến, đường tuyệt đối <biến>/<ten>)`,
     hoặc None khi biến vắng/rỗng. Chỉ đọc `os.environ` — KHÔNG đọc `.env` của repo. Không kiểm

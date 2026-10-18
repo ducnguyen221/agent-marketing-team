@@ -16,7 +16,7 @@ cài.
 
 | | `embedded` — gọn trong repo | `separate` — trạm ngoài repo |
 |---|---|---|
-| **Là gì** | trạm = `<repo>/workspace/`, biến cấu hình = `<repo>/.env` | trạm ở thư mục riêng (mặc định `~/.marketing`), bí mật ở kho secret của máy |
+| **Là gì** | trạm = `<repo>/workspace/`, biến cấu hình = `<repo>/.env` | trạm ở thư mục riêng do bạn chọn (không có đường mặc định ở thư mục nhà), bí mật ở kho secret của máy |
 | **Lợi** | mở một folder là thấy hết; không phải đặt biến môi trường; sao lưu một phát | repo luôn sạch (an toàn khi repo là bản public của chính bạn); nhiều máy / nhiều repo dùng chung một trạm; cập nhật repo không đụng nội dung |
 | **Hại** | xoá folder repo là mất luôn nội dung | thêm một chỗ phải nhớ; phải đặt `MARKETING_STUDIO_DATA` cho lịch chạy thấy trạm |
 | **Chọn khi** | một máy, muốn dùng được ngay, không rành kỹ thuật | rành kỹ thuật, nhiều máy, hoặc repo public của chính bạn |
@@ -31,9 +31,15 @@ python scripts/pipeline/init_station.py          # hỏi bạn chọn
 
 **Máy đã có trạm ngoài thì bộ cài tự chọn `separate`, không hỏi, và không bao giờ tạo
 `workspace/`.** Nhận diện bằng: đã đặt một trong `MARKETING_STUDIO_DATA`, `VOICE_STATION`,
-`VIDEO_STATION`, `OMNIVOICE_DIR`, `VIDEO_ROOT`; hoặc `~/.marketing` đã có `CHANNELS.md`.
-Lý do: một repo mà có **hai** trạm thì không ai biết bài mới nằm ở đâu, và `doctor` gọi đó
-là *hai nguồn sự thật* — nó báo đỏ chứ không đoán hộ.
+`VIDEO_STATION`, `OMNIVOICE_DIR`, `VIDEO_ROOT`. Chỉ `MARKETING_STUDIO_DATA` cho biết trạm ở
+đâu; các biến còn lại chỉ báo "đã theo mô hình trạm ngoài" nên bộ cài hỏi đường (hoặc đòi
+`--station` khi dùng `--yes` / không có người). Chọn `separate` thì không có đường mặc định: có
+`OPCOS_WORKSPACES` thì đề xuất `<biến>/marketing`, không thì hỏi đường. Trạm cũ ở `~/.marketing`
+(có `CHANNELS.md`) **không bao giờ được tự nhận**: có người thì hỏi ba đường (trạm mới / nhận
+trạm cũ / dừng; Enter là trạm mới, ghi đường thật: `<OPCOS_WORKSPACES>/marketing` nếu biến đặt,
+không thì `<repo>/workspace`), `--yes` không bao giờ hỏi và dùng `<repo>/workspace`, rồi in một
+dòng nêu cách nhận trạm cũ (`--station <đường>`). Lý do: một repo mà có **hai** trạm thì không ai biết bài mới nằm ở đâu, và
+`doctor` gọi đó là *hai nguồn sự thật* — nó báo đỏ chứ không đoán hộ.
 
 ### Đừng xoá folder repo để cài lại
 
@@ -53,6 +59,17 @@ python scripts/pipeline/studio.py migrate --to separate [--station <thư-mục-t
 Nó **dời** `workspace/` ra ngoài (không chép rồi để lại bản cũ), dời `.env` về kho secret,
 rồi ghi lại lựa chọn. Kiểm mọi điều kiện trước khi dời byte đầu tiên; đích không rỗng thì
 từ chối và chưa đụng gì.
+
+**Đích dời là việc của bạn chọn — lệnh không có đích ngầm.**
+
+- Không khai `--station` và có người ngồi: lệnh **hỏi** nơi dời. Gợi ý (không áp đặt) là
+  `<OPCOS_WORKSPACES>/marketing` nếu biến đó có; không có biến thì **không gợi ý gì** — bạn gõ
+  đường (Enter rỗng là dừng). Nó in đường tuyệt đối của đích cùng số file và dung lượng sẽ
+  dời, rồi xin `y/N` trước khi dời byte đầu tiên; Enter ở câu xác nhận là **không dời**. Đích
+  nằm trong chính trạm nguồn bị từ chối. Đường dán kèm cặp ngoặc kép (Copy as path) vẫn đúng.
+- Không có người ngồi (lịch chạy, agent, `--non-interactive`): **bắt buộc** `--station`;
+  thiếu thì dừng với mã 2 và chưa đụng gì.
+- Có `--station`: dời thẳng, không hỏi. Đường tương đối được đổi thành tuyệt đối.
 
 ---
 
