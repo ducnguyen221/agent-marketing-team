@@ -330,6 +330,7 @@ def test_doi_that_bai_thi_thu_muc_dich_rong_co_san_cua_nguoi_dung_con_nguyen(
         ST.migrate_sang_separate(station=str(dich), kho_secret=str(tmp_path / "kho"))
     assert dich.is_dir() and not any(dich.iterdir()), "thư mục đích rỗng của người dùng phải còn"
     assert _nguyen_ven(repo_git)
+    assert SP.mode(repo_git) == "embedded", "dời hỏng thì lựa chọn đã ghi vẫn là embedded"
 
 
 def test_loi_OSError_giua_chung_van_tra_lai_thu_muc_dich_rong_co_san(repo_git, tmp_path, monkeypatch):
@@ -346,6 +347,7 @@ def test_loi_OSError_giua_chung_van_tra_lai_thu_muc_dich_rong_co_san(repo_git, t
         ST.migrate_sang_separate(station=str(dich), kho_secret=str(tmp_path / "kho"))
     assert dich.is_dir() and not any(dich.iterdir()), "thư mục đích rỗng của người dùng phải còn"
     assert _nguyen_ven(repo_git)
+    assert SP.mode(repo_git) == "embedded", "dời hỏng thì lựa chọn đã ghi vẫn là embedded"
 
 
 def test_tuong_tac_go_duong_la_mot_FILE_o_cau_noi_doi_thi_noi_dich_la_FILE_va_ten_duong(repo_git, tmp_path):

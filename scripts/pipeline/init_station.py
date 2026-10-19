@@ -199,6 +199,11 @@ def _kiem_bien_opcos(dx) -> None:
         raise SC.ContractError(
             f"OPCOS_WORKSPACES={dx[0]} đang là một FILE, không phải thư mục. Đây là lỗi cấu hình: "
             "sửa hoặc gỡ biến rồi chạy lại (hoặc dùng --station <thư mục>). Chưa ghi gì.")
+    if (Path(os.path.expanduser(dx[0])) / SP.SO_KENH).is_file():
+        raise SC.ContractError(
+            f"OPCOS_WORKSPACES={dx[0]} đã là một trạm (có {SP.SO_KENH}), trong khi nó phải là thư mục "
+            "CHỨA các trạm — dựng thêm marketing bên trong sẽ thành trạm lồng trạm. Trỏ biến vào "
+            "thư mục gốc chứa các trạm (hoặc gỡ biến, hoặc dùng --station <thư mục>). Chưa ghi gì.")
     p = Path(dx[1])
     while True:                      # `<biến>/marketing` hoặc một thư mục cha còn thiếu nằm dưới một FILE
         if p.is_file():

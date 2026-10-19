@@ -1506,13 +1506,24 @@ def test_dac_ta_bien_tro_vao_trong_repo_thi_dung_trong_repo_hien_trang(repo, mon
     cay_tram_ok(repo / "ws" / "marketing")
 
 
-def test_dac_ta_bien_chinh_no_la_mot_tram_thi_dung_long_nhau_hien_trang(repo, tmp_path, monkeypatch):
+@pytest.mark.parametrize("cach", ["yes", "Enter", "ni"])
+def test_bien_chinh_no_la_mot_tram_la_ma_2_nen_ten_bien_va_khong_dung_long_nhau(
+        cach, repo, tmp_path, monkeypatch):
+    """`OPCOS_WORKSPACES` phải là GỐC chứa các trạm, không phải một trạm: dựng `<biến>/marketing` bên trong
+    một trạm là lồng trạm vào trạm. Gốc không mang dấu thì không bị chặn (các test khác)."""
     ws = tmp_path / "ws"
     ws.mkdir()
     (ws / SP.SO_KENH).write_text("---\nchannels: []\n---\n# tram\n", encoding="utf-8")
     monkeypatch.setenv("OPCOS_WORKSPACES", str(ws))
-    kq = IS.do_init(yes=True, ask=khong_duoc_hoi)
-    assert Path(kq["station"]) == (ws / "marketing").resolve()
+    if cach == "yes":
+        kw = dict(yes=True, ask=khong_duoc_hoi)
+    elif cach == "Enter":
+        kw = dict(ask=tra_loi(""))
+    else:
+        kw = dict(non_interactive=True)
+    with pytest.raises(SC.ContractError, match="OPCOS_WORKSPACES"):
+        IS.do_init(**kw)
+    assert not (ws / "marketing").exists() and not (repo / SP.LOCAL_CONFIG).exists()
     assert (ws / SP.SO_KENH).read_text(encoding="utf-8").endswith("# tram\n")
 
 
