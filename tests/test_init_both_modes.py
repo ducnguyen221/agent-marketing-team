@@ -407,22 +407,30 @@ def test_giong_PS_va_Python_ve_bo_cuc_cu_va_moi_dung_mot_dinh_nghia_co_that():
 
 # ── BẢNG HÀNH VI CHUNG (cùng một bảng cho voice / video / marketing) ──────────────────
 #
-# {bố cục trong repo: không có / `workspaces` / `workspace` cũ / cả hai} × {OPCOS_WORKSPACES:
-# đặt/không} × kịch bản. Kết quả: (chế độ, đích) với W = trạm nhúng (`<repo>/workspaces`, hoặc
-# `<repo>/workspace` cũ khi CHỈ có nó), V = <biến>/marketing, P = đường người dùng gõ; hoặc "LOI"
-# = mã 2 và chưa ghi gì. `hoi` = số câu hỏi đã đưa ra; `nhac` = số dòng khuyến nghị đổi tên bố cục
-# cũ (chỉ khi kết quả là embedded và còn `workspace` cũ).
-# Có biến + có người ngồi + không --mode: Enter ra thẳng V (không có bảng chế độ).
+# {bố cục trong repo: không có / `workspaces` / `workspace` cũ / cả hai} × {OPCOS_WORKSPACES: vắng /
+# đặt mà `<biến>/marketing` chưa mang dấu / đặt và đã mang dấu} × kịch bản. Kết quả: (chế độ, đích) với
+# W = trạm nhúng (`<repo>/workspaces`, hoặc `<repo>/workspace` cũ khi CHỈ có nó), V = <biến>/marketing,
+# P = đường người dùng gõ; hoặc "LOI" = mã 2 và chưa ghi gì. `hoi` = số câu hỏi đã đưa ra (test so BẰNG,
+# không chỉ chặn hỏi thừa); `nhac` = số dòng khuyến nghị đổi tên bố cục cũ (chỉ khi kết quả là embedded
+# và còn `workspace` cũ). `TTY` = stdin có phải terminal không (mỗi kịch bản khai riêng, không ép chung).
+# id test cố định theo tên kịch bản × bố cục × trục biến — chèn dòng không đổi id dòng khác.
 
 W, V, P, LOI = "W", "V", "P", "LOI"
 BO_CUC = ["khong", "moi", "cu", "ca-hai"]
+BIEN = ["khong", "chua-dau", "da-dau"]
+ID_BIEN = {"khong": "khong-bien", "chua-dau": "bien-chua-dau", "da-dau": "bien-da-dau"}
+# Kịch bản nào chạy khi stdin LÀ terminal (`--non-interactive` phải thắng nó). Còn lại: không terminal.
+TTY = {"ni": True, "ni_yes": True, "mode_separate_ni": True}
 
 
 def _mong(kich_ban, bo_cuc, bien):
     """-> (kết quả, số câu hỏi, số dòng nhắc đổi tên bố cục cũ)"""
+    co_bien = bien != "khong"
     nhac = 1 if bo_cuc in ("cu", "ca-hai") else 0
     if kich_ban == "Enter":
-        return (("separate", V), 1, 0) if bien else (("embedded", W), 1, nhac)
+        if co_bien:
+            return ("separate", V), (0 if bien == "da-dau" else 1), 0
+        return ("embedded", W), 1, nhac
     if kich_ban == "2":                                   # chỉ khi KHÔNG có biến (bảng chế độ)
         return ("separate", P), 2, 0
     if kich_ban == "3":                                   # chỉ khi KHÔNG có biến: lựa chọn sai
@@ -432,9 +440,9 @@ def _mong(kich_ban, bo_cuc, bien):
     if kich_ban == "ni":
         return LOI, 0, 0
     if kich_ban in ("mode_separate_ni", "mode_separate_yes"):
-        return (("separate", V) if bien else LOI), 0, 0
+        return (("separate", V) if co_bien else LOI), 0, 0
     if kich_ban == "mode_separate_hoi":
-        return ("separate", V if bien else P), 1, 0
+        return ("separate", V if co_bien else P), (0 if bien == "da-dau" else 1), 0
     raise AssertionError(kich_ban)
 
 
@@ -445,10 +453,10 @@ KICH_BAN = ["Enter", "2", "3", "yes", "ni", "ni_yes", "mode_embedded",
 def _to_hop():
     for kb in KICH_BAN:
         for bc in BO_CUC:
-            for bien in (False, True):
-                if kb in ("2", "3") and bien:
+            for bien in BIEN:
+                if kb in ("2", "3") and bien != "khong":
                     continue
-                yield pytest.param(kb, bc, bien, id=f"{kb}-{bc}-{'co-bien' if bien else 'khong-bien'}")
+                yield pytest.param(kb, bc, bien, id=f"{kb}-{bc}-{ID_BIEN[bien]}")
 
 
 @pytest.mark.parametrize("kich_ban,bo_cuc,bien", list(_to_hop()))
@@ -456,13 +464,19 @@ def test_bang_hanh_vi_chung(kich_ban, bo_cuc, bien, repo, nha, tmp_path, monkeyp
     if bo_cuc in ("moi", "ca-hai"):
         (repo / "workspaces").mkdir()
     cu = tao_bo_cuc_cu(repo) if bo_cuc in ("cu", "ca-hai") else None
-    if bien:
+    co_bien = bien != "khong"
+    if co_bien:
         monkeypatch.setenv("OPCOS_WORKSPACES", str(tmp_path / "ws"))
+    if bien == "da-dau":
+        (tmp_path / "ws" / "marketing").mkdir(parents=True)
+        (tmp_path / "ws" / "marketing" / SP.SO_KENH).write_text(
+            "---\nchannels: []\n---\n", encoding="utf-8")
+    monkeypatch.setattr(IS, "_co_nguoi_tra_loi", lambda: TTY.get(kich_ban, False))
     duong_go = tmp_path / "tram-go"
     nhung = cu if bo_cuc == "cu" else (repo / "workspaces")
     moc = {W: nhung.resolve(), V: (tmp_path / "ws" / "marketing").resolve(), P: duong_go.resolve()}
     # câu trả lời chuẩn bị sẵn; câu hỏi đường: có biến thì Enter (nhận đề xuất), không thì gõ P
-    cau_duong = "" if bien else str(duong_go)
+    cau_duong = "" if co_bien else str(duong_go)
     kw, tra = {}, []
     if kich_ban == "Enter":
         tra = [""]
@@ -505,9 +519,20 @@ def test_bang_hanh_vi_chung(kich_ban, bo_cuc, bien, repo, nha, tmp_path, monkeyp
         assert "<repo>/workspaces/" in ask.da_hoi[0] and "workspaces/marketing" not in ask.da_hoi[0]
 
 
-def test_changelog_chua_phat_hanh_noi_dung_cach_dung_bo_cuc_moi_va_ca_exit_2():
+def _khoi_changelog_hien_hanh() -> str:
+    """Khối CHANGELOG nói về hành vi hiện hành của bộ cài: `### Chưa phát hành` khi còn; khi đã phát
+    hành (khối đó thành mục của bản mới, không còn tiêu đề ấy) thì chính mục `##` đầu tiên."""
+    import re
     t = (ROOT / "CHANGELOG.md").read_text(encoding="utf-8")
-    khoi = t[t.index("### Chưa phát hành"):t.index("## 2.0.0")]
+    dau = t.find("### Chưa phát hành")
+    if dau < 0:
+        dau = re.search(r"^## ", t, re.M).start()
+    cuoi = re.compile(r"^## ", re.M).search(t, dau + 4)
+    return t[dau:cuoi.start() if cuoi else len(t)]
+
+
+def test_changelog_chua_phat_hanh_noi_dung_cach_dung_bo_cuc_moi_va_ca_exit_2():
+    khoi = _khoi_changelog_hien_hanh()
     assert NHA_CU not in khoi, "khối chưa phát hành không được nhắc tên thư mục kiểu cũ"
     assert ".- " not in khoi, "bullet dính dòng"
     assert all(d.startswith("- ") or not d.strip() or d.startswith("###") for d in khoi.splitlines()), \
@@ -920,7 +945,7 @@ def test_KHONG_con_chu_thu_muc_nha_kieu_cu_o_ma_test_docs_help_template():
             # Các bản ĐÃ phát hành là lịch sử, giữ nguyên chữ; riêng khối chưa phát hành là luật hiện hành.
             if p != ROOT / "CHANGELOG.md":
                 continue
-            t = t[t.index("### Chưa phát hành"):t.index("## 2.0.0")]
+            t = _khoi_changelog_hien_hanh()
         da_quet += 1
         if cu.search(t):
             loi.append(f"{p.relative_to(ROOT)}: chữ thư mục nhà kiểu cũ")
