@@ -385,8 +385,8 @@ def chon_che_do(station=None, mode=None, yes=False, ask=None, non_interactive=Fa
                     SC.log(bang)
                     raise SC.ContractError(
                         "cần người dùng chọn chế độ cài. Agent: trình bảng ở trên cho người "
-                        "dùng, rồi chạy lại với --mode embedded|separate (hoặc --yes: embedded khi "
-                        "máy không đặt OPCOS_WORKSPACES).")
+                        "dùng, rồi chạy lại với --mode embedded|separate, --station <đường> (trạm ngoài repo), "
+                        "hoặc --yes (embedded khi máy không đặt OPCOS_WORKSPACES).")
                 ask = _hoi_ban_phim
             try:
                 tra = (ask(bang) or "").strip().lower()
@@ -395,7 +395,8 @@ def chon_che_do(station=None, mode=None, yes=False, ask=None, non_interactive=Fa
                 # không có ai ngồi đó.
                 raise SC.ContractError(
                     "không đọc được lựa chọn (stdin không có người). Agent: trình bảng lựa "
-                    "chọn cho người dùng, rồi chạy lại với --mode embedded|separate.")
+                    "chọn cho người dùng, rồi chạy lại với --mode embedded|separate, --station <đường> "
+                    "hoặc --yes.")
             if tra in ("", "1", "embedded"):
                 mode = "embedded"
             elif tra in ("2", "separate"):

@@ -1814,3 +1814,17 @@ def test_runner_paths_thieu_tram_mang_nguyen_van_cau_station_cua_hop_dong(repo):
     with pytest.raises(SC.StationMissing) as e:
         m.station()
     assert SC.GOI_Y_DU_LIEU_CU in str(e.value)
+
+
+def test_khong_nguoi_khong_co_khong_bien_thong_bao_neu_ca_station_va_yes_va_mode(repo, monkeypatch):
+    """Không có ai trả lời (stdin hết dữ liệu hoặc không phải terminal) và không có OPCOS_WORKSPACES: mã 2,
+    thông báo nêu đủ cách đi tiếp: `--mode`, `--station <đường>` và `--yes`."""
+    monkeypatch.setattr(IS, "_co_nguoi_tra_loi", lambda: True)
+    with pytest.raises(SC.ContractError) as e1:
+        IS.chon_che_do(ask=hoi_roi_ngat(EOFError()))
+    monkeypatch.setattr(IS, "_co_nguoi_tra_loi", lambda: False)
+    with pytest.raises(SC.ContractError) as e2:
+        IS.chon_che_do()
+    for e in (e1, e2):
+        m = str(e.value)
+        assert "--mode" in m and "--station <đường>" in m and "--yes" in m, m
