@@ -9,7 +9,7 @@ không đo được từ đây. Trang này giải thích những trường hợp
 
 | Triệu chứng | Nguyên nhân | Sửa |
 |---|---|---|
-| Bộ cài dừng **mã 2** ngay, không hỏi gì | phiên agent không có ai trả lời dấu nhắc | hỏi người dùng chọn `embedded` hay `separate`, rồi chạy lại có cờ (INSTALL.md mục 6) |
+| Bộ cài dừng **mã 2** ngay, không hỏi gì | phiên agent không có ai trả lời dấu nhắc và máy không đặt `OPCOS_WORKSPACES` (đặt rồi thì bộ cài ra `<biến>/marketing`, mã 0) | hỏi người dùng chọn `embedded` hay `separate`, rồi chạy lại có cờ (INSTALL.md mục 6) |
 | Script `.ps1` bị chặn dù đã `-ExecutionPolicy Bypass` | chính sách nhóm của tổ chức | dừng, nhờ IT — **không** đổi ExecutionPolicy toàn máy |
 | `python --version` mở Microsoft Store | máy chỉ có "Python giả" của Store | cài `Python.Python.3.12` (INSTALL.md mục 3) |
 | macOS: `Khong tim thay Python 3.10+` / venv dựng bằng 3.9 | `python3` của Mac mới là 3.9 (kèm Command Line Tools) | `brew install python@3.12`, xoá `.venv`, dựng lại bằng `python3.12 -m venv .venv` |

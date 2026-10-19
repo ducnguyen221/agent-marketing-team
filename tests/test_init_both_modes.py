@@ -1218,6 +1218,7 @@ def test_FR16_hai_tram_cung_mang_dau_thi_giu_noi_hai_tram_va_KHONG_goi_y_migrate
 def test_FR16_chon_chuyen_roi_y_thi_doi_that_ghi_separate_va_moi_file_con_nguyen_hash(
         repo, oc_ws, nha):
     cu = tram_nhung_co_du_lieu(repo)
+    (repo / ".env").write_text("CUA_TOI=1\n", encoding="utf-8")
     truoc = bam_cay(cu)
     ask = tra_loi("chuyen", "y")
     kq = IS.do_init(ask=ask)
@@ -1711,3 +1712,83 @@ def test_CL73_bien_anh_em_va_OPCOS_va_tram_cu_chon_chuyen_thi_tra_then_migrate_v
     ch = IS.chon_che_do(ask=ask)
     assert ch.mode == "embedded" and Path(ch.path) == cu.resolve() and ch.then_migrate == dich_oc(oc_ws)
     assert len(ask.da_hoi) == 1 and bam_cay(cu) == truoc and not oc_ws.exists()
+
+
+# ── Vòng sửa sau review: chữ còn sót, kiểm đích trước câu y/N, thông báo nêu tên biến ────────
+
+def test_tai_lieu_cai_dat_noi_ngoai_le_may_co_OPCOS_WORKSPACES_o_cho_noi_ma_2():
+    """Hai chỗ nói "không truyền lựa chọn thì mã 2" phải có vế "trừ khi máy đặt OPCOS_WORKSPACES"."""
+    install = " ".join((ROOT / "INSTALL.md").read_text(encoding="utf-8").split())
+    i = install.index("Không truyền lựa chọn")
+    assert "OPCOS_WORKSPACES" in install[i:i + 700], "INSTALL.md thiếu vế OPCOS_WORKSPACES"
+    for dong in (ROOT / "docs" / "troubleshooting.md").read_text(encoding="utf-8").splitlines():
+        if "Bộ cài dừng **mã 2** ngay" in dong:
+            assert "OPCOS_WORKSPACES" in dong, dong
+            break
+    else:
+        pytest.fail("không thấy dòng 'Bộ cài dừng mã 2 ngay' trong docs/troubleshooting.md")
+    ws = " ".join((ROOT / "docs" / "WORKSPACE.md").read_text(encoding="utf-8").split())
+    j = ws.index("Máy đã có trạm ngoài thì")
+    assert "trừ khi" in ws[j:j + 900] and "dữ liệu có sẵn" in ws[j:j + 1400], "WORKSPACE.md thiếu ngoại lệ"
+
+
+def test_tram_opcos_docstring_khong_con_noi_chi_init_va_doctor_goi():
+    assert "CHỈ `init`" not in (SP.tram_opcos.__doc__ or "")
+
+
+def _tao_junction(link: Path, dich: Path) -> bool:
+    r = subprocess.run(["cmd", "/c", "mklink", "/J", str(link), str(dich)], capture_output=True, text=True)
+    return r.returncode == 0 and link.exists()
+
+
+@pytest.mark.skipif(os.name != "nt", reason="junction là của Windows")
+def test_chon_chuyen_nhung_dich_la_junction_vao_trong_tram_nguon_thi_ma_2_truoc_cau_y_N(
+        repo, oc_ws, tmp_path):
+    cu = tram_nhung_co_du_lieu(repo)
+    (cu / "sub").mkdir()
+    oc_ws.mkdir()
+    if not _tao_junction(oc_ws / "marketing", cu / "sub"):
+        pytest.skip("không tạo được junction trên máy này")
+    ask = tra_loi("chuyen")                        # chỉ MỘT câu: y/N không được hỏi
+    with pytest.raises(SC.ContractError, match="nằm trong"):
+        IS.do_init(ask=ask)
+    assert len(ask.da_hoi) == 1 and (cu / "kenh-a" / "bai.md").is_file()
+    assert doc_local(repo)["mode"] == "embedded"
+
+
+def test_chon_chuyen_nhung_kho_secret_da_co_env_va_repo_co_env_cua_ban_thi_ma_2_truoc_cau_y_N(
+        repo, oc_ws, nha):
+    tram_nhung_co_du_lieu(repo)
+    (repo / ".env").write_text("CUA_TOI=1\n", encoding="utf-8")
+    kho = nha / ".secret" / "marketing-studio"
+    kho.mkdir(parents=True)
+    (kho / ".env").write_text("DA_CO=1\n", encoding="utf-8")
+    ask = tra_loi("chuyen")
+    with pytest.raises(SC.ContractError, match=r"\.env"):
+        IS.do_init(ask=ask)
+    assert len(ask.da_hoi) == 1
+    assert (repo / ".env").read_text(encoding="utf-8") == "CUA_TOI=1\n"
+    assert (kho / ".env").read_text(encoding="utf-8") == "DA_CO=1\n"
+    assert not (oc_ws / "marketing").exists()
+
+
+def test_chon_chuyen_khong_tu_tao_env_mau_roi_dem_vao_kho_secret_cua_may(repo, oc_ws, nha):
+    """`init` chỉ dọn `.env` mẫu khi giữ trạm trong repo; chuyển đi thì không tạo file rồi bắt gộp nó."""
+    tram_nhung_co_du_lieu(repo)
+    kho = nha / ".secret" / "marketing-studio"
+    kho.mkdir(parents=True)
+    (kho / ".env").write_text("DA_CO=1\n", encoding="utf-8")
+    kq = IS.do_init(ask=tra_loi("chuyen", "y"))
+    assert kq["mode"] == "separate" and not (repo / ".env").exists()
+    assert (kho / ".env").read_text(encoding="utf-8") == "DA_CO=1\n"
+
+
+@pytest.mark.parametrize("cach", ["yes", "Enter"])
+def test_bien_nam_duoi_mot_file_la_ma_2_nen_ten_bien(cach, repo, tmp_path, monkeypatch):
+    f = tmp_path / "la-file"
+    f.write_text("x", encoding="utf-8")
+    monkeypatch.setenv("OPCOS_WORKSPACES", str(f / "ws"))
+    kw = dict(yes=True, ask=khong_duoc_hoi) if cach == "yes" else dict(ask=tra_loi(""))
+    with pytest.raises(SC.ContractError, match="OPCOS_WORKSPACES"):
+        IS.do_init(**kw)
+    assert not (repo / SP.LOCAL_CONFIG).exists()

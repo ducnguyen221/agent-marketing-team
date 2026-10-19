@@ -240,7 +240,7 @@ def tram_opcos(ten: str = "marketing") -> Path | None:
     """`<OPCOS_WORKSPACES>/<ten>` khi biến có, khác rỗng và thư mục đó **mang dấu trạm**
     (`CHANNELS.md`); không thì None. Tuỳ chọn tích hợp OpcOS.
 
-    CHỈ `init` (đề xuất) và `doctor` (nhắc) gọi hàm này. `resolve_station()` KHÔNG BAO GIỜ
+    `doctor` (nhắc) gọi hàm này; `init` đọc biến qua `goc_opcos` và tự kiểm dấu. `resolve_station()` KHÔNG BAO GIỜ
     gọi: biến này không được tự đổi trạm của ai. Không tạo, không ghi, không cảnh báo."""
     d = goc_opcos(ten)
     return Path(d[1]) if d and (Path(d[1]) / SO_KENH).is_file() else None

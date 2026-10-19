@@ -332,6 +332,17 @@ def kiem_dich_doi(ws: Path, dich: Path) -> None:
         raise SC.ContractError(f"thư mục đích không rỗng: {dich} — chọn chỗ khác (--station).")
 
 
+def kiem_env_doi(repo: Path, kho: Path):
+    """-> đường `.env` sẽ sang kho secret (hoặc None nếu repo không có `.env`). Kho đã có `.env` ⇒ mã 2,
+    chưa đụng gì. Chỉ xét sự tồn tại, không mở file nào."""
+    f_env = repo / ".env"
+    env_dich = (kho / ".env") if f_env.is_file() else None
+    if env_dich and env_dich.exists():
+        raise SC.ContractError(
+            f"{env_dich} đã có — gộp tay rồi xoá {f_env}, sau đó chạy lại. Chưa đụng gì.")
+    return env_dich
+
+
 def hoi_xac_nhan_doi(ws: Path, dich: Path, ask) -> bool:
     """Câu `y/N` của `migrate`: cho thấy số file/dung lượng; True khi gõ y/yes. `EOFError` lan ra cho
     người gọi quyết (migrate: mã 2; init: giữ trạm cũ)."""
@@ -403,10 +414,7 @@ def migrate_sang_separate(station=None, kho_secret=None, ask=None, non_interacti
     # Kiểm MỌI điều kiện TRƯỚC khi dời byte đầu tiên: dời được nửa đường rồi mới phát hiện
     # đích kẹt là kiểu hỏng khó dọn nhất.
     f_env = repo / ".env"
-    env_dich = (kho / ".env") if f_env.is_file() else None
-    if env_dich and env_dich.exists():
-        raise SC.ContractError(
-            f"{env_dich} đã có — gộp tay rồi xoá {f_env}, sau đó chạy lại. Chưa đụng gì.")
+    env_dich = kiem_env_doi(repo, kho)
 
     da_co_thu_muc_rong = dich.is_dir()
     if da_co_thu_muc_rong:

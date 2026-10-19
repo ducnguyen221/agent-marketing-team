@@ -38,6 +38,8 @@ cho MỌI script về sau.
    Hai nguồn sự thật cho cùng một repo là cách mất dữ liệu êm nhất. Đây cũng là thứ bảo vệ
    máy đang chạy lịch thật. Bộ cài MỚI không bao giờ tạo thư mục `workspace/` (số ít); nếu
    bản cài cũ để lại nó (mang `CHANNELS.md`) thì nó vẫn được nhận và được nhắc đổi tên.
+   Ngoại lệ duy nhất: máy đặt `OPCOS_WORKSPACES` và `<repo>/workspaces` đã mang dữ liệu mà chưa
+   chọn lần nào — dữ liệu có sẵn thắng (xem điểm 2), kể cả khi có thêm biến của trạm giọng/video.
 
 Chạy lại an toàn: không đè file đã có, không xoá gì.
 """
@@ -197,10 +199,15 @@ def _kiem_bien_opcos(dx) -> None:
         raise SC.ContractError(
             f"OPCOS_WORKSPACES={dx[0]} đang là một FILE, không phải thư mục. Đây là lỗi cấu hình: "
             "sửa hoặc gỡ biến rồi chạy lại (hoặc dùng --station <thư mục>). Chưa ghi gì.")
-    if Path(dx[1]).is_file():
-        raise SC.ContractError(
-            f"{dx[1]} (từ OPCOS_WORKSPACES={dx[0]}) đang là một FILE, không phải thư mục. Đây là lỗi "
-            "cấu hình: sửa hoặc gỡ biến rồi chạy lại (hoặc dùng --station <thư mục>). Chưa ghi gì.")
+    p = Path(dx[1])
+    while True:                      # `<biến>/marketing` hoặc một thư mục cha còn thiếu nằm dưới một FILE
+        if p.is_file():
+            raise SC.ContractError(
+                f"{p} (từ OPCOS_WORKSPACES={dx[0]}) đang là một FILE, không phải thư mục. Đây là lỗi "
+                "cấu hình: sửa hoặc gỡ biến rồi chạy lại (hoặc dùng --station <thư mục>). Chưa ghi gì.")
+        if p.exists() or p.parent == p:
+            break
+        p = p.parent
 
 
 def chon_duong_separate(ask=None, non_interactive=False, yes=False, hoi_xac_nhan=False):
@@ -594,7 +601,7 @@ def do_init(station=None, mode=None, yes=False, existing=False, dry_run=False, a
         else:
             SC.log("[init] không thấy templates/workspace — trạm dựng rỗng.")
     if repo:
-        if mode == "embedded":
+        if mode == "embedded" and not then:      # chuyển đi thì không dọn `.env` mẫu rồi bắt gộp nó
             _chep_env(repo, da_tao)
         _ghi_local(repo, mode, st, da_tao)
         if mode == "embedded":
@@ -613,8 +620,9 @@ def _chuyen_sau_khi_ghi_embedded(kq: dict, st: Path, oc: str, ask) -> None:
     if d not in sys.path:
         sys.path.insert(0, d)
     import studio as ST                    # noqa: E402 — chỉ cần khi dời; nạp muộn tránh vòng nhập
-    dich = Path(oc)
+    dich = Path(oc).resolve()        # junction/liên kết ở đích phải lộ ra TRƯỚC câu hỏi, như `migrate` chạy riêng
     ST.kiem_dich_doi(st, dich)
+    ST.kiem_env_doi(SP.repo_root(), Path(KHO_SECRET).expanduser())
     try:
         dong_y = ST.hoi_xac_nhan_doi(st, dich, ask or ST._hoi_ban_phim)
     except EOFError:

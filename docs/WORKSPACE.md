@@ -30,7 +30,7 @@ python scripts/pipeline/init_station.py          # hỏi bạn chọn
 ```
 
 **Máy đã có trạm ngoài thì bộ cài tự chọn `separate`, không hỏi, và không bao giờ tạo
-`workspaces/`.** Nhận diện bằng: đã đặt một trong `MARKETING_STUDIO_DATA`, `VOICE_STATION`,
+`workspaces/` (trừ khi máy đặt `OPCOS_WORKSPACES` và `<repo>/workspaces` đã có dữ liệu mà chưa chọn lần nào: dữ liệu có sẵn thắng, bộ cài giữ trạm đó).** Nhận diện bằng: đã đặt một trong `MARKETING_STUDIO_DATA`, `VOICE_STATION`,
 `VIDEO_STATION`, `OMNIVOICE_DIR`, `VIDEO_ROOT`. Chỉ `MARKETING_STUDIO_DATA` cho biết trạm ở
 đâu; các biến còn lại chỉ báo "đã theo mô hình trạm ngoài" nên bộ cài hỏi đường (hoặc đòi
 `--station` khi dùng `--yes` / không có người, trừ khi máy đặt `OPCOS_WORKSPACES`). Chọn `separate` thì không có đường mặc định: có
