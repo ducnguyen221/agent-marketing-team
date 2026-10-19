@@ -1119,7 +1119,7 @@ def tra_roi_ngat(cau, ngoai_le):
 
 @pytest.mark.parametrize("bo_cuc", ["moi", "cu"])
 @pytest.mark.parametrize("cach", ["yes", "ni", "khong_tty", "ni_yes"])
-def test_FR16_khong_nguoi_hoac_yes_thi_GIU_tram_cu_ghi_embedded_va_in_mot_dong_chi_migrate(
+def test_khong_nguoi_hoac_yes_thi_GIU_tram_cu_ghi_embedded_va_in_mot_dong_chi_migrate(
         cach, bo_cuc, repo, oc_ws, capsys, monkeypatch):
     cu = tram_nhung_co_du_lieu(repo, "workspaces" if bo_cuc == "moi" else SP.WORKSPACE_CU)
     truoc = bam_cay(cu)
@@ -1136,7 +1136,7 @@ def test_FR16_khong_nguoi_hoac_yes_thi_GIU_tram_cu_ghi_embedded_va_in_mot_dong_c
     assert str(cu.resolve()) in dong[0] and dich_oc(oc_ws) in dong[0] and dong[0].startswith("[init]")
 
 
-def test_FR16_init_lan_hai_sau_khi_giu_thi_khong_hoi_va_khong_nhac_migrate(repo, oc_ws, capsys):
+def test_init_lan_hai_sau_khi_giu_thi_khong_hoi_va_khong_nhac_migrate(repo, oc_ws, capsys):
     tram_nhung_co_du_lieu(repo)
     IS.do_init(yes=True)
     capsys.readouterr()
@@ -1145,7 +1145,7 @@ def test_FR16_init_lan_hai_sau_khi_giu_thi_khong_hoi_va_khong_nhac_migrate(repo,
     assert "migrate --to separate" not in capsys.readouterr().err
 
 
-def test_FR16_co_nguoi_Enter_hoac_chu_khac_thi_giu_voi_dung_mot_cau_nen_duong_tram_cu(repo, oc_ws):
+def test_co_nguoi_Enter_hoac_chu_khac_thi_giu_voi_dung_mot_cau_nen_duong_tram_cu(repo, oc_ws):
     cu = tram_nhung_co_du_lieu(repo)
     for tra in ("", "khong", "1", "separate"):
         ask = tra_loi(tra)
@@ -1156,7 +1156,7 @@ def test_FR16_co_nguoi_Enter_hoac_chu_khac_thi_giu_voi_dung_mot_cau_nen_duong_tr
 
 
 @pytest.mark.parametrize("tu", ["chuyen", "chuyển", "c", "CHUYEN", " Chuyen "])
-def test_FR16_chon_chuyen_thi_ham_chon_che_do_tra_co_then_migrate_va_KHONG_doi_byte_nao(
+def test_chon_chuyen_thi_ham_chon_che_do_tra_co_then_migrate_va_KHONG_doi_byte_nao(
         tu, repo, oc_ws, nha):
     cu = tram_nhung_co_du_lieu(repo)
     truoc = chup(repo, nha)
@@ -1170,7 +1170,7 @@ def test_FR16_chon_chuyen_thi_ham_chon_che_do_tra_co_then_migrate_va_KHONG_doi_b
     assert not (repo / SP.LOCAL_CONFIG).exists(), "chưa ghi gì ở bước chọn"
 
 
-def test_FR16_EOF_o_cau_giu_chuyen_la_giu_ma_0_KHONG_ra_tram_OPCOS(repo, oc_ws):
+def test_EOF_o_cau_giu_chuyen_la_giu_ma_0_KHONG_ra_tram_OPCOS(repo, oc_ws):
     cu = tram_nhung_co_du_lieu(repo)
     ask = hoi_roi_ngat(EOFError())
     kq = IS.do_init(ask=ask)
@@ -1178,7 +1178,7 @@ def test_FR16_EOF_o_cau_giu_chuyen_la_giu_ma_0_KHONG_ra_tram_OPCOS(repo, oc_ws):
     assert not (oc_ws / "marketing").exists()
 
 
-def test_FR16_CtrlC_o_cau_giu_chuyen_lan_ra_va_chua_ghi_gi(repo, oc_ws, nha):
+def test_CtrlC_o_cau_giu_chuyen_lan_ra_va_chua_ghi_gi(repo, oc_ws, nha):
     tram_nhung_co_du_lieu(repo)
     truoc = chup(repo, nha)
     with pytest.raises(KeyboardInterrupt):
@@ -1186,7 +1186,7 @@ def test_FR16_CtrlC_o_cau_giu_chuyen_lan_ra_va_chua_ghi_gi(repo, oc_ws, nha):
     assert chup(repo, nha) == truoc and not (repo / SP.LOCAL_CONFIG).exists()
 
 
-def test_FR16_both_moi_chua_dau_thi_giu_workspaces_khong_hoi_nhac_gop_khong_dong_migrate(
+def test_both_moi_chua_dau_thi_giu_workspaces_khong_hoi_nhac_gop_khong_dong_migrate(
         repo, oc_ws, capsys):
     tram_nhung_co_du_lieu(repo, SP.WORKSPACE_CU)
     (repo / "workspaces").mkdir()
@@ -1203,7 +1203,7 @@ def test_FR16_both_moi_chua_dau_thi_giu_workspaces_khong_hoi_nhac_gop_khong_dong
     assert (repo / SP.WORKSPACE_CU / "kenh-a" / "bai.md").is_file(), "dữ liệu ở workspace/ không mồ côi bị dời"
 
 
-def test_FR16_hai_tram_cung_mang_dau_thi_giu_noi_hai_tram_va_KHONG_goi_y_migrate(
+def test_hai_tram_cung_mang_dau_thi_giu_noi_hai_tram_va_KHONG_goi_y_migrate(
         repo, oc_ws, capsys):
     cu = tram_nhung_co_du_lieu(repo)
     (oc_ws / "marketing").mkdir(parents=True)
@@ -1215,7 +1215,7 @@ def test_FR16_hai_tram_cung_mang_dau_thi_giu_noi_hai_tram_va_KHONG_goi_y_migrate
     assert "--station" in dong[0] and "migrate --to separate" not in dong[0]
 
 
-def test_FR16_chon_chuyen_roi_y_thi_doi_that_ghi_separate_va_moi_file_con_nguyen_hash(
+def test_chon_chuyen_roi_y_thi_doi_that_ghi_separate_va_moi_file_con_nguyen_hash(
         repo, oc_ws, nha):
     cu = tram_nhung_co_du_lieu(repo)
     (repo / ".env").write_text("CUA_TOI=1\n", encoding="utf-8")
@@ -1234,7 +1234,7 @@ def test_FR16_chon_chuyen_roi_y_thi_doi_that_ghi_separate_va_moi_file_con_nguyen
 
 
 @pytest.mark.parametrize("tra_loi_yn", ["n", "", "N", "khong"])
-def test_FR16_chon_chuyen_roi_tra_loi_khong_o_y_N_thi_giu_ma_0_va_chi_lenh_migrate(
+def test_chon_chuyen_roi_tra_loi_khong_o_y_N_thi_giu_ma_0_va_chi_lenh_migrate(
         tra_loi_yn, repo, oc_ws, capsys):
     cu = tram_nhung_co_du_lieu(repo)
     truoc = bam_cay(cu)
@@ -1245,13 +1245,13 @@ def test_FR16_chon_chuyen_roi_tra_loi_khong_o_y_N_thi_giu_ma_0_va_chi_lenh_migra
     assert len([d for d in capsys.readouterr().err.splitlines() if "migrate --to separate" in d]) == 1
 
 
-def test_FR16_chon_chuyen_roi_EOF_o_y_N_thi_giu_ma_0(repo, oc_ws):
+def test_chon_chuyen_roi_EOF_o_y_N_thi_giu_ma_0(repo, oc_ws):
     cu = tram_nhung_co_du_lieu(repo)
     kq = IS.do_init(ask=tra_roi_ngat("chuyen", EOFError()))
     assert kq["mode"] == "embedded" and cu.is_dir() and not (oc_ws / "marketing").exists()
 
 
-def test_FR16_chon_chuyen_roi_CtrlC_o_y_N_lan_ra_embedded_da_ghi_va_khong_doi_byte(repo, oc_ws):
+def test_chon_chuyen_roi_CtrlC_o_y_N_lan_ra_embedded_da_ghi_va_khong_doi_byte(repo, oc_ws):
     cu = tram_nhung_co_du_lieu(repo)
     truoc = bam_cay(cu)
     with pytest.raises(KeyboardInterrupt):
@@ -1261,7 +1261,7 @@ def test_FR16_chon_chuyen_roi_CtrlC_o_y_N_lan_ra_embedded_da_ghi_va_khong_doi_by
 
 
 @pytest.mark.parametrize("dich_co", ["file-la", "da-dau"])
-def test_FR16_chon_chuyen_nhung_dich_khong_rong_thi_ma_2_TRUOC_y_N_va_embedded_van_dung_duoc(
+def test_chon_chuyen_nhung_dich_khong_rong_thi_ma_2_TRUOC_y_N_va_embedded_van_dung_duoc(
         dich_co, repo, oc_ws):
     cu = tram_nhung_co_du_lieu(repo)
     d = oc_ws / "marketing"
@@ -1275,7 +1275,7 @@ def test_FR16_chon_chuyen_nhung_dich_khong_rong_thi_ma_2_TRUOC_y_N_va_embedded_v
     assert [p.name for p in d.iterdir()] != [], "đích có sẵn không bị đụng"
 
 
-def test_FR16_dry_run_cung_chuyen_chi_in_se_doi_va_khong_ghi_byte_nao(repo, oc_ws, nha, capsys):
+def test_dry_run_cung_chuyen_chi_in_se_doi_va_khong_ghi_byte_nao(repo, oc_ws, nha, capsys):
     cu = tram_nhung_co_du_lieu(repo)
     truoc = chup(repo, nha)
     h = bam_cay(cu)
@@ -1289,21 +1289,21 @@ def test_FR16_dry_run_cung_chuyen_chi_in_se_doi_va_khong_ghi_byte_nao(repo, oc_w
     assert "sẽ dời" in err and str(cu.resolve()) in err and dich_oc(oc_ws) in err
 
 
-def test_FR16_dry_run_voi_yes_in_ke_hoach_giu_va_khong_ghi_gi(repo, oc_ws, nha):
+def test_dry_run_voi_yes_in_ke_hoach_giu_va_khong_ghi_gi(repo, oc_ws, nha):
     cu = tram_nhung_co_du_lieu(repo)
     truoc = chup(repo, nha)
     kq = IS.do_init(yes=True, dry_run=True)
     assert kq["mode"] == "embedded" and chup(repo, nha) == truoc and not (repo / SP.LOCAL_CONFIG).exists()
 
 
-def test_FR16_luat_uu_tien_mode_separate_thang_tram_cu_va_van_dung_tram_OPCOS(repo, oc_ws):
+def test_luat_uu_tien_mode_separate_thang_tram_cu_va_van_dung_tram_OPCOS(repo, oc_ws):
     """Lựa chọn tường minh đi TRƯỚC ca này (khoá để không ai 'sửa' thứ tự)."""
     tram_nhung_co_du_lieu(repo)
     kq = IS.do_init(mode="separate", yes=True, ask=khong_duoc_hoi)
     assert kq["mode"] == "separate" and Path(kq["station"]) == (oc_ws / "marketing").resolve()
 
 
-def test_FR16_lua_chon_da_ghi_thang_ca_nay_khong_in_dong_migrate(repo, oc_ws, capsys):
+def test_lua_chon_da_ghi_thang_ca_nay_khong_in_dong_migrate(repo, oc_ws, capsys):
     tram_nhung_co_du_lieu(repo)
     (repo / SP.LOCAL_CONFIG).write_text(json.dumps({"mode": "embedded"}), encoding="utf-8")
     kq = IS.do_init(yes=True, ask=khong_duoc_hoi)
@@ -1311,11 +1311,11 @@ def test_FR16_lua_chon_da_ghi_thang_ca_nay_khong_in_dong_migrate(repo, oc_ws, ca
     assert "migrate --to separate" not in capsys.readouterr().err
 
 
-# ── FR1.4/FR1.5: biến TRẠM RIÊNG và biến ANH EM giao với ca trạm cũ ───────────────────────
+# ── biến TRẠM RIÊNG và biến ANH EM giao với ca trạm cũ ───────────────────────
 
 @pytest.mark.parametrize("cach", ["yes", "Enter"])
 @pytest.mark.parametrize("bien", ["VOICE_STATION", "VIDEO_STATION", "OMNIVOICE_DIR", "VIDEO_ROOT"])
-def test_FR15_bien_anh_em_va_OPCOS_va_tram_nhung_mang_dau_thi_FR16_THANG_nhanh_bien_anh_em(
+def test_bien_anh_em_va_OPCOS_va_tram_nhung_mang_dau_thi_du_lieu_co_san_THANG_nhanh_bien_anh_em(
         bien, cach, repo, oc_ws, tmp_path, monkeypatch):
     cu = tram_nhung_co_du_lieu(repo)
     monkeypatch.setenv(bien, str(tmp_path))
@@ -1326,7 +1326,7 @@ def test_FR15_bien_anh_em_va_OPCOS_va_tram_nhung_mang_dau_thi_FR16_THANG_nhanh_b
     assert not (oc_ws / "marketing").exists()
 
 
-def test_FR15_bien_anh_em_KHONG_co_OPCOS_thi_van_ma_2_du_co_tram_nhung_mang_dau_RF_C5_khong_doi(
+def test_bien_anh_em_KHONG_co_OPCOS_thi_van_ma_2_du_co_tram_nhung_mang_dau_khong_doi(
         repo, tmp_path, monkeypatch):
     tram_nhung_co_du_lieu(repo)
     monkeypatch.setenv("VOICE_STATION", str(tmp_path))
@@ -1336,7 +1336,7 @@ def test_FR15_bien_anh_em_KHONG_co_OPCOS_thi_van_ma_2_du_co_tram_nhung_mang_dau_
         IS.do_init(non_interactive=True)
 
 
-def test_FR15_bien_anh_em_va_OPCOS_khong_co_tram_nhung_thi_ra_tram_OPCOS_dung_mot_cau_khi_co_nguoi(
+def test_bien_anh_em_va_OPCOS_khong_co_tram_nhung_thi_ra_tram_OPCOS_dung_mot_cau_khi_co_nguoi(
         repo, oc_ws, tmp_path, monkeypatch):
     monkeypatch.setenv("VIDEO_STATION", str(tmp_path))
     ask = tra_loi("")
@@ -1345,7 +1345,7 @@ def test_FR15_bien_anh_em_va_OPCOS_khong_co_tram_nhung_thi_ra_tram_OPCOS_dung_mo
 
 
 @pytest.mark.parametrize("cach", ["yes", "Enter", "ni"])
-def test_FR14_bien_tram_rieng_MARKETING_STUDIO_DATA_thang_ca_tram_cu_va_OPCOS(
+def test_bien_tram_rieng_MARKETING_STUDIO_DATA_thang_ca_tram_cu_va_OPCOS(
         cach, repo, oc_ws, tmp_path, monkeypatch):
     tram_nhung_co_du_lieu(repo)
     ngoai = tmp_path / "tram-rieng"
@@ -1358,7 +1358,7 @@ def test_FR14_bien_tram_rieng_MARKETING_STUDIO_DATA_thang_ca_tram_cu_va_OPCOS(
 
 
 @pytest.mark.parametrize("cach", ["yes", "ni", "Enter"])
-def test_FR14_lua_chon_da_ghi_embedded_thang_bien_OPCOS_khong_hoi_lai(cach, repo, oc_ws):
+def test_lua_chon_da_ghi_embedded_thang_bien_OPCOS_khong_hoi_lai(cach, repo, oc_ws):
     (repo / SP.LOCAL_CONFIG).write_text(json.dumps({"mode": "embedded"}), encoding="utf-8")
     kw = dict(yes=True, ask=khong_duoc_hoi) if cach == "yes" else \
         dict(ask=khong_duoc_hoi) if cach == "Enter" else dict(non_interactive=True)
@@ -1367,7 +1367,7 @@ def test_FR14_lua_chon_da_ghi_embedded_thang_bien_OPCOS_khong_hoi_lai(cach, repo
     assert not (oc_ws / "marketing").exists()
 
 
-def test_FR14_lua_chon_da_ghi_separate_co_station_path_thang_bien_OPCOS(repo, oc_ws, tmp_path):
+def test_lua_chon_da_ghi_separate_co_station_path_thang_bien_OPCOS(repo, oc_ws, tmp_path):
     rieng = tmp_path / "rieng"
     (repo / SP.LOCAL_CONFIG).write_text(
         json.dumps({"mode": "separate", "station_path": str(rieng)}), encoding="utf-8")
@@ -1376,10 +1376,10 @@ def test_FR14_lua_chon_da_ghi_separate_co_station_path_thang_bien_OPCOS(repo, oc
     assert not (oc_ws / "marketing").exists()
 
 
-# ── FR1.1/FR1.2/FR2.1/FR2.3/FR2.4: ra trạm OpcOS, một câu, EOF, lựa chọn trần ───────────────
+# ── ra trạm OpcOS, một câu, EOF, lựa chọn trần ───────────────
 
 @pytest.mark.parametrize("cach", ["yes", "ni", "khong_tty", "ni_yes"])
-def test_FR11_yes_va_khong_nguoi_voi_bien_ra_tram_OPCOS_dung_moi_va_in_mot_dong(
+def test_yes_va_khong_nguoi_voi_bien_ra_tram_OPCOS_dung_moi_va_in_mot_dong(
         cach, repo, oc_ws, capsys, monkeypatch):
     monkeypatch.setattr(IS, "_co_nguoi_tra_loi", lambda: cach == "ni")
     kw = {"yes": dict(yes=True, ask=khong_duoc_hoi), "ni": dict(non_interactive=True),
@@ -1394,7 +1394,7 @@ def test_FR11_yes_va_khong_nguoi_voi_bien_ra_tram_OPCOS_dung_moi_va_in_mot_dong(
     assert len(dong) == 1 and dich_oc(oc_ws) in dong[0] and "--station" in dong[0]
 
 
-def test_FR11_tram_OPCOS_da_mang_dau_thi_dung_thang_khong_dong_nao_khong_dung_them_gi(
+def test_tram_OPCOS_da_mang_dau_thi_dung_thang_khong_dong_nao_khong_dung_them_gi(
         repo, opcos, capsys):
     truoc = chup(opcos)
     kq = IS.do_init(yes=True, ask=khong_duoc_hoi)
@@ -1403,7 +1403,7 @@ def test_FR11_tram_OPCOS_da_mang_dau_thi_dung_thang_khong_dong_nao_khong_dung_th
     assert not [d for d in capsys.readouterr().err.splitlines() if "OPCOS_WORKSPACES" in d]
 
 
-def test_FR23_EOF_o_cau_duong_khi_co_bien_ra_tram_OPCOS_ma_0_va_in_mot_dong(repo, oc_ws, capsys):
+def test_EOF_o_cau_duong_khi_co_bien_ra_tram_OPCOS_ma_0_va_in_mot_dong(repo, oc_ws, capsys):
     ask = hoi_roi_ngat(EOFError())
     kq = IS.do_init(ask=ask)
     assert kq["mode"] == "separate" and Path(kq["station"]) == (oc_ws / "marketing").resolve()
@@ -1412,7 +1412,7 @@ def test_FR23_EOF_o_cau_duong_khi_co_bien_ra_tram_OPCOS_ma_0_va_in_mot_dong(repo
 
 
 @pytest.mark.parametrize("go", ["1", "2", "embedded", "separate", "EMBEDDED"])
-def test_FR24_go_lua_chon_tran_o_cau_duong_la_ma_2_nen_mode_embedded_va_KHONG_tao_thu_muc_la(
+def test_go_lua_chon_tran_o_cau_duong_la_ma_2_nen_mode_embedded_va_KHONG_tao_thu_muc_la(
         go, repo, oc_ws, tmp_path, monkeypatch):
     monkeypatch.chdir(tmp_path)
     truoc = chup(repo, tmp_path)
@@ -1422,7 +1422,7 @@ def test_FR24_go_lua_chon_tran_o_cau_duong_la_ma_2_nen_mode_embedded_va_KHONG_ta
 
 
 @pytest.mark.parametrize("bao", ['"{}"', "'{}'", ' "{}" '])
-def test_FR21_go_duong_khac_o_cau_duong_co_bien_dung_duong_do_khong_dung_tram_OPCOS(
+def test_go_duong_khac_o_cau_duong_co_bien_dung_duong_do_khong_dung_tram_OPCOS(
         bao, repo, oc_ws, tmp_path):
     dich = tmp_path / "tram co dau cach"
     ask = tra_loi(bao.format(dich))
@@ -1431,14 +1431,14 @@ def test_FR21_go_duong_khac_o_cau_duong_co_bien_dung_duong_do_khong_dung_tram_OP
     assert not (oc_ws / "marketing").exists()
 
 
-def test_FR21_go_duong_tuong_doi_o_cau_duong_co_bien_ghi_tuyet_doi(repo, oc_ws, tmp_path, monkeypatch):
+def test_go_duong_tuong_doi_o_cau_duong_co_bien_ghi_tuyet_doi(repo, oc_ws, tmp_path, monkeypatch):
     monkeypatch.chdir(tmp_path)
     kq = IS.do_init(ask=tra_loi("noi-tuong-doi"))
     assert Path(kq["station"]) == (tmp_path / "noi-tuong-doi").resolve()
     assert os.path.isabs(doc_local(repo)["station_path"])
 
 
-def test_FR21_go_duong_la_mot_FILE_o_cau_duong_co_bien_la_ma_2_chua_ghi_gi(repo, oc_ws, tmp_path):
+def test_go_duong_la_mot_FILE_o_cau_duong_co_bien_la_ma_2_chua_ghi_gi(repo, oc_ws, tmp_path):
     f = tmp_path / "la-file"
     f.write_text("x", encoding="utf-8")
     with pytest.raises(SC.ContractError):
@@ -1446,7 +1446,7 @@ def test_FR21_go_duong_la_mot_FILE_o_cau_duong_co_bien_la_ma_2_chua_ghi_gi(repo,
     assert not (repo / SP.LOCAL_CONFIG).exists()
 
 
-def test_FR22_mode_separate_chua_dau_co_nguoi_hoi_mot_cau_con_da_dau_thi_dung_thang(repo, oc_ws):
+def test_mode_separate_chua_dau_co_nguoi_hoi_mot_cau_con_da_dau_thi_dung_thang(repo, oc_ws):
     ask = tra_loi("")
     IS.do_init(mode="separate", ask=ask)
     assert len(ask.da_hoi) == 1
@@ -1456,16 +1456,16 @@ def test_FR22_mode_separate_chua_dau_co_nguoi_hoi_mot_cau_con_da_dau_thi_dung_th
     assert Path(kq["station"]) == (oc_ws / "marketing").resolve()
 
 
-# ── FR1.7: giá trị OPCOS_WORKSPACES lệch ───────────────────────────────────────────────────
+# ── giá trị OPCOS_WORKSPACES lệch ───────────────────────────────────────────────────
 
 @pytest.mark.parametrize("gia_tri", ["", "   "])
-def test_FR17_bien_rong_hoac_khoang_trang_coi_nhu_vang_giu_embedded(gia_tri, repo, monkeypatch):
+def test_bien_rong_hoac_khoang_trang_coi_nhu_vang_giu_embedded(gia_tri, repo, monkeypatch):
     monkeypatch.setenv("OPCOS_WORKSPACES", gia_tri)
     kq = IS.do_init(yes=True, ask=khong_duoc_hoi)
     assert kq["mode"] == "embedded" and Path(kq["station"]) == (repo / "workspaces").resolve()
 
 
-def test_FR17_bien_tuong_doi_thi_ra_tuyet_doi_theo_cwd_va_ghi_tuyet_doi(
+def test_bien_tuong_doi_thi_ra_tuyet_doi_theo_cwd_va_ghi_tuyet_doi(
         repo, tmp_path, monkeypatch):
     monkeypatch.chdir(tmp_path)
     monkeypatch.setenv("OPCOS_WORKSPACES", "relws")
@@ -1477,7 +1477,7 @@ def test_FR17_bien_tuong_doi_thi_ra_tuyet_doi_theo_cwd_va_ghi_tuyet_doi(
 
 @pytest.mark.parametrize("cach", ["yes", "Enter", "ni"])
 @pytest.mark.parametrize("hinh", ["bien-la-file", "tram-la-file"])
-def test_FR17_bien_tro_vao_FILE_la_ma_2_nen_TEN_BIEN_va_chua_ghi_gi(
+def test_bien_tro_vao_FILE_la_ma_2_nen_TEN_BIEN_va_chua_ghi_gi(
         hinh, cach, repo, tmp_path, monkeypatch, nha):
     if hinh == "bien-la-file":
         f = tmp_path / "la-file"
@@ -1496,17 +1496,17 @@ def test_FR17_bien_tro_vao_FILE_la_ma_2_nen_TEN_BIEN_va_chua_ghi_gi(
     assert chup(repo, nha) == truoc and not (repo / SP.LOCAL_CONFIG).exists()
 
 
-# Ba ca dưới ĐẶC TẢ hành vi hiện tại (dựng, không chặn, không xoá gì, mã 0): ghi vào đâu khi biến trỏ chỗ
-# lạ là câu hỏi an toàn — security hẹp của vòng kiểm định quyết có chặn không (TK8 quyết).
+# Pinned as current behaviour, not a contract: ba ca dưới ghi lại hành vi hiện tại (dựng, không chặn, không
+# xoá gì, mã 0) khi biến trỏ chỗ lạ. Chặn hay giữ là quyết định riêng của review bảo mật.
 
-def test_FR17_dac_ta_bien_tro_vao_trong_repo_thi_dung_trong_repo_TK8_quyet(repo, monkeypatch):
+def test_dac_ta_bien_tro_vao_trong_repo_thi_dung_trong_repo_hien_trang(repo, monkeypatch):
     monkeypatch.setenv("OPCOS_WORKSPACES", str(repo / "ws"))
     kq = IS.do_init(yes=True, ask=khong_duoc_hoi)
     assert kq["mode"] == "separate" and Path(kq["station"]) == (repo / "ws" / "marketing").resolve()
     cay_tram_ok(repo / "ws" / "marketing")
 
 
-def test_FR17_dac_ta_bien_chinh_no_la_mot_tram_thi_dung_long_nhau_TK8_quyet(repo, tmp_path, monkeypatch):
+def test_dac_ta_bien_chinh_no_la_mot_tram_thi_dung_long_nhau_hien_trang(repo, tmp_path, monkeypatch):
     ws = tmp_path / "ws"
     ws.mkdir()
     (ws / SP.SO_KENH).write_text("---\nchannels: []\n---\n# tram\n", encoding="utf-8")
@@ -1516,7 +1516,7 @@ def test_FR17_dac_ta_bien_chinh_no_la_mot_tram_thi_dung_long_nhau_TK8_quyet(repo
     assert (ws / SP.SO_KENH).read_text(encoding="utf-8").endswith("# tram\n")
 
 
-def test_FR17_dac_ta_tram_OPCOS_co_san_khong_rong_chua_dau_thi_dung_tiep_khong_xoa_gi_TK8_quyet(
+def test_dac_ta_tram_OPCOS_co_san_khong_rong_chua_dau_thi_dung_tiep_khong_xoa_gi_hien_trang(
         repo, tmp_path, monkeypatch):
     d = tmp_path / "ws" / "marketing"
     d.mkdir(parents=True)
@@ -1528,7 +1528,7 @@ def test_FR17_dac_ta_tram_OPCOS_co_san_khong_rong_chua_dau_thi_dung_tiep_khong_x
     cay_tram_ok(d)
 
 
-# ── FR1.8: Ctrl+C ở biên CLI = mã 2, một dòng, không traceback ──────────────────────────
+# ── Ctrl+C ở biên CLI = mã 2, một dòng, không traceback ──────────────────────────
 
 def _ns(**kw):
     import types
@@ -1543,7 +1543,7 @@ def _khong_de_ctrl_c_lan(fn, *a):
         pytest.fail("Ctrl+C lan ra khỏi biên CLI thay vì thành mã 2")
 
 
-def test_FR18_CtrlC_o_bien_CLI_la_ma_2_mot_dong_da_huy_khong_traceback(capsys):
+def test_CtrlC_o_bien_CLI_la_ma_2_mot_dong_da_huy_khong_traceback(capsys):
     def nang(_a):
         raise KeyboardInterrupt
     ma = _khong_de_ctrl_c_lan(SC.run, nang, _ns(prog="init_station"), False)
@@ -1553,7 +1553,7 @@ def test_FR18_CtrlC_o_bien_CLI_la_ma_2_mot_dong_da_huy_khong_traceback(capsys):
     assert len([d for d in err.splitlines() if d.strip()]) == 1
 
 
-def test_FR18_CtrlC_voi_json_phat_ok_false_code_2(capsys):
+def test_CtrlC_voi_json_phat_ok_false_code_2(capsys):
     def nang(_a):
         raise KeyboardInterrupt
     ma = _khong_de_ctrl_c_lan(SC.run, nang, _ns(prog="studio"), True)
@@ -1562,7 +1562,7 @@ def test_FR18_CtrlC_voi_json_phat_ok_false_code_2(capsys):
     assert json.loads(out.strip().splitlines()[-1]) == {"ok": False, "code": 2, "error": "đã huỷ (Ctrl+C)"}
 
 
-def test_FR18_CtrlC_o_cau_hoi_cua_init_thanh_ma_2_qua_main(repo, oc_ws, monkeypatch, capsys):
+def test_CtrlC_o_cau_hoi_cua_init_thanh_ma_2_qua_main(repo, oc_ws, monkeypatch, capsys):
     """Đường thật: bàn phím ném KeyboardInterrupt ở câu hỏi đường → `main` trả 2, chưa ghi gì."""
     monkeypatch.setattr(IS, "_co_nguoi_tra_loi", lambda: True)
 
@@ -1630,27 +1630,27 @@ def test_changelog_noi_cach_giu_tram_trong_repo_khi_may_co_bien_va_cac_ca_moi():
 # ── Các ô KHÔNG ĐỔI của bảng chuẩn mà trước đây chưa có test riêng: khoá lại (đếm câu hỏi bằng đúng) ─────
 
 @pytest.mark.parametrize("go", ["1", "embedded", "EMBEDDED", " 1 "])
-def test_CL02_go_1_hoac_embedded_o_bang_che_do_ra_embedded_dung_mot_cau(go, repo):
+def test_go_1_hoac_embedded_o_bang_che_do_ra_embedded_dung_mot_cau(go, repo):
     ask = tra_loi(go)
     mode, st, _ = IS.chon_che_do(ask=ask)
     assert (mode, Path(st)) == ("embedded", (repo / "workspaces").resolve()) and len(ask.da_hoi) == 1
 
 
-def test_CL04_go_2_roi_Enter_rong_khong_co_goi_y_la_ma_2_sau_dung_hai_cau(repo, nha):
+def test_go_2_roi_Enter_rong_khong_co_goi_y_la_ma_2_sau_dung_hai_cau(repo, nha):
     ask = tra_loi("2", "")
     with pytest.raises(SC.ContractError, match="--station"):
         IS.do_init(ask=ask)
     assert len(ask.da_hoi) == 2 and not (repo / SP.LOCAL_CONFIG).exists()
 
 
-def test_CL14_mode_separate_co_nguoi_Enter_rong_khong_co_goi_y_la_ma_2_sau_dung_mot_cau(repo, nha):
+def test_mode_separate_co_nguoi_Enter_rong_khong_co_goi_y_la_ma_2_sau_dung_mot_cau(repo, nha):
     ask = tra_loi("")
     with pytest.raises(SC.ContractError, match="--station"):
         IS.do_init(mode="separate", ask=ask)
     assert len(ask.da_hoi) == 1 and not (repo / SP.LOCAL_CONFIG).exists()
 
 
-def test_CL42_station_thang_bien_OPCOS_va_khong_hoi_cau_nao(repo, oc_ws, tmp_path):
+def test_station_thang_bien_OPCOS_va_khong_hoi_cau_nao(repo, oc_ws, tmp_path):
     rieng = tmp_path / "chi-dinh"
     kq = IS.do_init(station=str(rieng), ask=khong_duoc_hoi)
     assert kq["mode"] == "separate" and Path(kq["station"]) == rieng.resolve() and kq["reason"] == "--station"
@@ -1660,7 +1660,7 @@ def test_CL42_station_thang_bien_OPCOS_va_khong_hoi_cau_nao(repo, oc_ws, tmp_pat
 @pytest.mark.parametrize("bien", ["MARKETING_STUDIO_DATA", "VOICE_STATION", "VIDEO_STATION",
                                   "OMNIVOICE_DIR", "VIDEO_ROOT"])
 @pytest.mark.parametrize("co_opcos", [False, True])
-def test_CL44_CL69_mode_embedded_khi_da_co_bien_tram_la_ma_2_hai_nguon_su_that(
+def test_mode_embedded_khi_da_co_bien_tram_la_ma_2_hai_nguon_su_that(
         bien, co_opcos, repo, tmp_path, monkeypatch):
     if co_opcos:
         monkeypatch.setenv("OPCOS_WORKSPACES", str(tmp_path / "ws"))
@@ -1670,7 +1670,7 @@ def test_CL44_CL69_mode_embedded_khi_da_co_bien_tram_la_ma_2_hai_nguon_su_that(
     assert not (repo / SP.WORKSPACE).exists()
 
 
-def test_CL21_lua_chon_da_ghi_separate_co_station_path_thi_dung_no_khong_hoi_khi_khong_co_bien(
+def test_lua_chon_da_ghi_separate_co_station_path_thi_dung_no_khong_hoi_khi_khong_co_bien(
         repo, tmp_path):
     rieng = tmp_path / "rieng"
     (repo / SP.LOCAL_CONFIG).write_text(
@@ -1681,9 +1681,9 @@ def test_CL21_lua_chon_da_ghi_separate_co_station_path_thi_dung_no_khong_hoi_khi
 
 @pytest.mark.parametrize("cach", ["yes", "ni", "khong_tty"])
 @pytest.mark.parametrize("hinh", ["bien-chua-dau", "bien-da-dau"])
-def test_FR15_RF_C5_khong_doi_nhanh_bien_anh_em_van_dung_tram_OPCOS_khi_co_OPCOS_WORKSPACES(
+def test_khong_doi_nhanh_bien_anh_em_van_dung_tram_OPCOS_khi_co_OPCOS_WORKSPACES(
         hinh, cach, repo, oc_ws, tmp_path, monkeypatch):
-    """CL70: biến anh em + OPCOS_WORKSPACES + trạm nhúng KHÔNG mang dấu ⇒ trạm OpcOS (mã hiện đã vậy)."""
+    """Biến anh em + OPCOS_WORKSPACES + trạm nhúng KHÔNG mang dấu ⇒ trạm OpcOS (mã hiện đã vậy)."""
     monkeypatch.setenv("VOICE_STATION", str(tmp_path))
     monkeypatch.setattr(IS, "_co_nguoi_tra_loi", lambda: cach == "ni")
     if hinh == "bien-da-dau":
@@ -1695,7 +1695,7 @@ def test_FR15_RF_C5_khong_doi_nhanh_bien_anh_em_van_dung_tram_OPCOS_khi_co_OPCOS
     assert kq["mode"] == "separate" and Path(kq["station"]) == (oc_ws / "marketing").resolve()
 
 
-def test_CL16_station_tuong_doi_duoc_tuyet_doi_hoa_va_ghi_tuyet_doi_khong_hoi(repo, tmp_path, monkeypatch):
+def test_station_tuong_doi_duoc_tuyet_doi_hoa_va_ghi_tuyet_doi_khong_hoi(repo, tmp_path, monkeypatch):
     monkeypatch.chdir(tmp_path)
     kq = IS.do_init(station="noi-tuong-doi", ask=khong_duoc_hoi)
     dich = (tmp_path / "noi-tuong-doi").resolve()
@@ -1703,7 +1703,7 @@ def test_CL16_station_tuong_doi_duoc_tuyet_doi_hoa_va_ghi_tuyet_doi_khong_hoi(re
     assert os.path.isabs(doc_local(repo)["station_path"]) and Path(doc_local(repo)["station_path"]) == dich
 
 
-def test_CL73_bien_anh_em_va_OPCOS_va_tram_cu_chon_chuyen_thi_tra_then_migrate_va_khong_doi_byte(
+def test_bien_anh_em_va_OPCOS_va_tram_cu_chon_chuyen_thi_tra_then_migrate_va_khong_doi_byte(
         repo, oc_ws, tmp_path, monkeypatch):
     cu = tram_nhung_co_du_lieu(repo)
     monkeypatch.setenv("VOICE_STATION", str(tmp_path))

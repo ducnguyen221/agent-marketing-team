@@ -282,7 +282,7 @@ def _dong_giu(st, oc: str, hai_tram: bool) -> str:
 
 
 def _giu_hay_chuyen(repo, dx, yes, co_nguoi, ask):
-    """Ca `FR1.6`: trạm nhúng đang mang dấu + `OPCOS_WORKSPACES` + chưa ghi lựa chọn ⇒ dữ liệu có sẵn
+    """Ca trạm cũ có dữ liệu: trạm nhúng đang mang dấu + `OPCOS_WORKSPACES` + chưa ghi lựa chọn ⇒ dữ liệu có sẵn
     THẮNG biến. -> Choice("embedded", …) hoặc None khi không thuộc ca này. KHÔNG dời gì."""
     cu = _tram_nhung_mang_dau(repo)
     if not cu:
@@ -333,9 +333,9 @@ def chon_che_do(station=None, mode=None, yes=False, ask=None, non_interactive=Fa
     if station:
         return Choice("separate", Path(station).expanduser().resolve(), "--station")
     dx = SP.goc_opcos()
-    # FR1.6 đứng TRƯỚC nhánh biến "anh em" (`tram_ngoai_co_san`) nhưng SAU `--station`, biến trạm riêng
+    # Ca trạm cũ có dữ liệu đứng TRƯỚC nhánh biến "anh em" (`tram_ngoai_co_san`) nhưng SAU `--station`, biến trạm riêng
     # (MARKETING_STUDIO_DATA), lựa chọn đã ghi và `--mode`; chỉ khi có OPCOS_WORKSPACES (nhánh không biến
-    # `RF-C5` — mã 2 — giữ nguyên).
+    # — mã 2, theo thiết kế riêng của marketing — giữ nguyên).
     if (dx and repo and not mode and not (os.environ.get("MARKETING_STUDIO_DATA") or "").strip()
             and SP.mode(repo) is None):
         ca = _giu_hay_chuyen(repo, dx, yes, co_nguoi, ask_duong or _hoi_giu_chuyen_ban_phim)
@@ -579,7 +579,7 @@ def do_init(station=None, mode=None, yes=False, existing=False, dry_run=False, a
             non_interactive=False) -> dict:
     ch = chon_che_do(station=station, mode=mode, yes=yes, ask=ask, non_interactive=non_interactive)
     mode, st, ly_do = ch
-    then = getattr(ch, "then_migrate", None)    # chỉ có khi người dùng chọn CHUYỂN trạm cũ (FR1.6)
+    then = getattr(ch, "then_migrate", None)    # chỉ có khi người dùng chọn CHUYỂN trạm cũ
     repo = SP.repo_root()
     if mode == "separate" and not station and (st / SP.SO_KENH).is_file():
         existing = True        # trạm đã dựng sẵn (OpcOS, trạm cũ được nhận): không rải file mẫu vào đó
@@ -612,7 +612,7 @@ def do_init(station=None, mode=None, yes=False, existing=False, dry_run=False, a
 
 
 def _chuyen_sau_khi_ghi_embedded(kq: dict, st: Path, oc: str, ask) -> None:
-    """Người dùng chọn CHUYỂN trạm cũ vào trạm OpcOS (FR1.6.2). Trạm cũ đã được ghi `embedded` (nhờ đó
+    """Người dùng chọn CHUYỂN trạm cũ vào trạm OpcOS. Trạm cũ đã được ghi `embedded` (nhờ đó
     `migrate` hợp lệ). Ở đây: kiểm đích (không rỗng ⇒ mã 2, TRƯỚC câu hỏi), xin `y/N` của `migrate`, rồi
     dời bằng chính đường `migrate`. `n`/Enter/EOF ⇒ GIỮ trạm cũ, mã 0, một dòng chỉ lệnh `migrate`.
     Không gọi `migrate_sang_separate` với đích có sẵn để HỎI trước: nhánh đó bỏ qua `y/N`."""
