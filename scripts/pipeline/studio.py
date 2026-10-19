@@ -328,7 +328,10 @@ def kiem_dich_doi(ws: Path, dich: Path) -> None:
     """Đích dời hợp lệ? Nằm trong chính trạm nguồn / là FILE / không rỗng ⇒ mã 2, chưa đụng gì.
     Dùng chung cho `migrate` (hỏi nơi dời) và `init` (người dùng chọn CHUYỂN trạm cũ)."""
     _kiem_dich_trong_nguon(dich, ws)
-    if dich.exists() and (not dich.is_dir() or any(dich.iterdir())):
+    if dich.exists() and not dich.is_dir():
+        raise SC.ContractError(f"đích {dich} là một FILE, không phải thư mục — chọn chỗ khác "
+                               "(--station). Chưa đụng gì.")
+    if dich.exists() and any(dich.iterdir()):
         raise SC.ContractError(f"thư mục đích không rỗng: {dich} — chọn chỗ khác (--station).")
 
 

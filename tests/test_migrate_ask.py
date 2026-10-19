@@ -346,3 +346,14 @@ def test_loi_OSError_giua_chung_van_tra_lai_thu_muc_dich_rong_co_san(repo_git, t
         ST.migrate_sang_separate(station=str(dich), kho_secret=str(tmp_path / "kho"))
     assert dich.is_dir() and not any(dich.iterdir()), "thư mục đích rỗng của người dùng phải còn"
     assert _nguyen_ven(repo_git)
+
+
+def test_tuong_tac_go_duong_la_mot_FILE_o_cau_noi_doi_thi_noi_dich_la_FILE_va_ten_duong(repo_git, tmp_path):
+    """Cùng thông báo với `--station`: đích là FILE (kèm đường), không phải 'không rỗng'; mã 2 trước câu y/N."""
+    f = tmp_path / "la-file"
+    f.write_text("x", encoding="utf-8")
+    ask = _tra_loi(str(f))                       # chỉ một câu: y/N không được hỏi
+    with pytest.raises(SC.ContractError, match="FILE") as e:
+        ST.migrate_sang_separate(kho_secret=str(tmp_path / "kho"), ask=ask)
+    assert str(f) in str(e.value) and "không rỗng" not in str(e.value)
+    assert len(ask.loi_nhac) == 1 and _nguyen_ven(repo_git) and f.read_text(encoding="utf-8") == "x"
