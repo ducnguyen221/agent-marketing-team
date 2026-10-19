@@ -195,6 +195,14 @@ def _reject_bare_choice(go: str) -> None:
 def _kiem_bien_opcos(dx) -> None:
     """`OPCOS_WORKSPACES` hoặc `<biến>/marketing` là một FILE: lỗi cấu hình (mã 2), nêu TÊN BIẾN,
     TRƯỚC mọi `mkdir` — không để `OSError` của hệ điều hành lọt ra thành mã 1."""
+    if os.name == "nt":              # ký tự Windows cấm trong tên (trừ tiền tố `\?\`): từ chối ngay, một dòng
+        con_lai = dx[0][4:] if dx[0].startswith(chr(92) * 2 + "?" + chr(92)) else dx[0]
+        xau = [c for c in '<>"|?*' if c in con_lai]
+        if xau:
+            raise SC.ContractError(
+                f"OPCOS_WORKSPACES={dx[0]} chứa ký tự không dùng được trong đường dẫn ({' '.join(xau)}). "
+                "Đây là lỗi cấu hình: sửa hoặc gỡ biến rồi chạy lại (hoặc dùng --station <thư mục>). "
+                "Chưa ghi gì.")
     if Path(os.path.expanduser(dx[0])).is_file():
         raise SC.ContractError(
             f"OPCOS_WORKSPACES={dx[0]} đang là một FILE, không phải thư mục. Đây là lỗi cấu hình: "
@@ -292,6 +300,7 @@ def _giu_hay_chuyen(repo, dx, yes, co_nguoi, ask):
     cu = _tram_nhung_mang_dau(repo)
     if not cu:
         return None
+    _kiem_bien_opcos(dx)       # biến không dùng được ⇒ mã 2 TRƯỚC mọi câu hỏi, mọi lần giữ/dời
     st, both_moi = cu
     oc = dx[1]
     hai_tram = (Path(oc) / SP.SO_KENH).is_file()

@@ -1839,3 +1839,46 @@ def test_khong_nguoi_khong_co_khong_bien_thong_bao_neu_ca_station_va_yes_va_mode
     for e in (e1, e2):
         m = str(e.value)
         assert "--mode" in m and "--station <đường>" in m and "--yes" in m, m
+
+
+# ── Biến không dùng được + trạm cũ có dữ liệu: kiểm biến chạy TRƯỚC mọi câu hỏi và mọi lần dời ─────────
+
+@pytest.mark.parametrize("hinh", ["bien-la-tram", "bien-la-file"])
+@pytest.mark.parametrize("cach", ["yes", "chuyen-roi-y"])
+def test_bien_khong_dung_duoc_va_tram_cu_co_du_lieu_la_ma_2_nen_ten_bien_khong_doi_byte(
+        cach, hinh, repo, tmp_path, monkeypatch):
+    cu = tram_nhung_co_du_lieu(repo)
+    truoc = bam_cay(cu)
+    ws = tmp_path / "ws"
+    if hinh == "bien-la-tram":
+        ws.mkdir()
+        (ws / SP.SO_KENH).write_text("---\nchannels: []\n---\n# tram\n", encoding="utf-8")
+    else:
+        ws.write_text("x", encoding="utf-8")
+    monkeypatch.setenv("OPCOS_WORKSPACES", str(ws))
+    ask = khong_duoc_hoi if cach == "yes" else tra_loi("chuyen", "y")
+    with pytest.raises(SC.ContractError, match="OPCOS_WORKSPACES"):
+        IS.do_init(yes=(cach == "yes"), ask=ask)
+    if cach != "yes":
+        assert ask.da_hoi == [], "phải từ chối TRƯỚC mọi câu hỏi"
+    assert bam_cay(cu) == truoc and not (repo / SP.LOCAL_CONFIG).exists()
+    assert not (ws / "marketing").exists() if hinh == "bien-la-tram" else ws.is_file()
+
+
+@pytest.mark.skipif(os.name != "nt", reason="ký tự cấm trong tên là của Windows")
+@pytest.mark.parametrize("gia_tri", ['"{ws}"', "{ws}<a", "{ws}?x"])
+@pytest.mark.parametrize("hinh", ["khong-tram-cu", "co-tram-cu"])
+@pytest.mark.parametrize("cach", ["yes", "Enter"])
+def test_bien_co_ky_tu_cam_la_ma_2_mot_dong_khong_cau_hoi_khong_ghi(
+        cach, hinh, gia_tri, repo, tmp_path, monkeypatch, capsys):
+    if hinh == "co-tram-cu":
+        tram_nhung_co_du_lieu(repo)
+    monkeypatch.setenv("OPCOS_WORKSPACES", gia_tri.format(ws=tmp_path / "ws"))
+    ask = khong_duoc_hoi if cach == "yes" else tra_loi("")
+    truoc = chup(repo, tmp_path)
+    with pytest.raises(SC.ContractError, match="OPCOS_WORKSPACES"):
+        IS.do_init(yes=(cach == "yes"), ask=ask)
+    if cach != "yes":
+        assert ask.da_hoi == [], "phải từ chối TRƯỚC câu hỏi"
+    assert chup(repo, tmp_path) == truoc
+    assert "dùng " not in capsys.readouterr().err, "không in dòng 'dùng …' rồi mới lỗi"
