@@ -1692,3 +1692,22 @@ def test_FR15_RF_C5_khong_doi_nhanh_bien_anh_em_van_dung_tram_OPCOS_khi_co_OPCOS
         dict(non_interactive=True) if cach == "ni" else {}
     kq = IS.do_init(**kw)
     assert kq["mode"] == "separate" and Path(kq["station"]) == (oc_ws / "marketing").resolve()
+
+
+def test_CL16_station_tuong_doi_duoc_tuyet_doi_hoa_va_ghi_tuyet_doi_khong_hoi(repo, tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    kq = IS.do_init(station="noi-tuong-doi", ask=khong_duoc_hoi)
+    dich = (tmp_path / "noi-tuong-doi").resolve()
+    assert kq["mode"] == "separate" and Path(kq["station"]) == dich
+    assert os.path.isabs(doc_local(repo)["station_path"]) and Path(doc_local(repo)["station_path"]) == dich
+
+
+def test_CL73_bien_anh_em_va_OPCOS_va_tram_cu_chon_chuyen_thi_tra_then_migrate_va_khong_doi_byte(
+        repo, oc_ws, tmp_path, monkeypatch):
+    cu = tram_nhung_co_du_lieu(repo)
+    monkeypatch.setenv("VOICE_STATION", str(tmp_path))
+    truoc = bam_cay(cu)
+    ask = tra_loi("chuyen")
+    ch = IS.chon_che_do(ask=ask)
+    assert ch.mode == "embedded" and Path(ch.path) == cu.resolve() and ch.then_migrate == dich_oc(oc_ws)
+    assert len(ask.da_hoi) == 1 and bam_cay(cu) == truoc and not oc_ws.exists()
