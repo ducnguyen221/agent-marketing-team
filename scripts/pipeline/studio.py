@@ -324,6 +324,24 @@ def _dung_luong(b: int) -> str:
         b /= 1024
 
 
+def kiem_dich_doi(ws: Path, dich: Path) -> None:
+    """Đích dời hợp lệ? Nằm trong chính trạm nguồn / là FILE / không rỗng ⇒ mã 2, chưa đụng gì.
+    Dùng chung cho `migrate` (hỏi nơi dời) và `init` (người dùng chọn CHUYỂN trạm cũ)."""
+    _kiem_dich_trong_nguon(dich, ws)
+    if dich.exists() and (not dich.is_dir() or any(dich.iterdir())):
+        raise SC.ContractError(f"thư mục đích không rỗng: {dich} — chọn chỗ khác (--station).")
+
+
+def hoi_xac_nhan_doi(ws: Path, dich: Path, ask) -> bool:
+    """Câu `y/N` của `migrate`: cho thấy số file/dung lượng; True khi gõ y/yes. `EOFError` lan ra cho
+    người gọi quyết (migrate: mã 2; init: giữ trạm cũ)."""
+    n, b = _do_cay(ws)
+    xn = (ask(f"Sẽ dời {n} file ({_dung_luong(b)}) từ {ws.resolve()}\n"
+              f"                          tới {dich}\n"
+              "Dời thật? [y/N]: ") or "").strip().lower()
+    return xn in ("y", "yes")
+
+
 def _hoi_noi_doi(repo: Path, ws: Path, ask, non_interactive: bool) -> Path:
     """Không có `--station`: hỏi người dùng nơi dời. Không hỏi được ⇒ mã 2, không đoán."""
     goi_y = goi_y_dich(repo)
@@ -351,17 +369,12 @@ def _hoi_noi_doi(repo: Path, ws: Path, ask, non_interactive: bool) -> Path:
         raise SC.ContractError("chưa nhập nơi dời nên dừng — chưa đụng gì. Chạy lại và nhập "
                                "đường, hoặc dùng `--station <thư-mục-đích>`.")
     dich = Path(tra).expanduser().resolve() if tra else goi_y
-    _kiem_dich_trong_nguon(dich, ws)
-    if dich.exists() and (not dich.is_dir() or any(dich.iterdir())):
-        raise SC.ContractError(f"thư mục đích không rỗng: {dich} — chọn chỗ khác (--station).")
-    n, b = _do_cay(ws)
+    kiem_dich_doi(ws, dich)
     try:
-        xn = (ask(f"Sẽ dời {n} file ({_dung_luong(b)}) từ {ws.resolve()}\n"
-                  f"                          tới {dich}\n"
-                  "Dời thật? [y/N]: ") or "").strip().lower()
+        dong_y = hoi_xac_nhan_doi(ws, dich, ask)
     except EOFError:
         raise SC.ContractError("không đọc được xác nhận — chưa đụng gì. Chạy lại với --station.")
-    if xn not in ("y", "yes"):
+    if not dong_y:
         raise SC.ContractError("không xác nhận (cần gõ y) — chưa đụng gì.")
     return dich
 

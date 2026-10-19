@@ -33,10 +33,11 @@ python scripts/pipeline/init_station.py          # hỏi bạn chọn
 `workspaces/`.** Nhận diện bằng: đã đặt một trong `MARKETING_STUDIO_DATA`, `VOICE_STATION`,
 `VIDEO_STATION`, `OMNIVOICE_DIR`, `VIDEO_ROOT`. Chỉ `MARKETING_STUDIO_DATA` cho biết trạm ở
 đâu; các biến còn lại chỉ báo "đã theo mô hình trạm ngoài" nên bộ cài hỏi đường (hoặc đòi
-`--station` khi dùng `--yes` / không có người). Chọn `separate` thì không có đường mặc định: có
+`--station` khi dùng `--yes` / không có người, trừ khi máy đặt `OPCOS_WORKSPACES`). Chọn `separate` thì không có đường mặc định: có
 `OPCOS_WORKSPACES` thì đề xuất `<biến>/marketing`, không thì hỏi đường. Có người ngồi, máy đặt
-`OPCOS_WORKSPACES`, không `--mode`: Enter/xác nhận ra `<biến>/marketing`; `--yes` không bao giờ
-hỏi và ra `<repo>/workspaces`. Thư mục trạm cũ ẩn trong thư mục cá nhân không còn được dò hay
+`OPCOS_WORKSPACES`, không `--mode`: Enter/xác nhận ra `<biến>/marketing`; `--yes` và chạy không
+người cũng ra đó (một dòng nêu đường) — muốn trạm trong repo thì `--mode embedded`; `<repo>/workspaces`
+đã có dữ liệu mà chưa chọn lần nào thì được giữ. Thư mục trạm cũ ẩn trong thư mục cá nhân không còn được dò hay
 tự nhận: trỏ vào bằng `--station <đường>`. Lý do: một repo mà có **hai** trạm thì không ai biết
 bài mới nằm ở đâu, và `doctor` gọi đó là *hai nguồn sự thật* — nó báo đỏ chứ không đoán hộ.
 

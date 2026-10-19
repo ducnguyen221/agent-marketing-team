@@ -92,7 +92,13 @@ def run(fn, args, as_json=False) -> int:
     try:
         ra = fn(args) or {}
     except KeyboardInterrupt:
-        raise
+        # Người dùng tự huỷ (Ctrl+C) không phải lỗi máy: một dòng, mã 2, KHÔNG traceback. Khối dọn của
+        # hàm đang chạy (vd `migrate` trả lại thư mục đích) đã chạy xong khi tới đây.
+        msg = "đã huỷ (Ctrl+C)"
+        log(f"[{getattr(args, 'prog', 'studio')}] {msg}.")
+        if as_json:
+            emit({"ok": False, "code": CONTRACT_ERROR, "error": msg})
+        return CONTRACT_ERROR
     except Exception as exc:      # noqa: BLE001 — biên của CLI: mọi lỗi phải thành mã thoát
         ma = classify(exc)
         msg = str(exc) or exc.__class__.__name__

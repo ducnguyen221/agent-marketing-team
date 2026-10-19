@@ -21,8 +21,8 @@
 .EXAMPLE
     .\install.ps1                              # hoi ban chon che do cai
     .\install.ps1 -Station "D:/noi-dung"       # tram ngoai repo, khong hoi
-    .\install.ps1 -Yes                         # nhan khuyen nghi: embedded
-    .\install.ps1 -NonInteractive              # khong hoi; khong co ai tra loi -> ma 2
+    .\install.ps1 -Yes                         # nhan khuyen nghi (co OPCOS_WORKSPACES -> <bien>/marketing, khong thi embedded)
+    .\install.ps1 -NonInteractive              # khong hoi; khong OPCOS_WORKSPACES -> ma 2, co -> <bien>/marketing
 
 .NOTES
     File này phải giữ BOM UTF-8 để PowerShell 5.1 đọc đúng tiếng Việt.
@@ -131,7 +131,8 @@ $doi = @()
 if ($Station) { $doi += @('--station', $Station) }
 if ($Mode) { $doi += @('--mode', $Mode) }
 # CHI `-Yes` moi ghep `--yes`. `-NonInteractive` chi noi "dung hoi", KHONG noi "cu doan
-# ho toi": lõi thay stdin khong co nguoi thi dung voi ma 2 va noi ro phai go `-Yes`.
+# ho toi": lõi thay stdin khong co nguoi thi dung voi ma 2 va noi ro phai go `-Yes` — TRU khi may dat
+# OPCOS_WORKSPACES: khi do cho dat tram da biet, loi ra thang <bien>/marketing (ma 0, mot dong).
 # Ban truoc ghep ca hai, nen `install.ps1 -NonInteractive` lang le cai embedded trong khi
 # `install.sh --noninteractive` cho ma 2 — hai bo cai khac nhau cho hai he dieu hanh,
 # dung thu P2-T02 gop loi de tranh (REVIEW-P2 N8).
