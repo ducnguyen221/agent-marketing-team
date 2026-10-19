@@ -18,6 +18,8 @@ Station contract: bỏ fallback ẩn `~/.<station>`, trạm phải được ch�
 - `init` gặp `studio.local.json` ghi `separate` mà thiếu `station_path`: dừng mã 2 và đòi `--station <đường>` (trước đây rơi về `<repo>/workspaces`).
 - `OPCOS_WORKSPACES` (hoặc `<biến>/marketing`) trỏ vào một file: mã 2, nêu tên biến, chưa ghi gì.
 - Ctrl+C ở mọi lệnh dùng `studio_contract.run` (bộ cài, `studio.py`, các script cùng hợp đồng): một dòng "đã huỷ (Ctrl+C)", mã 2, không traceback; `--json` phát `ok: false, code: 2`.
+- `doctor`: đã chọn `embedded` thì không còn nhắc gì về `OPCOS_WORKSPACES`, kể cả khi `<biến>/marketing` chưa mang dấu trạm.
+- `studio.py migrate --to separate`: dời hỏng vì bất kỳ lỗi nào (không chỉ lỗi hợp đồng — ví dụ khác ổ đĩa, thiếu quyền, Ctrl+C) thì thư mục đích rỗng có sẵn của bạn vẫn được dựng lại.
 
 ## 2.0.0 — 2026-10-15
 

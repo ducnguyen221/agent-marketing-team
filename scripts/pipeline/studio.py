@@ -422,8 +422,9 @@ def migrate_sang_separate(station=None, kho_secret=None, ask=None, non_interacti
     dich.parent.mkdir(parents=True, exist_ok=True)
     try:
         _doi_cay(ws, dich)
-    except SC.ContractError:
-        # "CHƯA đụng gì" phải đúng cả với thư mục đích rỗng có sẵn của người dùng.
+    except BaseException:
+        # "CHƯA đụng gì" phải đúng cả với thư mục đích rỗng có sẵn của người dùng, với MỌI lỗi
+        # (OSError khác ổ, thiếu quyền, Ctrl+C), không chỉ lỗi hợp đồng.
         if da_co_thu_muc_rong and not dich.exists():
             dich.mkdir()
         raise

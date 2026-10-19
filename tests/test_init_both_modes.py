@@ -1792,3 +1792,25 @@ def test_bien_nam_duoi_mot_file_la_ma_2_nen_ten_bien(cach, repo, tmp_path, monke
     with pytest.raises(SC.ContractError, match="OPCOS_WORKSPACES"):
         IS.do_init(**kw)
     assert not (repo / SP.LOCAL_CONFIG).exists()
+
+
+# ── doctor im lặng về OPCOS_WORKSPACES khi đã chọn embedded; câu `--station` nguyên văn ở runner ─────
+
+def test_doctor_im_lang_ve_OPCOS_khi_da_chon_embedded_du_thu_muc_OPCOS_chua_mang_dau(
+        repo, tmp_path, monkeypatch):
+    (repo / "workspaces").mkdir()
+    monkeypatch.setenv("OPCOS_WORKSPACES", str(tmp_path / "ws"))        # <ws>/marketing không có CHANNELS.md
+    (repo / SP.LOCAL_CONFIG).write_text(json.dumps({"mode": "embedded"}), encoding="utf-8")
+    assert [d for d in DR.kham()["warn"] if "OPCOS_WORKSPACES" in d] == []
+    (repo / SP.LOCAL_CONFIG).unlink()          # chưa chọn gì thì vẫn nhắc
+    assert [d for d in DR.kham()["warn"] if "OPCOS_WORKSPACES" in d]
+
+
+def test_runner_paths_thieu_tram_mang_nguyen_van_cau_station_cua_hop_dong(repo):
+    import importlib.util
+    spec = importlib.util.spec_from_file_location("paths_runner_nv", ROOT / "scripts" / "runners" / "paths.py")
+    m = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(m)
+    with pytest.raises(SC.StationMissing) as e:
+        m.station()
+    assert SC.GOI_Y_DU_LIEU_CU in str(e.value)

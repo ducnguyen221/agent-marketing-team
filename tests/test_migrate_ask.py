@@ -330,3 +330,19 @@ def test_doi_that_bai_thi_thu_muc_dich_rong_co_san_cua_nguoi_dung_con_nguyen(
         ST.migrate_sang_separate(station=str(dich), kho_secret=str(tmp_path / "kho"))
     assert dich.is_dir() and not any(dich.iterdir()), "thư mục đích rỗng của người dùng phải còn"
     assert _nguyen_ven(repo_git)
+
+
+def test_loi_OSError_giua_chung_van_tra_lai_thu_muc_dich_rong_co_san(repo_git, tmp_path, monkeypatch):
+    """Không chỉ lỗi hợp đồng: một `OSError` (khác ổ, thiếu quyền) giữa chừng cũng phải dựng lại thư mục
+    đích rỗng mà người dùng đã có, và để nguồn nguyên."""
+    import errno
+    dich = tmp_path / "dich-rong-co-san"
+    dich.mkdir()
+
+    def hong(*_a, **_k):
+        raise OSError(errno.EXDEV, "cross-device")
+    monkeypatch.setattr(ST, "_doi_cay", hong)
+    with pytest.raises(OSError):
+        ST.migrate_sang_separate(station=str(dich), kho_secret=str(tmp_path / "kho"))
+    assert dich.is_dir() and not any(dich.iterdir()), "thư mục đích rỗng của người dùng phải còn"
+    assert _nguyen_ven(repo_git)
