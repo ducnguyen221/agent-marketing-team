@@ -196,7 +196,7 @@ def _kiem_bien_opcos(dx) -> None:
     """`OPCOS_WORKSPACES` hoặc `<biến>/marketing` là một FILE: lỗi cấu hình (mã 2), nêu TÊN BIẾN,
     TRƯỚC mọi `mkdir` — không để `OSError` của hệ điều hành lọt ra thành mã 1."""
     if os.name == "nt":              # ký tự Windows cấm trong tên (trừ tiền tố `\?\`): từ chối ngay, một dòng
-        con_lai = dx[0][4:] if dx[0].startswith(chr(92) * 2 + "?" + chr(92)) else dx[0]
+        con_lai = os.path.splitdrive(dx[0])[1]      # bỏ ổ đĩa / tiền tố đường dài / UNC trước khi soát ký tự cấm
         xau = [c for c in '<>"|?*' if c in con_lai]
         if xau:
             raise SC.ContractError(

@@ -1882,3 +1882,17 @@ def test_bien_co_ky_tu_cam_la_ma_2_mot_dong_khong_cau_hoi_khong_ghi(
         assert ask.da_hoi == [], "phải từ chối TRƯỚC câu hỏi"
     assert chup(repo, tmp_path) == truoc
     assert "dùng " not in capsys.readouterr().err, "không in dòng 'dùng …' rồi mới lỗi"
+
+
+@pytest.mark.skipif(os.name != "nt", reason="tiền tố đường dài là của Windows")
+@pytest.mark.parametrize("kieu", ["gach-nguoc", "gach-xuoi"])
+def test_bien_co_tien_to_duong_dai_hop_le_ra_tram_OPCOS_ma_0(kieu, repo, tmp_path, monkeypatch):
+    """`\\?\C:\...` (và dạng `//?/C:/...`) là đường hợp lệ: dấu `?` của tiền tố không phải ký tự cấm."""
+    goc = str(tmp_path / "ws")
+    if kieu == "gach-nguoc":
+        gia_tri = chr(92) * 2 + "?" + chr(92) + goc
+    else:
+        gia_tri = "//?/" + goc.replace(chr(92), "/")
+    monkeypatch.setenv("OPCOS_WORKSPACES", gia_tri)
+    kq = IS.do_init(yes=True, ask=khong_duoc_hoi)
+    assert kq["mode"] == "separate" and (tmp_path / "ws" / "marketing" / SP.SO_KENH).is_file()
