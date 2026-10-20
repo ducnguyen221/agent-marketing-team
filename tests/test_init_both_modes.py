@@ -975,7 +975,7 @@ def test_doctor_KHONG_canh_bao_tram_OPCOS_khi_nguoi_dung_da_chon_embedded(repo, 
     assert not nhac(DR.kham())
 
 
-def test_cau_chung_du_lieu_cu_o_noi_khac_co_trong_moi_thong_bao_ma_3(repo, tmp_path):
+def test_cau_chung_du_lieu_cu_o_noi_khac_co_trong_moi_thong_bao_ma_3(repo, tmp_path, monkeypatch):
     cau = SC.GOI_Y_DU_LIEU_CU
     assert "--station" in cau and "dữ liệu cũ" in cau
     assert ("." + "marketing") not in cau and "~/." not in cau, "không nêu tên thư mục ẩn nào"
@@ -992,8 +992,12 @@ def test_cau_chung_du_lieu_cu_o_noi_khac_co_trong_moi_thong_bao_ma_3(repo, tmp_p
     spec = importlib.util.spec_from_file_location("paths_runner", ROOT / "scripts" / "runners" / "paths.py")
     m = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(m)
-    with pytest.raises(SC.StationMissing, match="Có dữ liệu cũ"):
+    monkeypatch.delenv("MARKETING_STUDIO_DATA", raising=False)
+    (repo / SP.LOCAL_CONFIG).unlink(missing_ok=True)
+    shutil.rmtree(repo / SP.WORKSPACE, ignore_errors=True)
+    with pytest.raises(SC.StationMissing, match="Có dữ liệu cũ") as e:
         m.station()
+    assert SC.GOI_Y_DU_LIEU_CU in str(e.value)
     # PowerShell: cùng ý (ASCII, không dấu)
     ps = (ROOT / "scripts" / "runners" / "brand-paths.ps1").read_text(encoding="utf-8-sig")
     assert "Co du lieu cu o noi khac? Dung --station" in ps
@@ -1238,8 +1242,10 @@ def test_chon_chuyen_roi_tra_loi_khong_o_y_N_thi_giu_ma_0_va_chi_lenh_migrate(
         tra_loi_yn, repo, oc_ws, capsys):
     cu = tram_nhung_co_du_lieu(repo)
     truoc = bam_cay(cu)
-    kq = IS.do_init(ask=tra_loi("chuyen", tra_loi_yn))
+    ask = tra_loi("chuyen", tra_loi_yn)
+    kq = IS.do_init(ask=ask)
     assert kq["mode"] == "embedded" and Path(kq["station"]) == cu.resolve()
+    assert len(ask.da_hoi) == 2, "chuyển + xác nhận y/N phải gọi đúng hai prompt"
     assert doc_local(repo)["mode"] == "embedded"
     assert all(bam_cay(cu)[r] == h for r, h in truoc.items()) and not (oc_ws / "marketing").exists()
     assert len([d for d in capsys.readouterr().err.splitlines() if "migrate --to separate" in d]) == 1
@@ -1247,8 +1253,10 @@ def test_chon_chuyen_roi_tra_loi_khong_o_y_N_thi_giu_ma_0_va_chi_lenh_migrate(
 
 def test_chon_chuyen_roi_EOF_o_y_N_thi_giu_ma_0(repo, oc_ws):
     cu = tram_nhung_co_du_lieu(repo)
-    kq = IS.do_init(ask=tra_roi_ngat("chuyen", EOFError()))
+    ask = tra_roi_ngat("chuyen", EOFError())
+    kq = IS.do_init(ask=ask)
     assert kq["mode"] == "embedded" and cu.is_dir() and not (oc_ws / "marketing").exists()
+    assert len(ask.da_hoi) == 2, "EOF tại xác nhận vẫn là prompt thứ hai đã được gọi"
 
 
 def test_chon_chuyen_roi_CtrlC_o_y_N_lan_ra_embedded_da_ghi_va_khong_doi_byte(repo, oc_ws):
@@ -1267,12 +1275,13 @@ def test_chon_chuyen_nhung_dich_khong_rong_thi_ma_2_TRUOC_y_N_va_embedded_van_du
     d = oc_ws / "marketing"
     d.mkdir(parents=True)
     (d / ("x.txt" if dich_co == "file-la" else SP.SO_KENH)).write_text("co san\n", encoding="utf-8")
+    truoc_dich = bam_cay(d)
     ask = tra_loi("chuyen")                      # chỉ MỘT câu: y/N không bao giờ được hỏi
     with pytest.raises(SC.ContractError, match="không rỗng"):
         IS.do_init(ask=ask)
     assert len(ask.da_hoi) == 1
     assert doc_local(repo)["mode"] == "embedded" and (cu / "kenh-a" / "bai.md").is_file()
-    assert [p.name for p in d.iterdir()] != [], "đích có sẵn không bị đụng"
+    assert bam_cay(d) == truoc_dich, "mọi byte ở đích không rỗng phải giữ nguyên"
 
 
 def test_dry_run_cung_chuyen_chi_in_se_doi_va_khong_ghi_byte_nao(repo, oc_ws, nha, capsys):
@@ -1351,10 +1360,15 @@ def test_bien_tram_rieng_MARKETING_STUDIO_DATA_thang_ca_tram_cu_va_OPCOS(
     ngoai = tmp_path / "tram-rieng"
     ngoai.mkdir()
     monkeypatch.setenv("MARKETING_STUDIO_DATA", str(ngoai))
+    ws_invalid = tmp_path / "opcos-not-a-directory"
+    ws_invalid.write_text("untouched\n", encoding="utf-8")
+    monkeypatch.setenv("OPCOS_WORKSPACES", str(ws_invalid))
     kw = dict(yes=True, ask=khong_duoc_hoi) if cach == "yes" else \
         dict(ask=khong_duoc_hoi) if cach == "Enter" else dict(non_interactive=True)
     kq = IS.do_init(**kw)
     assert kq["mode"] == "separate" and Path(kq["station"]) == ngoai.resolve()
+    assert ws_invalid.read_text(encoding="utf-8") == "untouched\n"
+    assert not (ws_invalid / "marketing").exists()
 
 
 @pytest.mark.parametrize("cach", ["yes", "ni", "Enter"])
@@ -1725,6 +1739,20 @@ def test_bien_anh_em_va_OPCOS_va_tram_cu_chon_chuyen_thi_tra_then_migrate_va_kho
     assert len(ask.da_hoi) == 1 and bam_cay(cu) == truoc and not oc_ws.exists()
 
 
+def test_bien_anh_em_va_OPCOS_va_tram_cu_chon_chuyen_xac_nhan_roi_migrate(
+        repo, oc_ws, tmp_path, monkeypatch):
+    cu = tram_nhung_co_du_lieu(repo)
+    monkeypatch.setenv("VOICE_STATION", str(tmp_path))
+    truoc = bam_cay(cu)
+    ask = tra_loi("chuyen", "y")
+    kq = IS.do_init(ask=ask)
+    dich = oc_ws / "marketing"
+    assert len(ask.da_hoi) == 2
+    assert kq["mode"] == "separate" and Path(kq["station"]) == dich.resolve()
+    assert not cu.exists() and all(bam_cay(dich).get(p) == h for p, h in truoc.items())
+    assert doc_local(repo)["mode"] == "separate"
+
+
 # ── Vòng sửa sau review: chữ còn sót, kiểm đích trước câu y/N, thông báo nêu tên biến ────────
 
 def test_tai_lieu_cai_dat_noi_ngoai_le_may_co_OPCOS_WORKSPACES_o_cho_noi_ma_2():
@@ -1813,6 +1841,7 @@ def test_doctor_im_lang_ve_OPCOS_khi_da_chon_embedded_du_thu_muc_OPCOS_chua_mang
     monkeypatch.setenv("OPCOS_WORKSPACES", str(tmp_path / "ws"))        # <ws>/marketing không có CHANNELS.md
     (repo / SP.LOCAL_CONFIG).write_text(json.dumps({"mode": "embedded"}), encoding="utf-8")
     assert [d for d in DR.kham()["warn"] if "OPCOS_WORKSPACES" in d] == []
+    assert any(".env" in d for d in DR.kham()["warn"]), "cảnh báo khác vẫn phải được giữ"
     (repo / SP.LOCAL_CONFIG).unlink()          # chưa chọn gì thì vẫn nhắc
     assert [d for d in DR.kham()["warn"] if "OPCOS_WORKSPACES" in d]
 

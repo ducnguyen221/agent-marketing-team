@@ -8,7 +8,10 @@ Không còn đích ngầm. Không có `--station`:
 Gợi ý: `<OPCOS_WORKSPACES>/marketing` khi biến có; không có biến thì KHÔNG gợi ý gì (người dùng gõ đường).
 Thư mục trong nhà không bao giờ là đích mặc định. Nguồn là trạm nhúng `<repo>/workspaces`. Đích nằm trong chính trạm nguồn bị từ chối.
 """
+import errno
+import hashlib
 import json
+import os
 import shutil
 import subprocess
 import sys
@@ -80,6 +83,72 @@ def _tra_loi(*cau):
 
 def _nguyen_ven(repo):
     return (repo / SP.WORKSPACE / "kenh-cua-toi" / "channel.yml").is_file()
+
+
+def _tree_snapshot(root):
+    """Exact directory/file snapshot for migration failure assertions."""
+    result = {}
+    for current, dirs, files in os.walk(root):
+        rel = Path(current).relative_to(root)
+        for name in dirs:
+            result[str(rel / name)] = "<dir>"
+        for name in files:
+            path = Path(current) / name
+            result[str(rel / name)] = hashlib.sha256(path.read_bytes()).hexdigest()
+    return result
+
+
+def _inject_config_write_error(monkeypatch, repo, callback=None, opaque=False):
+    """Fail once at the config boundary after the station move; allow rollback writes through."""
+    config = repo / SP.LOCAL_CONFIG
+    original_open = Path.open
+    real_move_tree = ST._doi_cay
+    moved = {"done": False}
+    injected = {"count": 0, "path": None, "stage": None, "write_count": None}
+
+    def move_then_mark(src, dst):
+        real_move_tree(src, dst)
+        moved["done"] = True
+
+    class FailingConfigStream:
+        def __init__(self, stream):
+            self.stream = stream
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *exc):
+            return self.stream.__exit__(*exc)
+
+        def write(self, data):
+            assert moved["done"], "config failure must follow the completed station move"
+            if opaque:
+                self.stream.write(b"X")
+                injected.update(count=1, path=str(config), stage="opaque-partial-write")
+                raise OSError("injected opaque config write failure")
+            written = self.stream.write(data)
+            injected["write_count"] = written
+            return written
+
+        def truncate(self, *args):
+            if injected["count"] == 0:
+                if callback:
+                    callback()
+                injected.update(count=1, path=str(config), stage="after-complete-write-before-truncate")
+                raise OSError("injected local config write failure")
+            return self.stream.truncate(*args)
+
+        def __getattr__(self, name):
+            return getattr(self.stream, name)
+
+    def fail_once(path, mode="r", *args, **kwargs):
+        if path == config and mode in ("r+b", "x+b") and injected["count"] == 0:
+            return FailingConfigStream(original_open(path, mode, *args, **kwargs))
+        return original_open(path, mode, *args, **kwargs)
+
+    monkeypatch.setattr(ST, "_doi_cay", move_then_mark)
+    monkeypatch.setattr(Path, "open", fail_once)
+    return config, moved, injected
 
 
 # ── gợi ý đích ────────────────────────────────────────────────────────────────────────
@@ -348,6 +417,277 @@ def test_loi_OSError_giua_chung_van_tra_lai_thu_muc_dich_rong_co_san(repo_git, t
     assert dich.is_dir() and not any(dich.iterdir()), "thư mục đích rỗng của người dùng phải còn"
     assert _nguyen_ven(repo_git)
     assert SP.mode(repo_git) == "embedded", "dời hỏng thì lựa chọn đã ghi vẫn là embedded"
+
+
+def test_loi_ghi_local_config_sau_khi_doi_cay_khoi_phuc_toan_bo_trang_thai(
+        repo_git, tmp_path, monkeypatch):
+    home = tmp_path / "fake-home"
+    home.mkdir()
+    monkeypatch.setenv("HOME", str(home))
+    monkeypatch.setenv("USERPROFILE", str(home))
+    source = repo_git / SP.WORKSPACE
+    target = tmp_path / "trạm-tách-riêng"
+    env = repo_git / ".env"
+    env.write_text("TEST_ONLY=not-a-secret\n", encoding="utf-8")
+    env_bytes = env.read_bytes()
+    config = repo_git / SP.LOCAL_CONFIG
+    config_state = (config.exists(), config.read_bytes() if config.exists() else None)
+    source_before = _tree_snapshot(source)
+    marker = source / SP.SO_KENH
+    marker_state = (marker.exists(), marker.read_bytes() if marker.exists() else None)
+    secret_env = tmp_path / "fake-secret" / ".env"
+    assert not target.exists() and not secret_env.exists()
+
+    _, moved, injected = _inject_config_write_error(monkeypatch, repo_git)
+    with pytest.raises(OSError, match="injected local config write failure"):
+        ST.migrate_sang_separate(station=str(target), kho_secret=str(secret_env.parent))
+
+    assert moved["done"] and injected == {
+        "count": 1, "path": str(config),
+        "stage": "after-complete-write-before-truncate", "write_count": injected["write_count"]}
+    expected = {
+        "source_tree": source_before,
+        "marker": marker_state,
+        "config": config_state,
+        "source_env": env_bytes,
+        "destination_exists": False,
+        "secret_dir_exists": False,
+        "secret_env_exists": False,
+    }
+    actual = {
+        "source_tree": _tree_snapshot(source) if source.is_dir() else None,
+        "marker": (marker.exists(), marker.read_bytes() if marker.exists() else None),
+        "config": (config.exists(), config.read_bytes() if config.exists() else None),
+        "source_env": env.read_bytes() if env.is_file() else None,
+        "destination_exists": target.exists(),
+        "secret_dir_exists": secret_env.parent.exists(),
+        "secret_env_exists": secret_env.exists(),
+    }
+    assert actual == expected
+
+
+def test_write_then_raise_is_unknown_and_retains_migration_artifacts(repo_git, tmp_path, monkeypatch):
+    home = tmp_path / "fake-home"
+    home.mkdir()
+    monkeypatch.setenv("HOME", str(home))
+    monkeypatch.setenv("USERPROFILE", str(home))
+    source = repo_git / SP.WORKSPACE
+    target = tmp_path / "trạm-giữ-lại"
+    env = repo_git / ".env"
+    env.write_text("TEST_ONLY=not-a-secret\n", encoding="utf-8")
+    original_config = (repo_git / SP.LOCAL_CONFIG).read_bytes()
+    secret_env = tmp_path / "fake-secret" / ".env"
+    _, moved, injected = _inject_config_write_error(monkeypatch, repo_git, opaque=True)
+
+    with pytest.raises(SC.ContractError, match="rollback incomplete") as error:
+        ST.migrate_sang_separate(station=str(target), kho_secret=str(secret_env.parent))
+
+    assert "injected opaque config write failure" in str(error.value)
+    assert moved["done"] and injected["stage"] == "opaque-partial-write"
+    assert not source.exists() and target.is_dir(), "unknown config write must stop dependent tree rollback"
+    assert not env.exists() and secret_env.read_text(encoding="utf-8") == "TEST_ONLY=not-a-secret\n"
+    assert (repo_git / SP.LOCAL_CONFIG).read_bytes() != original_config
+
+
+def test_rollback_keeps_new_config_when_it_was_absent_before_migration(repo_git, tmp_path, monkeypatch):
+    config = repo_git / SP.LOCAL_CONFIG
+    config.unlink()
+    monkeypatch.setattr(ST.SP, "mode", lambda _repo: "embedded")
+    home = tmp_path / "fake-home"
+    home.mkdir()
+    monkeypatch.setenv("HOME", str(home))
+    monkeypatch.setenv("USERPROFILE", str(home))
+    target = tmp_path / "trạm-config-mới"
+    secret_env = tmp_path / "fake-secret" / ".env"
+    _, _, injected = _inject_config_write_error(monkeypatch, repo_git)
+
+    with pytest.raises(SC.ContractError, match="rollback incomplete") as error:
+        ST.migrate_sang_separate(station=str(target), kho_secret=str(secret_env.parent))
+
+    assert "injected local config write failure" in str(error.value)
+    assert injected["count"] == 1 and injected["write_count"] > 0
+    assert config.is_file(), "new metadata is retained rather than unlinked during rollback"
+    assert target.is_dir() and not (repo_git / SP.WORKSPACE).exists()
+
+
+def test_failed_config_write_does_not_overwrite_recreated_env_source(repo_git, tmp_path, monkeypatch):
+    home = tmp_path / "fake-home"
+    home.mkdir()
+    monkeypatch.setenv("HOME", str(home))
+    monkeypatch.setenv("USERPROFILE", str(home))
+    source = repo_git / SP.WORKSPACE
+    target = tmp_path / "trạm-env-collision"
+    env = repo_git / ".env"
+    env.write_text("ORIGINAL=not-a-secret\n", encoding="utf-8")
+    original_env = env.read_bytes()
+    secret_env = tmp_path / "fake-secret" / ".env"
+    foreign = b"FOREIGN=keep-me\n"
+
+    def recreate_env_source():
+        assert secret_env.is_file() and not env.exists()
+        env.write_bytes(foreign)
+
+    _, moved, injected = _inject_config_write_error(
+        monkeypatch, repo_git, callback=recreate_env_source)
+    with pytest.raises(SC.ContractError, match="rollback incomplete") as error:
+        ST.migrate_sang_separate(station=str(target), kho_secret=str(secret_env.parent))
+
+    assert "injected local config write failure" in str(error.value)
+    assert moved["done"] and injected["count"] == 1
+    assert env.read_bytes() == foreign and secret_env.read_bytes() == original_env
+    assert source.exists() is False and target.is_dir(), "later tree rollback stops after env ownership conflict"
+
+
+def test_failed_config_write_treats_dangling_env_source_as_occupied(repo_git, tmp_path, monkeypatch):
+    home = tmp_path / "fake-home"
+    home.mkdir()
+    monkeypatch.setenv("HOME", str(home))
+    monkeypatch.setenv("USERPROFILE", str(home))
+    env = repo_git / ".env"
+    env.write_text("ORIGINAL=not-a-secret\n", encoding="utf-8")
+    secret_env = tmp_path / "fake-secret" / ".env"
+    missing_target = tmp_path / "foreign-not-created.txt"
+
+    probe = tmp_path / "symlink-probe"
+    try:
+        probe.symlink_to(missing_target)
+    except (OSError, NotImplementedError) as exc:
+        pytest.skip(f"file symlink unavailable: {exc}")
+    probe.unlink()
+
+    def create_dangling_env_source():
+        env.symlink_to(missing_target)
+
+    _, moved, injected = _inject_config_write_error(
+        monkeypatch, repo_git, callback=create_dangling_env_source)
+    with pytest.raises(SC.ContractError, match="rollback incomplete") as error:
+        ST.migrate_sang_separate(station=str(tmp_path / "trạm-env-link"),
+                                 kho_secret=str(secret_env.parent))
+
+    assert "injected local config write failure" in str(error.value)
+    assert moved["done"] and injected["count"] == 1
+    assert env.is_symlink() and not missing_target.exists()
+    assert secret_env.read_text(encoding="utf-8") == "ORIGINAL=not-a-secret\n"
+
+
+def test_env_restore_exdev_retains_copy_and_never_falls_back_to_copy2(repo_git, tmp_path, monkeypatch):
+    home = tmp_path / "fake-home"
+    home.mkdir()
+    monkeypatch.setenv("HOME", str(home))
+    monkeypatch.setenv("USERPROFILE", str(home))
+    env = repo_git / ".env"
+    env.write_text("ORIGINAL=not-a-secret\n", encoding="utf-8")
+    original_env = env.read_bytes()
+    secret_env = tmp_path / "fake-secret" / ".env"
+    target = tmp_path / "trạm-env-exdev"
+    _, moved, injected = _inject_config_write_error(monkeypatch, repo_git)
+    original_rename = ST.os.rename
+    copy_calls = []
+
+    def fail_restore_rename(src, dst):
+        if Path(src) == secret_env and Path(dst) == env:
+            raise OSError(errno.EXDEV, "cross-device restore")
+        return original_rename(src, dst)
+
+    def forbidden_copy2(*args, **kwargs):
+        copy_calls.append((args, kwargs))
+        raise AssertionError("rollback must not fall back to copy2")
+
+    monkeypatch.setattr(ST.os, "rename", fail_restore_rename)
+    monkeypatch.setattr(ST.shutil, "copy2", forbidden_copy2)
+    with pytest.raises(SC.ContractError, match="rollback incomplete") as error:
+        ST.migrate_sang_separate(station=str(target), kho_secret=str(secret_env.parent))
+
+    assert "injected local config write failure" in str(error.value)
+    assert moved["done"] and injected["count"] == 1
+    assert not copy_calls and not env.exists() and secret_env.read_bytes() == original_env
+    assert target.is_dir() and not (repo_git / SP.WORKSPACE).exists()
+
+
+def test_posix_env_rollback_guard_never_calls_overwriting_rename(repo_git, tmp_path, monkeypatch):
+    home = tmp_path / "fake-home"
+    home.mkdir()
+    monkeypatch.setenv("HOME", str(home))
+    monkeypatch.setenv("USERPROFILE", str(home))
+    env = repo_git / ".env"
+    env.write_text("ORIGINAL=not-a-secret\n", encoding="utf-8")
+    secret_env = tmp_path / "fake-secret" / ".env"
+    target = tmp_path / "trạm-env-posix"
+    _, moved, injected = _inject_config_write_error(monkeypatch, repo_git)
+    real_os = ST.os
+    rename_calls = []
+
+    class PosixOS:
+        name = "posix"
+
+        def __getattr__(self, name):
+            return getattr(real_os, name)
+
+        def rename(self, src, dst):
+            if Path(src) == secret_env and Path(dst) == env:
+                rename_calls.append((Path(src), Path(dst)))
+            return real_os.rename(src, dst)
+
+    monkeypatch.setattr(ST, "os", PosixOS())
+    with pytest.raises(SC.ContractError, match="rollback incomplete") as error:
+        ST.migrate_sang_separate(station=str(target), kho_secret=str(secret_env.parent))
+
+    assert "no-clobber .env restore is unavailable" in str(error.value)
+    assert moved["done"] and injected["count"] == 1
+    assert not rename_calls, "POSIX rollback must not invoke overwrite-capable rename"
+    assert not env.exists() and secret_env.is_file() and target.is_dir()
+    assert not (repo_git / SP.WORKSPACE).exists()
+
+
+def test_dangling_secret_env_destination_is_rejected_before_tree_move(repo_git, tmp_path, monkeypatch):
+    env = repo_git / ".env"
+    env.write_text("TEST_ONLY=not-a-secret\n", encoding="utf-8")
+    source = repo_git / SP.WORKSPACE
+    before = _tree_snapshot(source)
+    secret_dir = tmp_path / "fake-secret"
+    secret_dir.mkdir()
+    missing_target = tmp_path / "missing-secret-target"
+    link = secret_dir / ".env"
+    try:
+        link.symlink_to(missing_target)
+    except (OSError, NotImplementedError) as exc:
+        pytest.skip(f"file symlink unavailable: {exc}")
+    moved = {"called": False}
+
+    def forbidden_move(*_args, **_kwargs):
+        moved["called"] = True
+        raise AssertionError("tree move must not start with dangling destination link")
+
+    monkeypatch.setattr(ST, "_doi_cay", forbidden_move)
+    with pytest.raises(SC.ContractError, match="liên kết|điểm nối|đã có"):
+        ST.migrate_sang_separate(station=str(tmp_path / "trạm-secret-link"),
+                                 kho_secret=str(secret_dir))
+
+    assert not moved["called"] and link.is_symlink() and not missing_target.exists()
+    assert _tree_snapshot(source) == before and env.is_file()
+
+
+def test_source_tree_directory_symlink_is_rejected_before_move(repo_git, tmp_path, monkeypatch):
+    outside = tmp_path / "outside"
+    outside.mkdir()
+    (outside / "keep.txt").write_text("outside\n", encoding="utf-8")
+    link = repo_git / SP.WORKSPACE / "external-link"
+    try:
+        link.symlink_to(outside, target_is_directory=True)
+    except (OSError, NotImplementedError) as exc:
+        pytest.skip(f"directory symlink unavailable: {exc}")
+    moved = {"called": False}
+
+    def forbidden_move(*_args, **_kwargs):
+        moved["called"] = True
+        raise AssertionError("tree move must not start before rejecting a symlink entry")
+
+    monkeypatch.setattr(ST, "_doi_cay", forbidden_move)
+    target = tmp_path / "trạm-no-symlink"
+    with pytest.raises(SC.ContractError, match="symlink|junction|reparse"):
+        ST.migrate_sang_separate(station=str(target), kho_secret=str(tmp_path / "fake-secret"))
+
+    assert not moved["called"] and link.is_symlink() and (outside / "keep.txt").is_file()
 
 
 def test_tuong_tac_go_duong_la_mot_FILE_o_cau_noi_doi_thi_noi_dich_la_FILE_va_ten_duong(repo_git, tmp_path):
