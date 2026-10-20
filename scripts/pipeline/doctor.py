@@ -265,7 +265,7 @@ def _kham_tram_opcos(so: So, nguon: str, che_do: str | None = None) -> None:
     (`studio.local.json: mode`) ⇒ im: tên nhúng không còn được ghi nhận là nguồn `studio.local.json`
     (nó đi qua bộ phân giải nhúng), nên phải nhìn chế độ chứ không nhìn nguồn."""
     d = SP.goc_opcos()
-    if d is None:
+    if d is None or che_do == "embedded":
         return
     bien, goc = d
     tram = SP.tram_opcos()

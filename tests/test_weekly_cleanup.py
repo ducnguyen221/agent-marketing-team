@@ -252,3 +252,15 @@ def test_cau_dao_tu_choi_bao_KHONG_doi_gi_khong_doi_ke_khai(may, capsys, monkeyp
     import compose_report as CR
     msg = CR.build("Dọn", 2, "00:00:10", out)
     assert "KHÔNG dời gì" in msg and "chưa rõ" not in msg
+
+
+def test_thieu_tram_bao_ma_3_kem_nguyen_van_cau_station(tmp_path, monkeypatch):
+    import types
+    sys.path.insert(0, str(REPO / "scripts" / "lib"))
+    import studio_contract as SC
+    for n in ("MARKETING_STUDIO_DATA",):
+        monkeypatch.delenv(n, raising=False)
+    a = types.SimpleNamespace(station=str(tmp_path / "khong-co"))
+    with pytest.raises(SC.StationMissing) as e:
+        WC.lam(a)
+    assert SC.GOI_Y_DU_LIEU_CU in str(e.value)

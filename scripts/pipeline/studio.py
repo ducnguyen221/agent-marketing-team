@@ -31,6 +31,7 @@ import hashlib
 import json
 import os
 import shutil
+import stat
 import subprocess
 import sys
 import zipfile
@@ -272,6 +273,10 @@ def _doi_file(nguon: Path, dich: Path):
         nguon.unlink()
 
 
+def _link_or_reparse(st):
+    return stat.S_ISLNK(st.st_mode) or bool(getattr(st, "st_file_attributes", 0) & 0x400)
+
+
 def goi_y_dich(repo: Path) -> Path | None:
     """Đích GỢI Ý (người dùng vẫn được chọn khác): `<OPCOS_WORKSPACES>/marketing` khi biến có,
     luôn là đường tuyệt đối. Không có biến thì KHÔNG gợi ý (None): đoán từ vị trí của repo là
@@ -324,6 +329,44 @@ def _dung_luong(b: int) -> str:
         b /= 1024
 
 
+def kiem_dich_doi(ws: Path, dich: Path) -> None:
+    """Đích dời hợp lệ? Nằm trong chính trạm nguồn / là FILE / không rỗng ⇒ mã 2, chưa đụng gì.
+    Dùng chung cho `migrate` (hỏi nơi dời) và `init` (người dùng chọn CHUYỂN trạm cũ)."""
+    _kiem_dich_trong_nguon(dich, ws)
+    if dich.exists() and not dich.is_dir():
+        raise SC.ContractError(f"đích {dich} là một FILE, không phải thư mục — chọn chỗ khác "
+                               "(--station). Chưa đụng gì.")
+    if dich.exists() and any(dich.iterdir()):
+        raise SC.ContractError(f"thư mục đích không rỗng: {dich} — chọn chỗ khác (--station).")
+
+
+def kiem_env_doi(repo: Path, kho: Path):
+    """-> đường `.env` sẽ sang kho secret (hoặc None nếu repo không có `.env`). Kho đã có `.env` ⇒ mã 2,
+    chưa đụng gì. Chỉ xét sự tồn tại, không mở file nào."""
+    f_env = repo / ".env"
+    env_stat = os.lstat(f_env) if os.path.lexists(f_env) else None
+    if env_stat and (_link_or_reparse(env_stat) or not stat.S_ISREG(env_stat.st_mode)):
+        raise SC.ContractError(f"{f_env} không phải file thường — chưa dời gì.")
+    env_dich = (kho / ".env") if env_stat else None
+    if env_dich and os.path.lexists(env_dich):
+        dest_stat = os.lstat(env_dich)
+        if _link_or_reparse(dest_stat) or not stat.S_ISREG(dest_stat.st_mode):
+            raise SC.ContractError(f"{env_dich} đã là liên kết/điểm nối hoặc không phải file thường — chưa dời gì.")
+        raise SC.ContractError(
+            f"{env_dich} đã có — gộp tay rồi xoá {f_env}, sau đó chạy lại. Chưa đụng gì.")
+    return env_dich
+
+
+def hoi_xac_nhan_doi(ws: Path, dich: Path, ask) -> bool:
+    """Câu `y/N` của `migrate`: cho thấy số file/dung lượng; True khi gõ y/yes. `EOFError` lan ra cho
+    người gọi quyết (migrate: mã 2; init: giữ trạm cũ)."""
+    n, b = _do_cay(ws)
+    xn = (ask(f"Sẽ dời {n} file ({_dung_luong(b)}) từ {ws.resolve()}\n"
+              f"                          tới {dich}\n"
+              "Dời thật? [y/N]: ") or "").strip().lower()
+    return xn in ("y", "yes")
+
+
 def _hoi_noi_doi(repo: Path, ws: Path, ask, non_interactive: bool) -> Path:
     """Không có `--station`: hỏi người dùng nơi dời. Không hỏi được ⇒ mã 2, không đoán."""
     goi_y = goi_y_dich(repo)
@@ -351,17 +394,12 @@ def _hoi_noi_doi(repo: Path, ws: Path, ask, non_interactive: bool) -> Path:
         raise SC.ContractError("chưa nhập nơi dời nên dừng — chưa đụng gì. Chạy lại và nhập "
                                "đường, hoặc dùng `--station <thư-mục-đích>`.")
     dich = Path(tra).expanduser().resolve() if tra else goi_y
-    _kiem_dich_trong_nguon(dich, ws)
-    if dich.exists() and (not dich.is_dir() or any(dich.iterdir())):
-        raise SC.ContractError(f"thư mục đích không rỗng: {dich} — chọn chỗ khác (--station).")
-    n, b = _do_cay(ws)
+    kiem_dich_doi(ws, dich)
     try:
-        xn = (ask(f"Sẽ dời {n} file ({_dung_luong(b)}) từ {ws.resolve()}\n"
-                  f"                          tới {dich}\n"
-                  "Dời thật? [y/N]: ") or "").strip().lower()
+        dong_y = hoi_xac_nhan_doi(ws, dich, ask)
     except EOFError:
         raise SC.ContractError("không đọc được xác nhận — chưa đụng gì. Chạy lại với --station.")
-    if xn not in ("y", "yes"):
+    if not dong_y:
         raise SC.ContractError("không xác nhận (cần gõ y) — chưa đụng gì.")
     return dich
 
@@ -374,51 +412,319 @@ def migrate_sang_separate(station=None, kho_secret=None, ask=None, non_interacti
         raise SC.ContractError(
             f"máy này không ở chế độ embedded (đang: {SP.mode(repo) or 'chưa cài'}) — "
             "không có gì để dời.")
-    ws, _nguon = SP.tram_nhung(repo)       # bố cục mới; bố cục cũ còn sót thì dời nó
+    ws, _nguon = SP.tram_nhung(repo)
     if not ws.is_dir():
         raise SC.StationMissing(f"không có {ws} — chưa có trạm nào nằm trong repo.")
-    dich = Path(station).expanduser().resolve() if station else \
-        _hoi_noi_doi(repo, ws, ask, non_interactive)
+
+    if station:
+        requested_target = Path(station).expanduser()
+        if os.path.lexists(requested_target):
+            requested_stat = os.lstat(requested_target)
+            if _link_or_reparse(requested_stat):
+                raise SC.ContractError(f"đích {requested_target} là liên kết/điểm nối — chọn đường khác; chưa đụng gì.")
+        dich = requested_target.resolve()
+    else:
+        dich = _hoi_noi_doi(repo, ws, ask, non_interactive)
     _kiem_dich_trong_nguon(dich, ws)
-    if dich.exists() and not dich.is_dir():
-        raise SC.ContractError(f"đích {dich} là một FILE, không phải thư mục — chọn chỗ khác "
-                               "(--station). Chưa đụng gì.")
-    if dich.exists() and any(dich.iterdir()):
-        raise SC.ContractError(f"thư mục đích không rỗng: {dich} — chọn chỗ khác (--station).")
-    kho = Path(kho_secret).expanduser().resolve() if kho_secret else KHO_SECRET_MAC_DINH
+    if os.path.lexists(dich):
+        target_stat = os.lstat(dich)
+        if _link_or_reparse(target_stat):
+            raise SC.ContractError(f"đích {dich} là liên kết/điểm nối — chọn chỗ khác; chưa đụng gì.")
+        if not stat.S_ISDIR(target_stat.st_mode):
+            raise SC.ContractError(f"đích {dich} là một FILE, không phải thư mục — chọn chỗ khác "
+                                   "(--station). Chưa đụng gì.")
+        if any(dich.iterdir()):
+            raise SC.ContractError(f"thư mục đích không rỗng: {dich} — chọn chỗ khác (--station).")
+    kho_input = Path(kho_secret).expanduser() if kho_secret else KHO_SECRET_MAC_DINH
+    if os.path.lexists(kho_input):
+        secret_stat = os.lstat(kho_input)
+        if _link_or_reparse(secret_stat) or not stat.S_ISDIR(secret_stat.st_mode):
+            raise SC.ContractError(f"thư mục kho secret {kho_input} là liên kết/điểm nối hoặc không phải thư mục thường.")
+    kho = kho_input.resolve()
 
-    # Kiểm MỌI điều kiện TRƯỚC khi dời byte đầu tiên: dời được nửa đường rồi mới phát hiện
-    # đích kẹt là kiểu hỏng khó dọn nhất.
     f_env = repo / ".env"
-    env_dich = (kho / ".env") if f_env.is_file() else None
-    if env_dich and env_dich.exists():
-        raise SC.ContractError(
-            f"{env_dich} đã có — gộp tay rồi xoá {f_env}, sau đó chạy lại. Chưa đụng gì.")
+    env_dich = kiem_env_doi(repo, kho)
+    da_co_thu_muc_rong = os.path.lexists(dich)
+    target_before = os.lstat(dich) if da_co_thu_muc_rong else None
+    target_id = (target_before.st_dev, target_before.st_ino) if target_before else None
+    local_path = repo / SP.LOCAL_CONFIG
 
-    da_co_thu_muc_rong = dich.is_dir()
+    def identity(st):
+        return st.st_dev, st.st_ino
+
+    def unsupported_entry(st):
+        return _link_or_reparse(st)
+
+    def snapshot_file(path: Path):
+        if not os.path.lexists(path):
+            return {"exists": False, "identity": None, "bytes": None}
+        lst = os.lstat(path)
+        if unsupported_entry(lst) or not stat.S_ISREG(lst.st_mode):
+            raise SC.ContractError(f"metadata path is not a plain file: {path}")
+        with path.open("rb") as stream:
+            opened = os.fstat(stream.fileno())
+            if identity(opened) != identity(lst):
+                raise SC.ContractError(f"metadata changed while being inspected: {path}")
+            return {"exists": True, "identity": identity(lst), "bytes": stream.read()}
+
+    def tree_snapshot(root: Path):
+        root_stat = os.lstat(root)
+        if unsupported_entry(root_stat) or not stat.S_ISDIR(root_stat.st_mode):
+            raise SC.ContractError(f"trạm chứa điểm nối/liên kết mềm hoặc không phải thư mục thường: {root}")
+        state = {}
+
+        def visit(directory, relative):
+            with os.scandir(directory) as entries:
+                for entry in sorted(entries, key=lambda item: item.name):
+                    path = Path(entry.path)
+                    rel = f"{relative}/{entry.name}" if relative else entry.name
+                    item_stat = os.lstat(path)
+                    if unsupported_entry(item_stat):
+                        raise SC.ContractError(
+                            f"trạm chứa symlink/junction/reparse không được hỗ trợ: {path} — chưa dời gì.")
+                    if stat.S_ISDIR(item_stat.st_mode):
+                        state[rel.replace(os.sep, "/")] = ("dir",)
+                        visit(path, rel)
+                    elif stat.S_ISREG(item_stat.st_mode):
+                        state[rel.replace(os.sep, "/")] = ("file", _sha256(path))
+                    else:
+                        raise SC.ContractError(f"trạm chứa mục không phải file/thư mục thường: {path}")
+
+        visit(root, "")
+        return state
+
+    def known_write_states(before, payload, existed, written):
+        if not isinstance(written, int) or written < 0 or written > len(payload):
+            return set()
+        prefix = payload[:written]
+        if not existed:
+            return {prefix}
+        states = {prefix + before["bytes"][written:]}
+        if written == len(payload):
+            states.add(payload)
+        return states
+
+    def read_bytes(path: Path):
+        with path.open("rb") as stream:
+            return stream.read()
+
+    def write_config(before, payload, record):
+        mode = "r+b" if before["exists"] else "x+b"
+        record.update(identity=before["identity"], payload=payload, attempted=True,
+                      write_count=None, write_state=None)
+        try:
+            with local_path.open(mode) as stream:
+                opened_id = identity(os.fstat(stream.fileno()))
+                if before["exists"]:
+                    if opened_id != before["identity"]:
+                        raise OSError(f"local config identity changed before write: {local_path}")
+                    stream.seek(0)
+                    if stream.read() != before["bytes"]:
+                        raise OSError(f"local config bytes changed before write: {local_path}")
+                record["identity"] = opened_id
+                stream.seek(0)
+                written = stream.write(payload)
+                record["write_count"] = written
+                if written != len(payload):
+                    raise OSError(f"local config short write ({written}/{len(payload)}): {local_path}")
+                stream.truncate(len(payload))
+                stream.flush()
+                stream.seek(0)
+                observed = stream.read()
+                if observed != payload:
+                    raise OSError(f"local config readback mismatch: {local_path}")
+                record["write_state"] = observed
+                record["written"] = True
+        except BaseException:
+            try:
+                if os.path.lexists(local_path):
+                    current_stat = os.lstat(local_path)
+                    if (not unsupported_entry(current_stat) and stat.S_ISREG(current_stat.st_mode) and
+                            identity(current_stat) == record.get("identity")):
+                        observed = read_bytes(local_path)
+                        if observed in known_write_states(before, payload, before["exists"],
+                                                          record.get("write_count")):
+                            record["write_state"] = observed
+            except BaseException:
+                pass
+            raise
+
+    def restore_config(before, record):
+        if not os.path.lexists(local_path):
+            if not before["exists"]:
+                return
+            raise OSError(f"local config disappeared during migration: {local_path}")
+        current_stat = os.lstat(local_path)
+        if unsupported_entry(current_stat) or not stat.S_ISREG(current_stat.st_mode):
+            raise OSError(f"local config path became a link or non-file; retained: {local_path}")
+        if not before["exists"]:
+            raise OSError(f"new local config retained because no pre-migration bytes exist: {local_path}")
+        current_id = identity(current_stat)
+        if not record.get("attempted"):
+            if current_id != before["identity"] or read_bytes(local_path) != before["bytes"]:
+                raise OSError(f"local config changed outside migration: {local_path}")
+            return
+        if current_id != record.get("identity"):
+            raise OSError(f"local config identity is no longer operation-owned: {local_path}")
+        current = read_bytes(local_path)
+        if current == before["bytes"]:
+            return
+        if record.get("write_state") is None or current != record["write_state"]:
+            raise OSError(f"local config bytes are ambiguous; retained for recovery: {local_path}")
+        with local_path.open("r+b") as stream:
+            if identity(os.fstat(stream.fileno())) != record["identity"]:
+                raise OSError(f"local config identity changed before restore: {local_path}")
+            stream.seek(0)
+            if stream.read() != current:
+                raise OSError(f"local config changed before restore: {local_path}")
+            stream.seek(0)
+            stream.write(before["bytes"])
+            stream.truncate(len(before["bytes"]))
+            stream.flush()
+            stream.seek(0)
+            if stream.read() != before["bytes"]:
+                raise OSError(f"local config restore readback mismatch: {local_path}")
+
+    source_tree = tree_snapshot(ws)
+    config_before = snapshot_file(local_path)
+    env_before = snapshot_file(f_env) if env_dich else None
+    secret_dir_existed = os.path.lexists(kho) if env_dich else False
+    secret_dir_id = identity(os.lstat(kho)) if secret_dir_existed else None
+    tree_moved = False
+    tree_target_id = None
+    env_moved = False
+    env_target_id = None
+    created_secret_dir_id = None
+    config_write = {}
+
     if da_co_thu_muc_rong:
+        current_target = os.lstat(dich) if os.path.lexists(dich) else None
+        if (current_target is None or unsupported_entry(current_target) or
+                not stat.S_ISDIR(current_target.st_mode) or identity(current_target) != target_id or
+                any(dich.iterdir())):
+            raise SC.ContractError(f"đích {dich} đã đổi trước khi dời — chưa đụng gì.")
         dich.rmdir()
     dich.parent.mkdir(parents=True, exist_ok=True)
     try:
+        if os.path.lexists(dich):
+            raise OSError(f"đích {dich} xuất hiện trước khi dời; giữ nguyên.")
         _doi_cay(ws, dich)
-    except SC.ContractError:
-        # "CHƯA đụng gì" phải đúng cả với thư mục đích rỗng có sẵn của người dùng.
-        if da_co_thu_muc_rong and not dich.exists():
-            dich.mkdir()
-        raise
-    if env_dich:
-        kho.mkdir(parents=True, exist_ok=True)
-        _doi_file(f_env, env_dich)
+        tree_moved = True
+        moved_tree_stat = os.lstat(dich)
+        if unsupported_entry(moved_tree_stat) or not stat.S_ISDIR(moved_tree_stat.st_mode):
+            raise OSError("moved station tree is not a plain directory")
+        tree_target_id = identity(moved_tree_stat)
+        if os.path.lexists(ws) or tree_snapshot(dich) != source_tree:
+            raise OSError("moved station tree does not match its captured source")
+        if env_dich:
+            if os.path.lexists(kho):
+                secret_stat = os.lstat(kho)
+                if unsupported_entry(secret_stat) or not stat.S_ISDIR(secret_stat.st_mode):
+                    raise OSError(f"secret directory changed before write: {kho}")
+                if not secret_dir_existed and identity(secret_stat) != secret_dir_id:
+                    raise OSError(f"secret directory appeared during migration: {kho}")
+            else:
+                kho.mkdir(parents=True, exist_ok=True)
+                secret_dir_id = identity(os.lstat(kho))
+            _doi_file(f_env, env_dich)
+            env_moved = True
+            moved_env_stat = os.lstat(env_dich)
+            if (unsupported_entry(moved_env_stat) or not stat.S_ISREG(moved_env_stat.st_mode)):
+                raise OSError("moved .env is not a plain file")
+            env_target_id = identity(moved_env_stat)
+            if os.path.lexists(f_env) or read_bytes(env_dich) != env_before["bytes"]:
+                raise OSError("moved .env does not match its captured source")
 
-    lc = SP.local_config(repo)
-    lc.update({"mode": "separate", "station_path": str(dich), "secrets": str(kho)})
-    (repo / SP.LOCAL_CONFIG).write_text(json.dumps(lc, ensure_ascii=False, indent=2) + "\n",
-                                        encoding="utf-8", newline="\n")
+        lc = SP.local_config(repo)
+        lc.update({"mode": "separate", "station_path": str(dich), "secrets": str(kho)})
+        payload = (json.dumps(lc, ensure_ascii=False, indent=2) + "\n").encode("utf-8")
+        write_config(config_before, payload, config_write)
+    except BaseException as cause:
+        rollback_errors = []
+
+        def attempt(label, action):
+            try:
+                action()
+            except BaseException as rollback_error:
+                rollback_errors.append(f"{label}: {rollback_error}")
+
+        attempt("local config", lambda: restore_config(config_before, config_write))
+        if not rollback_errors and env_dich:
+            def restore_env():
+                if not env_moved:
+                    if os.path.lexists(env_dich):
+                        raise OSError("partial .env destination has unknown ownership; retained")
+                    if os.path.lexists(f_env):
+                        source_stat = os.lstat(f_env)
+                        if (unsupported_entry(source_stat) or not stat.S_ISREG(source_stat.st_mode) or
+                                read_bytes(f_env) != env_before["bytes"]):
+                            raise OSError(".env source changed during failed move; retained")
+                        return
+                    raise OSError(".env source disappeared during failed move; retained")
+                if os.path.lexists(f_env):
+                    raise OSError(".env source path was recreated; retained for recovery")
+                if not os.path.lexists(env_dich):
+                    raise OSError("moved .env disappeared; retained for recovery")
+                moved_stat = os.lstat(env_dich)
+                if (unsupported_entry(moved_stat) or not stat.S_ISREG(moved_stat.st_mode) or
+                        identity(moved_stat) != env_target_id or read_bytes(env_dich) != env_before["bytes"]):
+                    raise OSError("moved .env is no longer operation-owned; retained for recovery")
+                if os.name != "nt":
+                    raise OSError("no-clobber .env restore is unavailable on this platform; retained")
+                os.rename(env_dich, f_env)
+                restored_stat = os.lstat(f_env)
+                if (unsupported_entry(restored_stat) or not stat.S_ISREG(restored_stat.st_mode) or
+                        identity(restored_stat) != env_target_id or read_bytes(f_env) != env_before["bytes"] or
+                        os.path.lexists(env_dich)):
+                    raise OSError(".env restore did not verify")
+            attempt(".env", restore_env)
+
+        if not rollback_errors and tree_moved:
+            def restore_tree():
+                if os.path.lexists(ws):
+                    source_stat = os.lstat(ws)
+                    if unsupported_entry(source_stat):
+                        raise OSError("source station path was recreated as a link/reparse point; retained")
+                    raise OSError("source station path was recreated; retained")
+                if not os.path.lexists(dich):
+                    raise OSError("destination tree disappeared; retained for recovery")
+                moved_stat = os.lstat(dich)
+                if (unsupported_entry(moved_stat) or not stat.S_ISDIR(moved_stat.st_mode) or
+                        identity(moved_stat) != tree_target_id or tree_snapshot(dich) != source_tree):
+                    raise OSError("destination tree is no longer operation-owned; retained for recovery")
+                _doi_cay(dich, ws)
+                if tree_snapshot(ws) != source_tree or os.path.lexists(dich):
+                    raise OSError("station tree restore did not verify")
+            attempt("station tree", restore_tree)
+
+        if not rollback_errors and da_co_thu_muc_rong:
+            def restore_empty_target():
+                if os.path.lexists(dich):
+                    current = os.lstat(dich)
+                    if (unsupported_entry(current) or not stat.S_ISDIR(current.st_mode) or
+                            any(dich.iterdir())):
+                        raise OSError("destination path is occupied; retained")
+                    return
+                os.mkdir(dich)
+            attempt("empty destination", restore_empty_target)
+
+        if not rollback_errors and env_dich and not secret_dir_existed and os.path.lexists(kho):
+            def remove_created_secret_dir():
+                current = os.lstat(kho)
+                if (unsupported_entry(current) or not stat.S_ISDIR(current.st_mode) or
+                        identity(current) != secret_dir_id or any(kho.iterdir())):
+                    raise OSError("secret directory is no longer operation-owned/empty; retained")
+                os.rmdir(kho)
+            attempt("empty secret directory", remove_created_secret_dir)
+
+        if rollback_errors:
+            detail = "; ".join(rollback_errors)
+            raise SC.ContractError(
+                f"migrate failed ({cause}); rollback incomplete ({detail}). "
+                "Artifacts were retained where ownership could not be verified; recover manually.") from cause
+        raise
     return {"mode": "separate", "station": str(dich),
             "env_moved_to": str(env_dich) if env_dich else None}
-
-
-# ── CLI ───────────────────────────────────────────────────────────────────────────────
 
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(prog=PROG,

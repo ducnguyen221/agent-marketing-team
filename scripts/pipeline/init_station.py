@@ -26,13 +26,20 @@ cho MỌI script về sau.
    hỏi phải đi kèm phân tích, không phải một dấu nhắc trống. Bộ cài **không** hỏi về trạm
    giọng/video: viết bài và đăng là LÕI, chạy được ngay sau bước này. Lời đề nghị cài hai
    trạm kia đến sau, đúng lúc một bước chạm tới chúng (`scripts/lib/voice.py`).
-2. **Không có người trả lời thì DỪNG.** `stdin` không phải terminal (CI, tác vụ theo lịch,
-   pipe) ⇒ in bảng lựa chọn ra stderr rồi thoát **mã 2**, chưa ghi một byte nào. Đoán hộ ở
-   đây là dựng trạm sai chỗ, và người dùng chỉ phát hiện ra sau khi đã viết vài bài.
+2. **Không có người trả lời thì không đoán.** `stdin` không phải terminal (CI, tác vụ theo lịch,
+   pipe) và máy KHÔNG đặt `OPCOS_WORKSPACES` ⇒ in bảng lựa chọn ra stderr rồi thoát **mã 2**,
+   chưa ghi một byte nào. Đoán hộ ở đây là dựng trạm sai chỗ, và người dùng chỉ phát hiện ra sau
+   khi đã viết vài bài. Máy ĐÃ đặt `OPCOS_WORKSPACES` thì chỗ đặt trạm không còn là điều phải đoán:
+   `--yes` hoặc chạy không người ra thẳng `<biến>/marketing` (in một dòng nêu đường) — cùng hành
+   vi với `voice-studio init` và `video-studio init`. Riêng khi `<repo>/workspaces` (hoặc
+   `<repo>/workspace` cũ) ĐÃ mang dấu trạm mà chưa ghi lựa chọn: dữ liệu có sẵn thắng biến,
+   `--yes`/không người GIỮ trạm đó (mã 0, một dòng nêu cách dời sau); có người thì hỏi giữ/chuyển.
 3. **Máy đã có trạm ngoài thì tự `separate`, không hỏi, KHÔNG BAO GIỜ tạo `workspaces/`.**
    Hai nguồn sự thật cho cùng một repo là cách mất dữ liệu êm nhất. Đây cũng là thứ bảo vệ
    máy đang chạy lịch thật. Bộ cài MỚI không bao giờ tạo thư mục `workspace/` (số ít); nếu
    bản cài cũ để lại nó (mang `CHANNELS.md`) thì nó vẫn được nhận và được nhắc đổi tên.
+   Ngoại lệ duy nhất: máy đặt `OPCOS_WORKSPACES` và `<repo>/workspaces` đã mang dữ liệu mà chưa
+   chọn lần nào — dữ liệu có sẵn thắng (xem điểm 2), kể cả khi có thêm biến của trạm giọng/video.
 
 Chạy lại an toàn: không đè file đã có, không xoá gì.
 """
@@ -46,6 +53,7 @@ import stat
 import subprocess
 import sys
 from pathlib import Path
+from typing import NamedTuple
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "lib"))
 import studio_contract as SC  # noqa: E402
@@ -92,24 +100,42 @@ video, và lúc đó chương trình sẽ nói đúng lệnh phải chạy.
 Sau này đổi ý được: `python scripts/pipeline/studio.py migrate --to separate`.
 """.format(kho=KHO_SECRET)
 
-# Nối vào bảng khi OPCOS_WORKSPACES đã đặt (bảng chỉ hiện ra khi không có người ngồi để hỏi
-# câu xác nhận đường — vì có người ngồi thì Enter ra thẳng đường này).
-BANG_TRAM_OPCOS = """
-Máy này đặt OPCOS_WORKSPACES, trạm OpcOS của nó: {duong}
-  Có người ngồi: Enter (hoặc xác nhận) ra đúng trạm đó; --mode separate cũng vậy.
-  --yes: KHÔNG dùng nó mà dùng embedded <repo>/workspaces.
-"""
-
 # Chọn [2] mà chưa biết trạm ở đâu: hỏi đường. Có biến OPCOS_WORKSPACES thì đề xuất sẵn.
 CAU_HOI_DUONG = """\
 Trạm nội dung (separate) sẽ đặt ở đâu? Nhập đường dẫn thư mục (có thể chưa tồn tại).
 Không có đường mặc định ở thư mục nhà — chỗ nào cũng phải do bạn quyết.
 """
+# Có OPCOS_WORKSPACES: MỘT câu nhận ĐƯỜNG (Enter = trạm OpcOS), kể cả khi trạm đó đã mang dấu. Câu này
+# không có lựa chọn [1]/[2]: trạm nằm trong repo thì chạy lại với `--mode embedded`.
 CAU_HOI_DUONG_DE_XUAT = """\
 Trạm nội dung (separate) sẽ đặt ở đâu?
 Đề xuất (từ OPCOS_WORKSPACES={bien}): {duong}
-Enter = nhận đề xuất; hoặc nhập đường dẫn khác.
+Enter = nhận đề xuất; hoặc nhập đường dẫn khác. (Muốn trạm nằm trong repo: dừng lại và chạy
+lại với --mode embedded. --yes hoặc không có người thì cũng ra đúng trạm đề xuất.)
 """
+
+# Trạm nhúng CŨ mang dấu + máy đặt OPCOS_WORKSPACES + chưa ghi lựa chọn: dữ liệu có sẵn thắng biến.
+# Hằng và tên hàm cùng tên với voice-studio/video-studio để ba bộ cài đọc như một.
+OLD_STATION_PROMPT = ("Trạm cũ có dữ liệu ở {path}. Enter = giữ và dùng như cũ; "
+                      "gõ `chuyen` = dời vào {oc}")
+MOVE_WORDS = ("chuyen", "chuyển", "c")
+# Ở câu nhận ĐƯỜNG, gõ trần một lựa chọn của bảng [1]/[2] không phải là đường: từ chối thay vì tạo
+# thư mục `<cwd>/1`.
+STATION_CONFIRM_REJECT = ("1", "2", "embedded", "separate")
+CLI_MIGRATE = "python scripts/pipeline/studio.py migrate --to separate --station"
+
+
+class Choice(NamedTuple):
+    """Kết quả chọn chế độ. Vẫn unpack được 3 giá trị `mode, path, why = …` như cũ;
+    `then_migrate` (đường trạm OpcOS) chỉ có khi người dùng chọn CHUYỂN trạm cũ — hàm chọn chế độ
+    KHÔNG BAO GIỜ dời dữ liệu, `do_init` mới ghi `embedded` rồi xin `y/N` của `migrate`."""
+    mode: str
+    path: Path
+    why: str
+    then_migrate: "str | None" = None
+
+    def __iter__(self):
+        return iter(tuple.__getitem__(self, slice(0, 3)))
 
 
 # ── nhận diện máy đã có trạm ngoài (F17.2) ────────────────────────────────────────────
@@ -151,20 +177,75 @@ def _hoi_duong_ban_phim(cau: str) -> str:
     return input()
 
 
-def chon_duong_separate(ask=None, non_interactive=False, yes=False):
+def _hoi_giu_chuyen_ban_phim(cau: str) -> str:
+    SC.log(cau)
+    sys.stderr.write("Giữ / chuyển [Enter = giữ]: ")
+    sys.stderr.flush()
+    return input()
+
+
+def _reject_bare_choice(go: str) -> None:
+    """Gõ trần `1`/`2`/`embedded`/`separate` ở câu nhận ĐƯỜNG: mã 2, không tạo `<cwd>/1`."""
+    if (go or "").strip().lower() in STATION_CONFIRM_REJECT:
+        raise SC.ContractError(
+            f"câu này nhận ĐƯỜNG dẫn, không phải lựa chọn {go!r}: Enter = trạm OpcOS. Muốn trạm "
+            "nằm trong repo: chạy lại với --mode embedded. Chưa ghi gì.")
+
+
+def _kiem_bien_opcos(dx) -> None:
+    """`OPCOS_WORKSPACES` hoặc `<biến>/marketing` là một FILE: lỗi cấu hình (mã 2), nêu TÊN BIẾN,
+    TRƯỚC mọi `mkdir` — không để `OSError` của hệ điều hành lọt ra thành mã 1."""
+    if os.name == "nt":              # ký tự Windows cấm trong tên (trừ tiền tố `\?\`): từ chối ngay, một dòng
+        con_lai = os.path.splitdrive(dx[0])[1]      # bỏ ổ đĩa / tiền tố đường dài / UNC trước khi soát ký tự cấm
+        xau = [c for c in '<>"|?*' if c in con_lai]
+        if xau:
+            raise SC.ContractError(
+                f"OPCOS_WORKSPACES={dx[0]} chứa ký tự không dùng được trong đường dẫn ({' '.join(xau)}). "
+                "Đây là lỗi cấu hình: sửa hoặc gỡ biến rồi chạy lại (hoặc dùng --station <thư mục>). "
+                "Chưa ghi gì.")
+    if Path(os.path.expanduser(dx[0])).is_file():
+        raise SC.ContractError(
+            f"OPCOS_WORKSPACES={dx[0]} đang là một FILE, không phải thư mục. Đây là lỗi cấu hình: "
+            "sửa hoặc gỡ biến rồi chạy lại (hoặc dùng --station <thư mục>). Chưa ghi gì.")
+    if (Path(os.path.expanduser(dx[0])) / SP.SO_KENH).is_file():
+        raise SC.ContractError(
+            f"OPCOS_WORKSPACES={dx[0]} đã là một trạm (có {SP.SO_KENH}), trong khi nó phải là thư mục "
+            "CHỨA các trạm — dựng thêm marketing bên trong sẽ thành trạm lồng trạm. Trỏ biến vào "
+            "thư mục gốc chứa các trạm (hoặc gỡ biến, hoặc dùng --station <thư mục>). Chưa ghi gì.")
+    p = Path(dx[1])
+    while True:                      # `<biến>/marketing` hoặc một thư mục cha còn thiếu nằm dưới một FILE
+        if p.is_file():
+            raise SC.ContractError(
+                f"{p} (từ OPCOS_WORKSPACES={dx[0]}) đang là một FILE, không phải thư mục. Đây là lỗi "
+                "cấu hình: sửa hoặc gỡ biến rồi chạy lại (hoặc dùng --station <thư mục>). Chưa ghi gì.")
+        if p.exists() or p.parent == p:
+            break
+        p = p.parent
+
+
+def chon_duong_separate(ask=None, non_interactive=False, yes=False, hoi_xac_nhan=False):
     """-> (đường trạm tuyệt đối, lý do) cho `separate` khi chưa ai chỉ đường. KHÔNG có đường
     mặc định ở thư mục nhà.
 
     · Có `OPCOS_WORKSPACES`: đề xuất `<biến>/marketing` (kể cả khi thư mục chưa mang dấu trạm).
       Có người ⇒ hỏi xác nhận/đổi; không có người ⇒ dùng luôn (biến đã là lời khai tường minh)
-      và in đúng một dòng.
+      và in đúng một dòng. Trạm OpcOS ĐÃ mang dấu và `hoi_xac_nhan=False` (đường `--mode
+      separate`) ⇒ dùng thẳng, 0 câu, 0 dòng; luồng tương tác không `--mode` truyền
+      `hoi_xac_nhan=True` để vẫn hỏi đúng MỘT câu (không rẽ theo chuỗi lý do hiển thị).
+      Hết dữ liệu (EOF) ở câu đường mà có biến = không có người: cùng đường `--yes`.
+      Gõ trần `1`/`2`/`embedded`/`separate` ⇒ mã 2.
     · Không có biến: có người ⇒ hỏi đường (Enter rỗng = dừng); không có người ⇒ mã 2, nêu
       `--station`.
     `--yes` nghĩa là "đừng hỏi": nó cũng không được hỏi đường."""
     co_nguoi = not yes and (ask is not None or (not non_interactive and _co_nguoi_tra_loi()))
     dx = SP.goc_opcos()
+    if dx:
+        _kiem_bien_opcos(dx)
+        if not hoi_xac_nhan and (Path(dx[1]) / SP.SO_KENH).is_file():
+            return Path(dx[1]), f"trạm OpcOS: OPCOS_WORKSPACES đã đặt và {dx[1]} là một trạm"
     if dx and not co_nguoi:
-        SC.log(f"[init] separate: dùng {dx[1]} (từ OPCOS_WORKSPACES={dx[0]})")
+        SC.log(f"[init] separate: dùng {dx[1]} (từ OPCOS_WORKSPACES={dx[0]}); "
+               "muốn nơi khác: --station <đường>.")
         return Path(dx[1]), f"OPCOS_WORKSPACES đã đặt → {dx[1]}"
     if not co_nguoi:
         raise SC.ContractError(
@@ -174,6 +255,10 @@ def chon_duong_separate(ask=None, non_interactive=False, yes=False):
     try:
         tra = SP.duong_nguoi_go((ask or _hoi_duong_ban_phim)(cau))
     except EOFError:
+        if dx:      # hết dữ liệu mà có biến = không có người: cùng đường `--yes`, mã 0 (mọi hệ điều hành)
+            SC.log(f"[init] separate: dùng {dx[1]} (từ OPCOS_WORKSPACES={dx[0]}; không đọc được câu "
+                   "trả lời); muốn nơi khác: --station <đường>.")
+            return Path(dx[1]), f"OPCOS_WORKSPACES đã đặt → {dx[1]} (stdin hết dữ liệu)"
         raise SC.ContractError(
             "không đọc được đường trạm (stdin không có người). Chạy lại với --station <thư mục>.")
     if not tra:
@@ -182,24 +267,97 @@ def chon_duong_separate(ask=None, non_interactive=False, yes=False):
                 "chưa nhập đường trạm nên dừng, chưa ghi gì. Chạy lại và nhập đường, hoặc dùng "
                 "--station <thư mục>.")
         return Path(dx[1]), f"người dùng nhận đề xuất từ OPCOS_WORKSPACES → {dx[1]}"
+    if dx:
+        _reject_bare_choice(tra)
     return Path(os.path.abspath(os.path.expanduser(tra))), "người dùng nhập đường trạm"
 
 
+def _tram_nhung_mang_dau(repo):
+    """-> (trạm nhúng đang dùng, `both` mới chưa dấu?) khi trạm nhúng MANG DẤU trên **cả hai** tên
+    (`workspaces` và `workspace` cũ, dấu = `CHANNELS.md`); không thì None.
+
+    `both` mới chưa dấu = `workspace` cũ mang dấu còn `workspaces` mới là thư mục chưa dấu: bộ phân
+    giải chọn thư mục MỚI rỗng, nên 'trạm đang dùng' ở đây rỗng còn dữ liệu nằm ở `workspace/`."""
+    moi, cu = repo / SP.WORKSPACE, repo / SP.WORKSPACE_CU
+    moi_dau, cu_dau = (moi / SP.SO_KENH).is_file(), (cu / SP.SO_KENH).is_file()
+    if not (moi_dau or cu_dau):
+        return None
+    st, _nguon = SP.tram_nhung(repo)
+    return st, (cu_dau and not moi_dau and moi.is_dir())
+
+
+def _dong_giu(st, oc: str, hai_tram: bool) -> str:
+    if hai_tram:
+        return (f"[init] giữ trạm trong repo {st}; {oc} cũng đã là một trạm — có hai trạm mang dấu: "
+                f"gộp bằng tay, hoặc chọn một bằng --station {oc}")
+    return (f"[init] giữ trạm trong repo {st}; máy có OPCOS_WORKSPACES — dời sau bằng: "
+            f"{CLI_MIGRATE} {oc}")
+
+
+def _giu_hay_chuyen(repo, dx, yes, co_nguoi, ask):
+    """Ca trạm cũ có dữ liệu: trạm nhúng đang mang dấu + `OPCOS_WORKSPACES` + chưa ghi lựa chọn ⇒ dữ liệu có sẵn
+    THẮNG biến. -> Choice("embedded", …) hoặc None khi không thuộc ca này. KHÔNG dời gì."""
+    cu = _tram_nhung_mang_dau(repo)
+    if not cu:
+        return None
+    _kiem_bien_opcos(dx)       # biến không dùng được ⇒ mã 2 TRƯỚC mọi câu hỏi, mọi lần giữ/dời
+    st, both_moi = cu
+    oc = dx[1]
+    hai_tram = (Path(oc) / SP.SO_KENH).is_file()
+    ly = "trạm trong repo đã mang dấu: dữ liệu có sẵn thắng OPCOS_WORKSPACES"
+    if both_moi:             # không hỏi, không gợi `migrate`: dời `workspaces/` rỗng là vô nghĩa
+        return Choice("embedded", st.resolve(), ly)
+    then = None
+    if co_nguoi and not yes:
+        cau = OLD_STATION_PROMPT.format(path=st, oc=oc)
+        try:
+            tra = ((ask or _hoi_giu_chuyen_ban_phim)(cau) or "").strip().lower()
+        except EOFError:     # hết dữ liệu = không có người = giữ
+            tra = ""
+        if tra in MOVE_WORDS:
+            then = oc
+    if not then:
+        SC.log(_dong_giu(st, oc, hai_tram))
+    return Choice("embedded", st.resolve(), ly, then)
+
+
 def chon_che_do(station=None, mode=None, yes=False, ask=None, non_interactive=False):
-    """-> (chế độ, gốc trạm, lý do). Ném ContractError khi cần người chọn mà không hỏi được.
+    """-> Choice(chế độ, gốc trạm, lý do[, then_migrate]); unpack được `mode, path, why = …`. Ném
+    ContractError khi cần người chọn mà không hỏi được.
 
-    `non_interactive` = người gọi TỰ KHAI "không có ai ngồi đây". Nó KHÔNG có nghĩa là
-    "cứ đoán hộ tôi": thiếu `--yes`/`--mode`/`--station` thì vẫn là mã 2. Hai vỏ cài
-    (`install.ps1 -NonInteractive`, `install.sh --non-interactive`) cùng đổ vào đây, nên
-    chúng không thể trôi khỏi nhau nữa (REVIEW-P2 N8).
+    Thứ tự ưu tiên (một dòng, cùng hình với voice/video):
 
-    `--yes` KHÔNG BAO GIỜ hỏi: ra embedded `<repo>/workspaces`. Có người ngồi, không
-    `--mode`, máy đặt `OPCOS_WORKSPACES`: Enter/xác nhận ra `<biến>/marketing`. Không dò
-    thư mục nào trong nhà người dùng."""
+        --station ─► biến trạm riêng ─► lựa chọn đã ghi ─► --mode ─► (có OPCOS_WORKSPACES?)
+           trạm nhúng mang dấu, chưa ghi lựa chọn ─► GIỮ (hỏi giữ/chuyển khi có người; không hỏi khi
+                                                      `--yes`/không người/EOF)
+           ─► `--yes`/không người ─► trạm OpcOS (đã dấu: dùng thẳng; chưa: dựng + một dòng)
+           ─► có người ─► MỘT câu nhận đường (Enter = trạm OpcOS)
+        không có OPCOS_WORKSPACES: có người ⇒ bảng [1]/[2]; `--yes` ⇒ embedded; không người ⇒ mã 2.
+
+    Ctrl+C ở mọi câu hỏi **lan ra** (không bắt ở đây): biên CLI `studio_contract.run` đổi nó thành
+    mã 2 một dòng. `non_interactive` = người gọi TỰ KHAI "không có ai ngồi đây": thiếu
+    `--yes`/`--mode`/`--station` mà KHÔNG có `OPCOS_WORKSPACES` thì vẫn là mã 2 (hai vỏ cài
+    `install.ps1 -NonInteractive`, `install.sh --non-interactive` cùng đổ vào đây). `--yes` KHÔNG
+    BAO GIỜ hỏi: máy đặt `OPCOS_WORKSPACES` thì ra `<biến>/marketing`, không thì embedded
+    `<repo>/workspaces`. Muốn trạm trong repo khi máy có biến: `--mode embedded`. Không dò thư mục
+    nào trong nhà người dùng."""
     repo = SP.repo_root()
     ask_duong = ask            # câu hỏi ĐƯỜNG dùng bàn phím riêng, không dùng chung câu hỏi chế độ
+    co_nguoi = ask is not None or (not non_interactive and _co_nguoi_tra_loi())
     if station:
-        return "separate", Path(station).expanduser().resolve(), "--station"
+        return Choice("separate", Path(station).expanduser().resolve(), "--station")
+    dx = SP.goc_opcos()
+    # Ca trạm cũ có dữ liệu đứng TRƯỚC nhánh biến "anh em" (`tram_ngoai_co_san`) nhưng SAU `--station`, biến trạm riêng
+    # (MARKETING_STUDIO_DATA), lựa chọn đã ghi và `--mode`; chỉ khi có OPCOS_WORKSPACES (nhánh không biến
+    # — mã 2, theo thiết kế riêng của marketing — giữ nguyên).
+    if (dx and repo and not mode and not (os.environ.get("MARKETING_STUDIO_DATA") or "").strip()
+            and SP.mode(repo) is None):
+        ca = _giu_hay_chuyen(repo, dx, yes, co_nguoi, ask_duong or _hoi_giu_chuyen_ban_phim)
+        if ca:
+            nhac = SP.goi_y_doi_bo_cuc(repo)
+            if nhac:
+                SC.log("[init] " + nhac)
+            return ca
     ngoai = tram_ngoai_co_san()
     if ngoai:
         if mode == "embedded":
@@ -208,34 +366,41 @@ def chon_che_do(station=None, mode=None, yes=False, ask=None, non_interactive=Fa
                 "sẽ thành hai nguồn sự thật cho cùng một repo. Bỏ --mode để dùng trạm đó, "
                 "hoặc gỡ biến / dời trạm cũ trước.")
         if ngoai[0] is None:                 # biết "trạm ngoài" nhưng không biết ở đâu: hỏi
-            goc, ly = chon_duong_separate(ask_duong, non_interactive, yes)
-            return "separate", goc, f"nhận diện trạm có sẵn — {ngoai[1]}; {ly}"
-        return "separate", ngoai[0], f"nhận diện trạm có sẵn — {ngoai[1]}"
+            goc, ly = chon_duong_separate(ask_duong, non_interactive, yes, hoi_xac_nhan=True)
+            return Choice("separate", goc, f"nhận diện trạm có sẵn — {ngoai[1]}; {ly}")
+        return Choice("separate", ngoai[0], f"nhận diện trạm có sẵn — {ngoai[1]}")
+    hoi_xac_nhan = False
     if mode:
         ly_do = "--mode"
     else:
         truoc = SP.mode(repo) if repo else None
         if truoc == "separate":
-            return "separate", SP.resolve_station()[0], f"{SP.LOCAL_CONFIG} (lần chọn trước)"
+            if not str(SP.local_config(repo).get("station_path") or "").strip():
+                raise SC.ContractError(
+                    f"{SP.LOCAL_CONFIG} ghi 'separate' mà thiếu 'station_path' — bản ghi hỏng, không "
+                    "đoán hộ trạm. Chạy lại với --station <đường> (hoặc xoá file đó để chọn lại). "
+                    "Chưa ghi gì.")
+            return Choice("separate", SP.resolve_station()[0], f"{SP.LOCAL_CONFIG} (lần chọn trước)")
         if truoc:
             mode, ly_do = truoc, f"{SP.LOCAL_CONFIG} (lần chọn trước)"
+        elif dx and (yes or not co_nguoi):
+            mode, ly_do = "separate", ("--yes + OPCOS_WORKSPACES" if yes
+                                       else "không có người + OPCOS_WORKSPACES")
         elif yes:
             mode, ly_do = "embedded", "--yes (nhận khuyến nghị)"
-        elif SP.goc_opcos() and (ask is not None or (not non_interactive and _co_nguoi_tra_loi())):
-            # Có người ngồi + máy đặt OPCOS_WORKSPACES: không cần bảng chế độ — đường được
-            # đề xuất là <biến>/marketing, người dùng xác nhận hoặc gõ đường khác (ở dưới).
-            mode, ly_do = "separate", "OPCOS_WORKSPACES đã đặt"
+        elif dx:
+            # Có người ngồi + máy đặt OPCOS_WORKSPACES: không cần bảng chế độ — đúng MỘT câu nhận đường
+            # (Enter = <biến>/marketing), kể cả khi trạm đó đã mang dấu; gõ đường khác = dùng đường đó.
+            mode, ly_do, hoi_xac_nhan = "separate", "OPCOS_WORKSPACES đã đặt", True
         else:
             bang = BANG_LUA_CHON
-            dx = SP.goc_opcos()
-            if dx:
-                bang += BANG_TRAM_OPCOS.format(duong=dx[1])
             if ask is None:
                 if non_interactive or not _co_nguoi_tra_loi():
                     SC.log(bang)
                     raise SC.ContractError(
                         "cần người dùng chọn chế độ cài. Agent: trình bảng ở trên cho người "
-                        "dùng, rồi chạy lại với --mode embedded|separate (hoặc --yes = embedded).")
+                        "dùng, rồi chạy lại với --mode embedded|separate, --station <đường> (trạm ngoài repo), "
+                        "hoặc --yes (embedded khi máy không đặt OPCOS_WORKSPACES).")
                 ask = _hoi_ban_phim
             try:
                 tra = (ask(bang) or "").strip().lower()
@@ -244,7 +409,8 @@ def chon_che_do(station=None, mode=None, yes=False, ask=None, non_interactive=Fa
                 # không có ai ngồi đó.
                 raise SC.ContractError(
                     "không đọc được lựa chọn (stdin không có người). Agent: trình bảng lựa "
-                    "chọn cho người dùng, rồi chạy lại với --mode embedded|separate.")
+                    "chọn cho người dùng, rồi chạy lại với --mode embedded|separate, --station <đường> "
+                    "hoặc --yes.")
             if tra in ("", "1", "embedded"):
                 mode = "embedded"
             elif tra in ("2", "separate"):
@@ -262,12 +428,9 @@ def chon_che_do(station=None, mode=None, yes=False, ask=None, non_interactive=Fa
         nhac = SP.goi_y_doi_bo_cuc(repo)
         if nhac:
             SC.log("[init] " + nhac)
-        return "embedded", st.resolve(), ly_do
-    opcos = SP.tram_opcos()
-    if opcos:
-        return "separate", opcos, f"trạm OpcOS: OPCOS_WORKSPACES đã đặt và {opcos} là một trạm"
-    goc, ly = chon_duong_separate(ask_duong, non_interactive, yes)
-    return "separate", goc, f"{ly_do}; {ly}"
+        return Choice("embedded", st.resolve(), ly_do)
+    goc, ly = chon_duong_separate(ask_duong, non_interactive, yes, hoi_xac_nhan=hoi_xac_nhan)
+    return Choice("separate", goc, f"{ly_do}; {ly}")
 
 
 # ── dựng cây ──────────────────────────────────────────────────────────────────────────
@@ -429,13 +592,14 @@ def _mkdir_don_neu_hong(st: Path) -> None:
 
 def do_init(station=None, mode=None, yes=False, existing=False, dry_run=False, ask=None,
             non_interactive=False) -> dict:
-    mode, st, ly_do = chon_che_do(station=station, mode=mode, yes=yes, ask=ask,
-                                  non_interactive=non_interactive)
+    ch = chon_che_do(station=station, mode=mode, yes=yes, ask=ask, non_interactive=non_interactive)
+    mode, st, ly_do = ch
+    then = getattr(ch, "then_migrate", None)    # chỉ có khi người dùng chọn CHUYỂN trạm cũ
     repo = SP.repo_root()
     if mode == "separate" and not station and (st / SP.SO_KENH).is_file():
         existing = True        # trạm đã dựng sẵn (OpcOS, trạm cũ được nhận): không rải file mẫu vào đó
     kq = {"mode": mode, "station": str(st), "reason": ly_do, "repo": str(repo) if repo else None,
-          "dry_run": bool(dry_run), "created": [], "hook": None}
+          "dry_run": bool(dry_run), "created": [], "hook": None, "then_migrate": then}
     if existing and not st.is_dir():
         raise SC.StationMissing(
             f"--existing nhưng không có thư mục trạm: {st}. Bỏ --existing để dựng mới. "
@@ -452,12 +616,39 @@ def do_init(station=None, mode=None, yes=False, existing=False, dry_run=False, a
         else:
             SC.log("[init] không thấy templates/workspace — trạm dựng rỗng.")
     if repo:
-        if mode == "embedded":
+        if mode == "embedded" and not then:      # chuyển đi thì không dọn `.env` mẫu rồi bắt gộp nó
             _chep_env(repo, da_tao)
         _ghi_local(repo, mode, st, da_tao)
         if mode == "embedded":
             kq["hook"] = _cai_hook(repo)
+    if then:
+        _chuyen_sau_khi_ghi_embedded(kq, st, then, ask)
     return kq
+
+
+def _chuyen_sau_khi_ghi_embedded(kq: dict, st: Path, oc: str, ask) -> None:
+    """Người dùng chọn CHUYỂN trạm cũ vào trạm OpcOS. Trạm cũ đã được ghi `embedded` (nhờ đó
+    `migrate` hợp lệ). Ở đây: kiểm đích (không rỗng ⇒ mã 2, TRƯỚC câu hỏi), xin `y/N` của `migrate`, rồi
+    dời bằng chính đường `migrate`. `n`/Enter/EOF ⇒ GIỮ trạm cũ, mã 0, một dòng chỉ lệnh `migrate`.
+    Không gọi `migrate_sang_separate` với đích có sẵn để HỎI trước: nhánh đó bỏ qua `y/N`."""
+    d = str(Path(__file__).resolve().parent)
+    if d not in sys.path:
+        sys.path.insert(0, d)
+    import studio as ST                    # noqa: E402 — chỉ cần khi dời; nạp muộn tránh vòng nhập
+    dich = Path(oc).resolve()        # junction/liên kết ở đích phải lộ ra TRƯỚC câu hỏi, như `migrate` chạy riêng
+    ST.kiem_dich_doi(st, dich)
+    ST.kiem_env_doi(SP.repo_root(), Path(KHO_SECRET).expanduser())
+    try:
+        dong_y = ST.hoi_xac_nhan_doi(st, dich, ask or ST._hoi_ban_phim)
+    except EOFError:
+        dong_y = False
+    if not dong_y:
+        SC.log(_dong_giu(st, oc, False))
+        return
+    kqm = ST.migrate_sang_separate(station=str(dich), kho_secret=KHO_SECRET, non_interactive=True)
+    kq["mode"], kq["station"] = "separate", kqm["station"]
+    kq["reason"] = f"{kq['reason']}; đã dời sang {kqm['station']}"
+    kq["env_moved_to"] = kqm.get("env_moved_to")
 
 
 # ── in ra cho người đọc ───────────────────────────────────────────────────────────────
@@ -468,6 +659,9 @@ def _in(kq: dict):
     log(f"[init] {dau}chế độ: {kq['mode']} · trạm: {kq['station']}")
     log(f"[init] lý do: {kq['reason']}")
     if kq["dry_run"]:
+        if kq.get("then_migrate"):
+            log(f"[init] sẽ dời {kq['station']} → {kq['then_migrate']} (xem trước: chưa dời byte nào, "
+                "chưa ghi gì)")
         return
     for c in kq["created"]:
         log(f"  + {c}")
@@ -514,10 +708,14 @@ def _parser() -> argparse.ArgumentParser:
         prog=PROG, description="Dựng trạm nội dung (hai chế độ: embedded / separate).")
     ap.add_argument("--station", help="trạm ngoài repo — chọn separate, không hỏi")
     ap.add_argument("--mode", choices=SP.MODES, help="chọn chế độ, không hỏi")
-    ap.add_argument("--yes", action="store_true", help="nhận khuyến nghị (embedded), không hỏi")
+    ap.add_argument("--yes", action="store_true",
+                    help="nhận khuyến nghị, không hỏi: máy đặt OPCOS_WORKSPACES thì ra "
+                         "<biến>/marketing (trạm trong repo: thêm --mode embedded), không thì "
+                         "ra <repo>/workspaces")
     ap.add_argument("--non-interactive", action="store_true",
                     help="không có ai trả lời: KHÔNG hỏi và KHÔNG đoán — thiếu "
-                         "--yes/--mode/--station thì dừng với mã 2")
+                         "--yes/--mode/--station thì dừng với mã 2, trừ khi máy đặt "
+                         "OPCOS_WORKSPACES (khi đó ra <biến>/marketing)")
     ap.add_argument("--existing", action="store_true",
                     help="nhận một trạm đang chạy: không rải file mẫu")
     ap.add_argument("--dry-run", action="store_true", help="chỉ báo sẽ làm gì, không ghi")

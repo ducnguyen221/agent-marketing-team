@@ -59,8 +59,11 @@ có người thì dừng mã 2, đòi `--station`, trừ khi có `OPCOS_WORKSPAC
 **Thư mục trạm cũ ẩn trong thư mục cá nhân không còn được tự nhận**; trỏ vào bằng
 `--station <đường>`. Cài riêng lẻ thì trạm là chính `<repo>/workspaces` (cùng tên `workspaces`
 với khi cài cùng OpcOS, chỉ khác là nằm trong repo). Máy đặt `OPCOS_WORKSPACES` và có người
-ngồi: Enter (hoặc xác nhận) ra `<OPCOS_WORKSPACES>/marketing`; `--yes` thì không bao giờ hỏi và
-ra `<repo>/workspaces`. `--non-interactive` thiếu cả `--yes` lẫn `--mode` thì dừng mã 2.
+ngồi: Enter (hoặc xác nhận) ra `<OPCOS_WORKSPACES>/marketing`; `--yes` và chạy không người (pipe,
+`--non-interactive`, `< NUL`) cũng ra đó, in một dòng nêu đường — trạm nằm trong repo thì thêm
+`--mode embedded`. Riêng khi `<repo>/workspaces` đã có dữ liệu mà chưa chọn lần nào, `init` giữ
+trạm đó (có người thì hỏi giữ/chuyển). Không có `OPCOS_WORKSPACES` mà `--non-interactive` thiếu cả
+`--yes` lẫn `--mode` thì dừng mã 2.
 Bản cài trước để `<repo>/workspace` (số ít, có `CHANNELS.md`) vẫn chạy; `init`/`doctor` nhắc một
 dòng nên đổi tên thành `workspaces`.
 

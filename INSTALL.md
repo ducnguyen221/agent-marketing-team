@@ -171,8 +171,11 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\install.ps1 -Station "D:\n
 
 macOS: `./install.sh --mode embedded` hoặc `./install.sh --station ~/noi-dung-cua-toi`.
 
-Không truyền lựa chọn thì bộ cài dừng ở **mã 2** vì phiên agent không có ai trả lời dấu nhắc — đó
-là bình thường, nghĩa là bạn phải hỏi người dùng. Bộ cài báo máy **đã có trạm cũ** thì nó dùng trạm
+Không truyền lựa chọn và máy không đặt `OPCOS_WORKSPACES` thì bộ cài dừng ở **mã 2** vì phiên agent
+không có ai trả lời dấu nhắc — đó là bình thường, nghĩa là bạn phải hỏi người dùng. Máy đã đặt
+`OPCOS_WORKSPACES` thì không cần hỏi: bộ cài ra thẳng `<biến>/marketing` (mã 0, một dòng nêu đường;
+trạm trong repo thì thêm `-Mode embedded`), còn `<repo>/workspaces` đã có dữ liệu mà chưa chọn lần nào
+thì được giữ. Bộ cài báo máy **đã có trạm cũ** thì nó dùng trạm
 đó và không tạo `workspaces/`: báo lại cho người dùng, không ép `-Mode embedded`.
 
 ## 7. Doctor — đọc từng dòng
