@@ -3,11 +3,16 @@
 Mỗi mục là một phiên bản. Mục đầu luôn là số trong `pyproject.toml`
 (`tests/test_version_sync.py` giữ điều này). Phiên bản chưa gắn tag ghi rõ "chưa phát hành".
 
-## 2.1.0 — 2026-10-18
+## 3.0.0 — 2026-10-20
 
-Station contract: bỏ fallback ẩn `~/.<station>`, trạm phải được chọn tường minh. Thêm thông tin tác giả vào metadata và ghi chú tác giả.
+### Nâng cấp từ 2.x
 
-### Chưa phát hành (sau 2.1.0; chưa gắn tag, version giữ 2.1.0)
+Đây là bản MAJOR vì thay đổi cách chọn trạm và hỏi đường. Trước khi nâng cấp, sao lưu dữ liệu trạm và cấu hình theo máy. Nếu muốn tiếp tục dùng trạm trong repo khi máy đặt `OPCOS_WORKSPACES`, dùng `init --mode embedded --yes`; `init --yes` nay chọn trạm OpcOS khi chưa có dữ liệu cũ. Trạm nhúng đã có dữ liệu vẫn được giữ. Muốn dời, chạy `studio.py migrate --to separate --station <đích>` và xác nhận; đích phải vắng hoặc rỗng. Trạm ẩn cũ trong thư mục cá nhân không được tự nhận: chọn rõ bằng `--station <đường>`. Không xóa trạm cũ trước khi kiểm dữ liệu và `doctor` tại đích.
+
+### Sửa lỗi dời trạm
+
+Lỗi ghi cấu hình sau khi dời cây dữ liệu được hoàn tác theo trạng thái sở hữu đã xác minh. Khi không thể xác minh hoặc khôi phục an toàn, giữ dữ liệu và báo lỗi phục hồi; không ghi đè file phát sinh bên ngoài.
+
 
 - Bố cục trạm: tên thư mục gốc luôn là `workspaces`. Cài riêng lẻ (embedded) thì trạm là chính `<repo>/workspaces` (thay cho `<repo>/workspace` số ít); cài cùng OpcOS thì trạm là `<OPCOS_WORKSPACES>/marketing`. Bản cài cũ vẫn chạy: `<repo>/workspace` có `CHANNELS.md` mà `<repo>/workspaces` chưa có thì được nhận và `init`/`doctor` nhắc một dòng nên đổi tên thành `workspaces`; có cả hai thì dùng `workspaces`. Bộ cài mới không bao giờ tạo `workspace` số ít. `station_path` do bộ cài ghi cho embedded (`workspace` hay `workspaces`) chỉ còn là tên: bộ phân giải không tin chuỗi mà đi qua cùng định nghĩa ở trên (PowerShell và Python như nhau), nên đổi tên thư mục theo gợi ý không làm mất trạm và có cả hai thì `workspaces` thắng; `init` ghi lại tên mới. Chế độ `separate` hoặc đường khác giữ nguyên.
 - Thay đổi hành vi: máy đặt `OPCOS_WORKSPACES` thì `init --yes` (có hay không có terminal), chạy không người (pipe, `--non-interactive`, Windows `< NUL`) và Enter/xác nhận đều ra `<biến>/marketing` (in một dòng nêu đường và cách đổi bằng `--station <đường>`); `--yes` không còn ra `<repo>/workspaces`, và chạy không người không còn dừng mã 2 (`install.ps1 -NonInteractive` cài được vào trạm OpcOS). Ai quen `--yes` = trạm trong repo thì dùng `--mode embedded --yes`. Có người thì `init` vẫn hỏi đúng một câu nhận đường kể cả khi `<biến>/marketing` đã mang dấu (trước đây không hỏi); gõ trần `1`, `2`, `embedded`, `separate` ở câu đó là mã 2 (không tạo thư mục lạ); hết dữ liệu ở câu đó (`< NUL`, pipe cạn) khi có biến ra trạm OpcOS, không biến vẫn mã 2. Không có `OPCOS_WORKSPACES` thì mọi thứ như cũ.
@@ -22,6 +27,11 @@ Station contract: bỏ fallback ẩn `~/.<station>`, trạm phải được ch�
 - Ctrl+C ở mọi lệnh dùng `studio_contract.run` (bộ cài, `studio.py`, các script cùng hợp đồng): một dòng "đã huỷ (Ctrl+C)", mã 2, không traceback; `--json` phát `ok: false, code: 2`.
 - `doctor`: đã chọn `embedded` thì không còn nhắc gì về `OPCOS_WORKSPACES`, kể cả khi `<biến>/marketing` chưa mang dấu trạm.
 - `studio.py migrate --to separate`: dời hỏng vì bất kỳ lỗi nào (không chỉ lỗi hợp đồng — ví dụ khác ổ đĩa, thiếu quyền, Ctrl+C) thì thư mục đích rỗng có sẵn của bạn vẫn được dựng lại.
+
+## 2.1.0 — 2026-10-18
+
+Station contract: bỏ fallback ẩn `~/.<station>`, trạm phải được chọn tường minh. Thêm thông tin tác giả vào metadata và ghi chú tác giả.
+
 
 ## 2.0.0 — 2026-10-15
 
