@@ -9,7 +9,7 @@
 *.py text
 *.ps1 text
 
-# Excel: NHI PHAN, KHONG dung Git LFS (Duc chot 03/09, quyet dinh D7).
+# Excel: NHI PHAN, KHONG dung Git LFS (chu repo chot 03/09, quyet dinh D7).
 # Vi sao bo LFS: template chi 44 KB — LFS khong giai quyet van de gi ma them mot tang
 # co the gay CAM: ai clone ma khong cai git-lfs se nhan file con tro vai tram byte thay
 # vi workbook, khong bao loi. Cai gia roi dung vao nguoi dung moi — doi tuong repo nham toi.

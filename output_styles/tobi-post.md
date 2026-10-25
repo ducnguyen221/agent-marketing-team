@@ -1,25 +1,31 @@
-# Output Style — Facebook Post "Tobi Nguyễn" (giọng Đức / Tobi)
+# Output Style — Facebook Post dài (khuôn giọng kênh)
 
-> Style chuẩn cho **bài post Facebook** trên Page "Tobi Nguyễn".
-> Rút từ 5 post thật (cặp đôi với 5 blog COMPA cùng chủ đề). FB post = **bản full-content** đăng thẳng trên feed, KHÔNG phải teaser ngắn.
-> Agent đọc file này + [WEBSITE_BLOG_GUIDELINE](WEBSITE_BLOG_GUIDELINE.md) + lăng kính **tobi-viewpoint** (mô tả trong `WEBSITE_BLOG_GUIDELINE.md`, mục "H2 góc nhìn thẳng") trước khi viết.
+> Khuôn chuẩn cho **bài post Facebook dạng dài** của một kênh/Page. Đây là **khuôn điền chỗ trống**:
+> mỗi kênh thay các ô `<...>` bằng thông tin của mình (tên kênh, người viết, hashtag thương hiệu, lĩnh vực).
+> FB post = **bản full-content** đăng thẳng trên feed, KHÔNG phải teaser ngắn.
+> Agent đọc file này + [WEBSITE_BLOG_GUIDELINE](WEBSITE_BLOG_GUIDELINE.md) + lăng kính góc nhìn của kênh
+> (mục "H2 góc nhìn thẳng" trong `WEBSITE_BLOG_GUIDELINE.md`) trước khi viết.
+> Tên file giữ nguyên để các tài liệu khác còn trỏ tới được; nội dung không gắn với một người hay Page cụ thể.
 
 ---
 
 ## VOICE PROFILE (machine-readable)
 
 ```yaml
+channel: <TÊN KÊNH>
+author: <TÊN NGƯỜI VIẾT HOẶC PAGE>
+domain: <lĩnh vực>
 relation_to_blog: mỗi blog có 1 FB post tương ứng. Post = viết lại blog cho feed FB
                   (giữ trọn lập luận, đổi format sang FB-native). KHÔNG chỉ dán link + 2 câu.
 length: 4.000–7.500 KÝ TỰ — đo bằng KÝ TỰ, không phải từ. Facebook đếm ký tự, và một bài
-        tiếng Việt 3.000 từ vượt xa trần hiển thị. Ngưỡng lấy từ 3 bài đã đăng thật
+        tiếng Việt vài nghìn từ vượt xa trần hiển thị. Ngưỡng lấy từ các bài đã đăng của kênh
         (xem `fixtures/baseline/blog_baseline.md`), không lấy từ cảm giác.
-xung_ho: "mình" / "Đức" (thân mật hơn blog). Độc giả "bạn" / "anh chị em" / "a/em".
-tone: thân thiết + chuyên môn + có khiếu hài hước nhẹ ("Nghe thì oai, nhưng…", "Nói vui một chút…").
+xung_ho: <cách tự xưng của người viết> (thân mật hơn blog). Độc giả "bạn" / "anh chị em".
+tone: thân thiết + chuyên môn + hài hước nhẹ, không lên giọng.
 opening_hook:
-  - câu hỏi/đối lập y như blog ("Ngày xưa hỏi 'Có biết code không?' — Bây giờ hỏi 'Có mô tả rõ điều mình muốn không?'")
+  - câu hỏi/đối lập đặt thẳng vào vấn đề của người đọc
   - hoặc câu hỏi thật từ khách hàng/người đọc.
-  - link blog đặt Ở ĐẦU bài (FB ưu tiên reach khi link sớm + nội dung đầy đủ bên dưới).
+  - link blog đặt ở ĐẦU bài (FB ưu tiên reach khi link sớm + nội dung đầy đủ bên dưới).
 never:
   - teaser cụt "đọc full ở blog 👇" mà không có nội dung
   - clickbait rỗng, "excited to share"
@@ -31,7 +37,7 @@ never:
 ## FORMAT FACEBOOK-NATIVE (khác blog — vì FB không có markdown)
 
 1. **Tiêu đề phụ = Unicode bold** (vì FB không in đậm được). Dùng ký tự toán học đậm:
-   - `𝐕𝐢𝐛𝐞 𝐜𝐨𝐝𝐢𝐧𝐠 𝐥𝐚̀ 𝐠𝐢̀?` · `𝐊𝐇𝐎̂𝐍𝐆 𝐏𝐇𝐀̉𝐈 𝐂𝐔̛́ 𝐌𝐔𝐎̂́𝐍…`
+   - Ví dụ: `𝐇𝐞𝐚𝐝𝐢𝐧𝐠 𝟏` · `𝐓𝐢𝐞𝐮 𝐝𝐞 𝐩𝐡𝐮`
    - Bảng mã (dán trực tiếp, KHÔNG có font nào phải cài):
      | Kiểu | Khoảng Unicode | A | a | 0 |
      |---|---|---|---|---|
@@ -41,8 +47,8 @@ never:
      dấu ra (NFD), bold chữ cái nền, giữ nguyên dấu tổ hợp — `fb_format.py` làm việc này.
    - Kiểm bằng `python scripts/pipeline/fb_format.py --check fb_post.txt` (in JSON, exit≠0 khi trượt).
 2. **Ngắt section** bằng dòng `———————` hoặc `-----` (3+ ký tự).
-3. **Emoji số** cho danh sách bước: 1️⃣ 2️⃣ 3️⃣… ; **emoji nhóm** đầu mỗi phần (🧠 🚀 🪄 🌿 🎯 💡 ⚠️ ✅ ❌).
-4. **Emoji action** rải vừa phải trong thân: 👉 😄 😮 🔥 🤔 (1–2/đoạn, không lạm dụng).
+3. **Emoji số** cho danh sách bước: 1️⃣ 2️⃣ 3️⃣… ; **emoji nhóm** đầu mỗi phần (🧠 🚀 🎯 💡 ⚠️ ✅ ❌).
+4. **Emoji action** rải vừa phải trong thân: 👉 😄 🔥 🤔 (1–2/đoạn, không lạm dụng).
 5. **Đoạn ngắn** — 2–4 câu/đoạn, nhiều khoảng trắng để dễ đọc trên mobile.
 
 ---
@@ -63,7 +69,7 @@ never:
 ———————
 [Câu chốt mạnh — dạng "không phải X mà là Y", đứng riêng 1 dòng]
 
-[CTA mềm: "Mình sẽ đồng hành cùng các bạn…" / "Bài sau mình quay lại series…"]
+[CTA mềm: mời theo dõi / hẹn bài sau của <TÊN KÊNH>]
 
 [6–13 hashtag]
 ```
@@ -71,28 +77,29 @@ never:
 ---
 
 ## HASHTAG (6–13 cái, cuối bài)
-- **Brand cố định** (luôn có 2–3): `#COMPAClass` `#HọcCùngAI` `#NghềCủaĐức`
-- **Chủ đề** theo pillar: vd `#VibeCoding #AIAgent #NoCode` / `#BusinessIntelligence #PowerBI #LLM` / `#OpenSource #GitHub`.
-- Mix tiếng Anh (reach) + tiếng Việt brand. Không spam >13.
+- **Thương hiệu cố định** (luôn có 2–3): `<hashtag thương hiệu 1>` `<hashtag thương hiệu 2>` `<hashtag thương hiệu 3>`
+- **Chủ đề** theo pillar của kênh: `<hashtag chủ đề 1..n>` (điền theo <lĩnh vực>).
+- Mix tiếng Anh (reach) + tiếng Việt (thương hiệu). Không spam >13.
 
 ---
 
 ## CTA (luôn mềm, không bán hàng cứng)
-- Build kỳ vọng bài sau: "Bài tiếp theo mình sẽ quay lại series…"
-- Đồng hành: "Và mình sẽ đồng hành cùng các bạn trong hành trình này nhé 😊"
+- Xây kỳ vọng bài sau: "Bài tiếp theo mình sẽ quay lại chủ đề này, đi sâu vào…"
+- Đồng hành: "Mình sẽ đồng hành cùng các bạn trong hành trình này nhé 😊"
 - Mời đọc full/blog: **KHÔNG dán link vào thân bài.** Chốt bằng chữ ("bản đầy đủ mình để dưới
   comment nhé") rồi đặt link ở comment đầu tiên — nội dung comment nằm ở `fb_comment.txt`.
 
 ---
 
-## VÍ DỤ HOOK + CHỐT THẬT (tham chiếu, đừng copy nguyên)
-| Bài | Hook | Câu chốt |
-|-----|------|----------|
-| Vibe coding | "Ngày xưa hỏi 'Có biết code không?'. Bây giờ hỏi 'Có mô tả rõ điều mình muốn không?'" | "Lợi thế không chỉ thuộc về người biết code." |
-| AI×Data | "Tôi muốn nhân viên hỏi ChatGPT về doanh số… Vậy phải làm sao?" | "Đừng để AI làm việc của nhau." |
-| GitHub alt | "Ngoài GitHub còn nền tảng nào bớt kỹ thuật hơn không?" | "Người mới cần bắt đầu bằng một chiến thắng nhỏ nhất." |
-| Open-source repo | "Không biết code có dùng được repo open source không? — Có. Nhưng…" | "Nhỏ nhưng chạy được còn hơn lớn mà nằm trên slide." |
-| 2024→2026 AI | "2024 là Chat. 2025 là Work. 2026 là Teamwork." | "Không phải một AI giỏi đến đâu, mà là biết tổ chức cả đội AI làm việc tử tế hay không." |
+## VÍ DỤ HOOK + CHỐT THẬT (minh hoạ, điền theo kênh)
+Các ví dụ dưới đây là **hư cấu, minh hoạ cấu trúc** — không phải bài đã đăng. Mỗi kênh tự viết hook và câu chốt của riêng mình.
+
+| Chủ đề | Hook | Câu chốt |
+|--------|------|----------|
+| Công cụ ghi chú | "Dùng ba ứng dụng ghi chú cùng lúc mà vẫn không tìm ra ý tưởng tuần trước. Vấn đề nằm ở đâu?" | "Không phải thêm công cụ, mà là bớt đi một bước." |
+| Học một kỹ năng mới | "Xem 20 video hướng dẫn rồi vẫn chưa làm được gì. Nghe quen không?" | "Học xong một việc nhỏ còn hơn xem hết một khoá dài." |
+| Tự động hoá việc lặp lại | "Mỗi sáng mất 30 phút copy số liệu giữa hai bảng tính… có cách nào khác không?" | "Máy làm phần lặp lại, mình giữ phần quyết định." |
+| Làm việc nhóm | "Cả nhóm đều bận, nhưng không ai biết ai đang làm gì. Bắt đầu sửa từ đâu?" | "Rõ việc trước, nhanh việc sau." |
 
 ---
 
@@ -102,5 +109,6 @@ never:
 - [ ] Tiêu đề phụ Unicode bold + ngắt `———`?
 - [ ] Đoạn ngắn 2–4 câu, emoji vừa phải?
 - [ ] Câu chốt mạnh đứng riêng?
-- [ ] CTA mềm + 6–13 hashtag (có brand)?
+- [ ] CTA mềm + 6–13 hashtag (có hashtag thương hiệu của kênh)?
 - [ ] KHÔNG markdown literal, KHÔNG teaser cụt?
+- [ ] Mọi ô `<...>` đã được điền theo kênh?

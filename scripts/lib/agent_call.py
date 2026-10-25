@@ -3,7 +3,7 @@
 
 ## Vì sao có file này
 
-Bốn đường ống (Daily Hot AI, Daily Hot Data, Weekly News, ducnguyen-ai writer) đều gọi
+Bốn đường ống (Daily Hot AI, Daily Hot Data, Weekly News, blog cá nhân writer) đều gọi
 THẲNG một CLI duy nhất bằng một dòng shell riêng của từng script. Hệ quả đo được tối
 19–20/09: hai lượt lịch chết sạch vì tài khoản Claude hết hạn mức, mỗi lượt còn thử lại
 3 lần trong 30 giây — trong khi giờ mở lại cách đó **1–2 tiếng** và nằm sẵn trong chính

@@ -44,7 +44,7 @@ Khi phân tích một video ngắn thành công trên mạng để học hỏi:
 |---|---|---|
 | **Cơ chế Hook** | Video mẫu dùng câu hỏi, số liệu gây sốc, hay hành động kỳ lạ? | Thay thế bằng số đo thật từ bài toán nội bộ (vd: thời gian deploy, số lỗi DAX). |
 | **Nhịp cắt (Pacing)** | Bao nhiêu giây đổi khung hình/chữ một lần? | Chuẩn bị các thẻ đồ họa (graphic cards) trong HyperFrames xuất hiện mỗi 2.5–3.5 giây. |
-| **Góc nhìn lật ngược** | Điểm mấu chốt khiến video hấp dẫn là gì? | Dùng bài học thực tế từ dự án khách hàng của KPIM. |
+| **Góc nhìn lật ngược** | Điểm mấu chốt khiến video hấp dẫn là gì? | Dùng bài học thực tế từ dự án khách hàng thực tế. |
 
 ---
 

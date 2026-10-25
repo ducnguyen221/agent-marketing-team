@@ -69,11 +69,11 @@ function Get-Gap($a, $b) {
 
 # Pool moi brand -- de moi thuong hieu co mot ho giong rieng.
 # offset chi con lam moc quay, khong con phai ganh viec tach bach cung ngay.
-# GHIM MOT GIONG MOI SERIES -- Duc quyet 31/08/2026 sau khi nghe bo A/B.
+# GHIM MOT GIONG MOI SERIES -- chu repo quyet 31/08/2026 sau khi nghe bo A/B.
 # VI SAO bo luan phien: render CUNG mot cau qua 7 profile ra RMS -20.3..-30.2 dB
 # (chenh 9.9 dB) va toc do 3.78..4.28 tu/giay (chenh 13%). Luan phien theo ngay
 # = doi ca do to lan nhip doc giua cac ngay, dung trieu chung "luc to luc nho"
-# va "luc nhanh luc cham" ma Duc phan anh. Am luong nay da duoc chuan hoa o tang
+# va "luc nhanh luc cham" ma chu repo phan anh. Am luong nay da duoc chuan hoa o tang
 # engine (mcp_server.normalize_rms), nhung NHIP DOC thi khong chuan duoc -- no
 # nam trong clip mau. Nen ghim la cach duy nhat cho nhip on dinh.
 #

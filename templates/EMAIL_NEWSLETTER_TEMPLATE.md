@@ -21,7 +21,7 @@ list: all-subscribers | alumni | leads
 
 ### Block 1 — Personal intro (1-2 đoạn)
 
-[Câu chuyện nhỏ / context tuần qua / observation từ Duc]
+[Câu chuyện nhỏ / context tuần qua / observation từ tác giả]
 
 ### Block 2 — Main insight (chính)
 

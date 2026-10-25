@@ -41,7 +41,7 @@ Quy tắc format FB chung:
   (script tự convert tiêu đề phụ), ngắt section bằng `———————`.
 - **Emoji:** nhóm đầu mỗi phần (🧠🚀🪄🎯💡⚠️) + emoji-số cho bước (1️⃣2️⃣3️⃣); action 👉😄🔥 rải 1–2/đoạn.
 - **Đoạn ngắn 2–4 câu**, nhiều khoảng trắng (đọc trên mobile).
-- **Hashtag: 6–13** ở cuối bài; luôn có 2–3 brand (`#COMPAClass #HọcCùngAI #NghềCủaĐức`) + chủ đề theo
+- **Hashtag: 6–13** ở cuối bài; luôn có 2–3 brand (`<hashtag thương hiệu 1> <hashtag thương hiệu 2> <hashtag thương hiệu 3>`) + chủ đề theo
   pillar. Mix Anh (reach) + Việt (brand). (Caption Reel: ≤6 hashtag.)
 - **Giọng:** xem `tobi-post.md` — đây là nguồn chuẩn cho voice FB.
 
