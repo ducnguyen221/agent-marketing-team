@@ -434,13 +434,14 @@ def test_mau_bat_dung_muc_tieu():
     assert not re.search(MAU_DANH_TINH["to-chuc"], "x.localeCompare(y)", flags=re.IGNORECASE)
     assert not re.search(MAU_DANH_TINH["ten-nguoi"], _TEN_TG, flags=re.IGNORECASE)
     assert not re.search(MAU_DANH_TINH["kenh-that"], "news/ai", flags=re.IGNORECASE)
-    # COMPA phải đứng một mình: `app.xml` của .xlsx có chữ Compatible, docs có COMPARE.
-    for lanh in ("Compatible", "COMPARE", "compat-mode", "x.COMPARE(y)"):
+    # Tên tổ chức thứ hai phải đứng một mình: nó là tiền tố của từ thường như Compatible
+    # (`app.xml` của .xlsx) hay compare (docs) — các từ đó không được bị bắt.
+    for lanh in ("Compatible", _TO_CHUC[1] + "RE", "compat-mode", "x." + _TO_CHUC[1] + "RE(y)"):
         assert not re.search(MAU_DANH_TINH["to-chuc"], lanh, flags=re.IGNORECASE), lanh
     assert re.search(MAU_DANH_TINH["to-chuc"], "lớp " + _TO_CHUC[1] + ".", flags=re.IGNORECASE)
     # Ba khoá toàn cây không được bắt chữ lành: tên tổ chức trần, hashtag chung, "content/".
     for khoa in ("hashtag-thuong-hieu", "bo-mau-cu", "ten-page"):
-        for lanh in (_TO_CHUC[2], "#AI #hoc", "content/sample-course/", "Page Tobias"):
+        for lanh in (_TO_CHUC[2], "#AI #hoc", "content/sample-course/", "Page " + _TO_CHUC[2] + "as"):
             assert not re.search(MAU_DANH_TINH[khoa], lanh, flags=re.IGNORECASE), (khoa, lanh)
 
 
