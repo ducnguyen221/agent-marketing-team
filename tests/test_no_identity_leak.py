@@ -49,7 +49,11 @@ CAM_TUYET_DOI = [
 ]
 # Email cá nhân: dùng MẪU chứ không viết literal. Bản trước ghi thẳng địa chỉ vào đây rồi
 # tự miễn trừ chính file này — tức cổng mang sẵn thứ nó đi tìm, và không bao giờ thấy.
-MAU_EMAIL = re.compile(r"[\w.+-]+@(?:gmail|outlook|hotmail|yahoo|icloud)\.com", re.I)
+# Tổng quát hoá (RQ-136): MỌI địa chỉ email (tên + a-còng + tên miền), không riêng 5 webmail `.com` —
+# địa chỉ công ty/trường học/tên miền riêng rò ra cũng là rò thật. Ngoại lệ duy nhất theo
+# MẪU (không theo file): placeholder có tên miền `example.<tld>` hoặc đuôi `.example`.
+MAU_EMAIL = re.compile(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}", re.I)
+MAU_EMAIL_GIU_CHO = re.compile(r"@(?:example\.[a-z]{2,}|[a-z0-9.-]+\.example)$", re.I)
 # Email liên hệ của tác giả: chủ dự án chủ động công khai ở khối author/owner của manifest
 # và mục Tác giả của README. Chỉ miễn ĐÚNG địa chỉ này (dựng bằng ghép chuỗi để file test
 # không tự chứa nó), đếm chính xác từng file; mọi địa chỉ khác đếm từ 0 ở mọi file.
@@ -127,7 +131,7 @@ def test_khong_lo_token():
 def vi_pham_email(rel: str, text: str) -> list[str]:
     """Email lạ: cấm ở mọi file. Email của tác giả: phải đúng số lần đã ghi cho file đó
     (thừa lẫn thiếu đều đỏ — mục miễn trừ dư là cửa mở sẵn)."""
-    tim = [m.lower() for m in MAU_EMAIL.findall(text)]
+    tim = [m.lower() for m in MAU_EMAIL.findall(text) if not MAU_EMAIL_GIU_CHO.search(m)]
     n_tg = tim.count(EMAIL_TG)
     n_la = len(tim) - n_tg
     loi = []
@@ -286,8 +290,18 @@ _PIXEL = _s(49, 55, 49, 55, 48, 52, 49, 55) + _s(51, 50, 56, 54, 54, 49, 57, 54)
 _TO_CHUC = (_s(75, 80, 73, 77), _s(67, 79, 77, 80, 65), _s(84, 111, 98, 105))
 # Đường thư mục instance mẫu — cũng dựng bằng mã ký tự, vì chính tên thư mục mang tên
 # tổ chức và file này nằm trong vùng bị quét.
-_TC = _TO_CHUC[2].upper()
-_CT = "content/" + _TO_CHUC[0] + "/02_campaigns/01_" + _TO_CHUC[2] + "_Posts"
+# Ba nhóm chuỗi cấm TOÀN CÂY (SPR-01, đợt dọn private): thứ đã bị gỡ khỏi repo và không
+# được quay lại ở bất kỳ file nào, kể cả `content/**`. Đều dựng bằng mã ký tự.
+#   · hashtag thương hiệu cũ (3 thẻ, gốc ở output_styles/multichannel-style.md bản c895903)
+#   · tên thư mục bộ mẫu cũ: tiền tố `content/` + tên tổ chức
+#   · tên Page Facebook cũ (tên hiển thị): tên thương hiệu + họ tên viết hoa dấu
+_HASHTAG = (
+    "#" + _s(67, 79, 77, 80, 65, 67, 108, 97, 115, 115),
+    "#" + _s(72, 0x1ECD, 99, 67, 0xF9, 110, 103, 65, 73),
+    "#" + _s(78, 103, 104, 0x1EC1, 67, 0x1EE7, 97, 0x110, 0x1EE9, 99),
+)
+_BO_MAU_CU = "content/" + _TO_CHUC[0]
+_TEN_PAGE = _TO_CHUC[2] + r"\s+" + _s(78, 103, 117, 121, 0x1EC5, 110)
 
 MAU_DANH_TINH = {
     "ten-mien":  re.escape(_TEN_TG + ".vn"),
@@ -296,12 +310,17 @@ MAU_DANH_TINH = {
     "pixel":     _PIXEL,
     "to-chuc":   r"\b(?:" + "|".join(_TO_CHUC) + r")\b",
     "kenh-that": r"\b(?:AI|Data)\s+News\b",
+    # Ba khoá dưới áp TOÀN CÂY (KHOA_CUNG) và KHÔNG có mục miễn trừ nào.
+    "hashtag-thuong-hieu": "(?:" + "|".join(re.escape(h) for h in _HASHTAG) + ")",
+    "bo-mau-cu": re.escape(_BO_MAU_CU),
+    "ten-page":  _TEN_PAGE,
 }
 
 # Khoá CỨNG: áp cho cả cây. Đây là danh tính của MỘT người / MỘT máy — tên miền, tài
 # khoản, tên thật, id pixel quảng cáo. Ở đâu cũng là rò rỉ, trừ những chỗ ghi công đã
 # liệt kê trong MIEN_TRU.
-KHOA_CUNG = ("ten-mien", "handle", "ten-nguoi", "pixel")
+KHOA_CUNG = ("ten-mien", "handle", "ten-nguoi", "pixel",
+             "hashtag-thuong-hieu", "bo-mau-cu", "ten-page")
 
 # Vùng MÁY: phần repo mà người clone đem đi chạy. Ở đây cấm thêm cả tên tổ chức và tên
 # kênh thật — chúng không phải secret, nhưng để trong máy thì khuôn hỏng: người khác
@@ -345,15 +364,6 @@ MIEN_TRU = {
     (".codex-plugin/plugin.json", "ten-mien"): 1,
     ("README.md", "ten-mien"): 1,
     ("README.md", "ten-nguoi"): 1,
-    # `content/` là instance mẫu CỐ Ý đưa vào git (xem .gitignore dòng 1): một bộ nội
-    # dung thật để người đọc thấy khuôn được điền ra sao. Nó là DỮ LIỆU, không phải máy.
-    (_CT + "/01_" + _TO_CHUC[2] + "_Posts.md", "ten-mien"): 1,
-    (_CT + "/assets/" + _TC + "-001_ai-agent-la-gi/content.md", "ten-mien"): 1,
-    (_CT + "/campaign_meta.json", "ten-mien"): 1,
-    (_CT + "/campaign_meta.json", "ten-nguoi"): 1,
-    (_CT + "/01_" + _TO_CHUC[2] + "_Posts.xlsx", "ten-nguoi"): 2,
-    ("content/" + _TO_CHUC[0] + "/campaigns.xlsx", "ten-mien"): 1,
-    ("content/" + _TO_CHUC[0] + "/campaigns.xlsx", "ten-nguoi"): 1,
     # Hồ sơ giọng của chính chủ, và các file trỏ tới TÊN FILE đó. Đổi tên file hồ sơ
     # giọng là việc của đợt docs (P2-G5): nó kéo theo README + 5 chỗ tham chiếu.
     ("examples/example-studio/channel.yml", "to-chuc"): 1,
@@ -414,6 +424,9 @@ def test_mau_bat_dung_muc_tieu():
         "pixel":     "fbq('init', '" + _PIXEL + "')",
         "to-chuc":   "đăng ở " + _TO_CHUC[1] + " Class",
         "kenh-that": "kênh AI News hằng tuần",
+        "hashtag-thuong-hieu": "Chốt bài: " + _HASHTAG[1] + " " + _HASHTAG[2].lower(),
+        "bo-mau-cu": "xem " + _BO_MAU_CU + "/02_campaigns/x.md",
+        "ten-page": "Page " + _TO_CHUC[2] + " " + _s(78, 103, 117, 121, 0x1EC5, 110) + " đăng",
     }
     for khoa, mau in mau_thu.items():
         assert re.search(MAU_DANH_TINH[khoa], mau, flags=re.IGNORECASE), khoa
@@ -421,6 +434,31 @@ def test_mau_bat_dung_muc_tieu():
     assert not re.search(MAU_DANH_TINH["to-chuc"], "x.localeCompare(y)", flags=re.IGNORECASE)
     assert not re.search(MAU_DANH_TINH["ten-nguoi"], _TEN_TG, flags=re.IGNORECASE)
     assert not re.search(MAU_DANH_TINH["kenh-that"], "news/ai", flags=re.IGNORECASE)
+    # COMPA phải đứng một mình: `app.xml` của .xlsx có chữ Compatible, docs có COMPARE.
+    for lanh in ("Compatible", "COMPARE", "compat-mode", "x.COMPARE(y)"):
+        assert not re.search(MAU_DANH_TINH["to-chuc"], lanh, flags=re.IGNORECASE), lanh
+    assert re.search(MAU_DANH_TINH["to-chuc"], "lớp " + _TO_CHUC[1] + ".", flags=re.IGNORECASE)
+    # Ba khoá toàn cây không được bắt chữ lành: tên tổ chức trần, hashtag chung, "content/".
+    for khoa in ("hashtag-thuong-hieu", "bo-mau-cu", "ten-page"):
+        for lanh in (_TO_CHUC[2], "#AI #hoc", "content/sample-course/", "Page Tobias"):
+            assert not re.search(MAU_DANH_TINH[khoa], lanh, flags=re.IGNORECASE), (khoa, lanh)
+
+
+def test_khoa_toan_cay_khong_co_mien_tru():
+    """Ba khoá cấm mới là cấm TUYỆT ĐỐI: thêm mục miễn trừ cho chúng là mở cửa lại."""
+    moi = {"hashtag-thuong-hieu", "bo-mau-cu", "ten-page"}
+    assert moi <= set(KHOA_CUNG), "khoá cấm mới phải nằm trong KHOA_CUNG (áp toàn cây)"
+    assert not [k for k in MIEN_TRU if k[1] in moi], "khoá cấm toàn cây không được có miễn trừ"
+
+
+def test_email_tong_quat_va_placeholder():
+    """RQ-136: mọi email lạ đỏ; placeholder `example` được miễn theo MẪU, không theo file."""
+    la = "ten" + "." + "ho" + "@" + "congty" + "." + "vn"
+    assert vi_pham_email("docs/x.md", la), "email tên miền riêng mà cổng vẫn xanh"
+    assert vi_pham_email("docs/x.md", "a" + "@" + "truong" + ".edu" + ".vn")
+    for ok in ("you" + "@" + "example" + ".com", "a" + "@" + "example" + ".org", "x" + "@" + "mail" + ".example"):
+        assert vi_pham_email("docs/x.md", ok) == [], ok
+    assert vi_pham_email("docs/x.md", "you" + "@" + "notexample" + ".com")
 
 
 def test_vung_may_duoc_quet_that():
