@@ -1,0 +1,28 @@
+# Bộ mẫu TỔNG HỢP, HƯ CẤU — để học quy trình, không phải dữ liệu của ai.
+# Mọi tên, mã, đường dẫn dưới đây là giá trị giả. Thay bằng dữ liệu của bạn
+# trong bản sao riêng (thư mục content/<tên-của-bạn>/ nằm ngoài Git).
+# Biến môi trường token_env KHÔNG tồn tại: bộ mẫu này không thể đăng đi đâu.
+name: sample-course
+label: Bộ mẫu dạy học (dữ liệu hư cấu)
+autonomy: suggest
+language: vi
+timezone: Asia/Ho_Chi_Minh
+
+# Trụ nội dung: 2 chủ đề chung, đủ để thấy cách một chiến dịch gắn vào pillar.
+pillars: [Làm việc hiệu quả, Công cụ học tập]
+
+# Kênh giả. handle / page_id / channel_id là chỗ giữ; token_env trỏ tới biến không có thật.
+channels:
+  - platform: facebook
+    handle: <TÊN KÊNH>
+    page_id: "000000000000000"
+    token_env: SAMPLE_FB_TOKEN        # biến không tồn tại — cố ý
+  - platform: youtube
+    handle: <TÊN KÊNH>
+    channel_id: "000000000000000000000000"
+    token_env: SAMPLE_YT_TOKEN        # biến không tồn tại — cố ý
+
+note: >
+  Đây là bộ mẫu hư cấu để học quy trình, không đăng đi đâu. Nó chạy đủ một chiến dịch
+  ở 02_campaigns/01_Sample_Posts (hồ sơ .md + workbook 4 sheet + asset + preview.html).
+  Mở nó để xem một chiến dịch hoàn chỉnh trông thế nào.

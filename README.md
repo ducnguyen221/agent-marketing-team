@@ -171,7 +171,7 @@ agent-marketing-team/
 │   └── launchd/               # 8 plist mẫu trung tính cho lịch chạy trên macOS
 ├── workflows/                 # Đặc tả chi tiết 7 khâu vận hành
 ├── examples/                  # TRẠM MẪU đã điền — 1 kênh, 1 chiến dịch, 3 bài ở 3 trạng thái
-└── content/                   # Bộ dữ liệu mô phỏng dùng cho dạy học (KPIM)
+└── content/                   # Bộ dữ liệu mô phỏng dùng cho dạy học (bộ mẫu tổng hợp `sample-course`)
 ```
 
 ---
@@ -185,7 +185,7 @@ agent-marketing-team/
 - 🔍 **Trạm mẫu đã điền:** [`examples/`](examples/) — đọc `examples/README.md` trước.
 - ⏱️ **Chiến dịch chạy theo lịch:** [`knowledge/toolchains/NEWS_PIPELINE.md`](knowledge/toolchains/NEWS_PIPELINE.md)
 - 🧱 **Khuôn dựng kênh/chiến dịch/bài:** [`templates/README.md`](templates/README.md)
-- 📊 **Bộ dữ liệu mô phỏng (dạy học):** `content/KPIM/02_campaigns/01_Tobi_Posts/`
+- 📊 **Bộ dữ liệu mô phỏng (dạy học):** `content/sample-course/02_campaigns/01_Sample_Posts/`
 - 🔐 **Bí mật & biến môi trường của máy:** [`knowledge/toolchains/SECRETS.md`](knowledge/toolchains/SECRETS.md)
 - 🚀 **Dựng từ đầu, mười bước:** [`docs/ONBOARDING.md`](docs/ONBOARDING.md)
 - 🧭 **Ba trạm — ai giữ gì, biến nào trỏ đâu:** [`knowledge/toolchains/STATION_LAYOUT.md`](knowledge/toolchains/STATION_LAYOUT.md)

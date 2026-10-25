@@ -59,7 +59,7 @@
 | Dựng ảnh bìa nhẹ cho card trang chủ (PNG 400KB → JPG ~50KB) | `scripts/pipeline/make_card_thumb.py` |
 | Dựng HTML tự chứa để xem trước bài | `scripts/pipeline/build_blog_html.py` |
 | Xem toàn cảnh chiến dịch / mọi bài | `scripts/pipeline/build_views.py` (mở `index.html` bằng cách bấm đúp) |
-| Một campaign hoàn chỉnh trông thế nào | `content/KPIM/02_campaigns/01_Tobi_Posts/` |
+| Một campaign hoàn chỉnh trông thế nào | `content/sample-course/02_campaigns/01_Sample_Posts/` |
 | **CHẠY CHIẾN DỊCH TRONG PHIÊN — quy trình MẶC ĐỊNH** (agent chạy trọn đường ống, dừng ở 3 cổng hỏi người ngay; agent phải trả về gì mỗi bước) | `knowledge/toolchains/IN_SESSION_PIPELINE.md` |
 | **Bản mô tả đường ống MÁY ĐỌC ĐƯỢC** (10 trạng thái · 3 cổng · lệnh · artefact · 2 chế độ chạy) | `knowledge/data_model/pipeline.yaml` |
 | **Thứ tự các bước và CỔNG DUYỆT nằm ở đâu** (4 lệnh, 3 cổng — đọc TRƯỚC hai dòng dưới) | `knowledge/toolchains/CAMPAIGN_PIPELINE.md` |

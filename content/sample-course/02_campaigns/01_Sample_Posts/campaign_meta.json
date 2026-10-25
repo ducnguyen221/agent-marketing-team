@@ -1,0 +1,22 @@
+{
+  "campaign_id": "01_Sample_Posts",
+  "campaign_code": "01_Sample_Posts",
+  "name": "Ghi chú thông minh cho người bận — nhập môn",
+  "pillar": "Công cụ học tập",
+  "status": "active",
+  "owner": "<TÊN NGƯỜI PHỤ TRÁCH>",
+  "created": "2026-01-02",
+  "objective": "Awareness — giới thiệu một cách ghi chú đơn giản mà người mới bắt đầu làm được ngay.",
+  "description": "Hai bài nhập môn về ghi chú thông minh, dùng để minh hoạ quy trình chiến dịch.",
+  "target_audience": "Người đi làm và sinh viên muốn học đều đặn nhưng ít thời gian.",
+  "key_message": "Ghi ít, ghi đúng chỗ, và đọc lại đúng lúc quan trọng hơn ghi thật nhiều.",
+  "channels": "Facebook",
+  "cadence": "2 bài/tuần",
+  "schedule_start": "2026-01-05",
+  "schedule_end": "2026-01-12",
+  "num_posts_planned": "2",
+  "kpi_targets": "blog=500; facebook=30",
+  "prompt_requirements": "Viết trung tính, ví dụ đời thường, không nhắc thương hiệu hay người thật.",
+  "ai_summary": "Chiến dịch mẫu hư cấu gồm 2 bài về ghi chú; bài đầu đã đăng (trạng thái giả).",
+  "notes": "Dữ liệu tổng hợp để học quy trình; không đăng đi đâu."
+}

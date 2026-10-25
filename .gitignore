@@ -1,7 +1,7 @@
-# ── Instance data: chỉ KPIM (bộ mẫu khoá học) được lên GitHub ──────────────
+# ── Instance data: chỉ bộ mẫu tổng hợp `sample-course` được lên GitHub ──────────────
 content/*
 !content/.gitkeep
-!content/KPIM/
+!content/sample-course/
 
 
 
