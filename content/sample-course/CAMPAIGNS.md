@@ -1,7 +1,7 @@
 # Sổ chiến dịch — Bộ mẫu dạy học
 
-> Sinh tự động bởi `scripts/pipeline/new_campaign.py`. Đừng sửa tay — sửa Sheet Campaign của
-> workbook rồi chạy lại.
+> Viết tay minh hoạ theo định dạng mà `scripts/pipeline/new_campaign.py` sinh ra; trong trạm thật file này
+> được sinh tự động từ Sheet Campaign của workbook.
 
 **1 chiến dịch** · 2 bài · 1 đã đăng
 
@@ -9,7 +9,7 @@
 
 | Chiến dịch | Pillar | Bài | Đã đăng | Cổng (T/C/F) |
 |---|---|---:|---:|---|
-| **01_Sample_Posts** — Ghi chú thông minh cho người bận — nhập môn | Công cụ học tập | 2 | 1 | 2/2/1 |
+| **01_Sample_Posts** — Ghi chú thông minh cho người bận — nhập môn | Công cụ học tập | 2 | 1 | 1/1/1 |
 
 ## Toàn bộ
 

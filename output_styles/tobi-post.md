@@ -4,7 +4,7 @@
 > mỗi kênh thay các ô `<...>` bằng thông tin của mình (tên kênh, người viết, hashtag thương hiệu, lĩnh vực).
 > FB post = **bản full-content** đăng thẳng trên feed, KHÔNG phải teaser ngắn.
 > Agent đọc file này + [WEBSITE_BLOG_GUIDELINE](WEBSITE_BLOG_GUIDELINE.md) + lăng kính góc nhìn của kênh
-> (mục "H2 góc nhìn thẳng" trong `WEBSITE_BLOG_GUIDELINE.md`) trước khi viết.
+> (khối `> **Góc nhìn:**` ở mục "Checklist trước khi xuất bản" trong `WEBSITE_BLOG_GUIDELINE.md`) trước khi viết.
 > Tên file giữ nguyên để các tài liệu khác còn trỏ tới được; nội dung không gắn với một người hay Page cụ thể.
 
 ---

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 r"""gen_infographic.py — meta.json + blog.md → thumbnail.png (ảnh bìa landscape).
 
-Dựng 1 HTML cover on-brand (dark theme khớp atlas + style ai-news/compaclass,
+Dựng 1 HTML cover on-brand (dark theme khớp site của kênh + style ai-news/<tên thương hiệu>,
 gradient xanh→teal, mark có icon cuốn sách mở), khổ ngang 1280x720. Render PNG bằng Chrome headless.
 Nếu Chrome lỗi/không có → fallback vẽ bằng Pillow (title + bullet).
 
@@ -20,7 +20,7 @@ import subprocess
 import sys
 import tempfile
 
-W, H = 1280, 720   # cover landscape 16:9 (kiểu hero compaclass + thumbnail YouTube)
+W, H = 1280, 720   # cover landscape 16:9 (kiểu hero của kênh + thumbnail YouTube)
 
 # Chrome/font dò ở MỘT chỗ cho mọi hệ điều hành (CHROME_BIN, VIDEO_FONT): scripts/lib/media_tools.py
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "lib"))

@@ -7,7 +7,7 @@
 > Giọng văn KHÔNG nằm ở đây — file này chỉ lo FORMAT. Giọng:
 > - Blog website: `WEBSITE_BLOG_GUIDELINE.md`
 > - Facebook (post dài + caption reel): `tobi-post.md`
-> - YouTube / X: dùng giọng "mình/Đức" như FB, rút gọn.
+> - YouTube / X: dùng giọng "mình/<cách tự xưng của kênh>" — theo `xung_ho` trong `tobi-post.md`, rút gọn.
 
 ---
 

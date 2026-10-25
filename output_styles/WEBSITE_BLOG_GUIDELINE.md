@@ -1,6 +1,6 @@
 # Output Style — Website Blog Guideline (Hướng dẫn viết bài Blog Website)
 
-> **Mục tiêu:** Style chuẩn cho **bài viết blog chuyên môn, công nghệ và dữ liệu** đăng trên các website (Atlas, CompaClass, Blog cá nhân hoặc Doanh nghiệp).
+> **Mục tiêu:** Style chuẩn cho **bài viết blog chuyên môn, công nghệ và dữ liệu** đăng trên các website (<TÊN KÊNH/THƯƠNG HIỆU>, Blog cá nhân hoặc Doanh nghiệp).
 > Hướng dẫn này định hình văn phong thực chiến, có chiều sâu, kết hợp các **định dạng hiển thị trực quan (Visual Formats)** giúp bài viết chuyên nghiệp, dễ tiếp thu và hấp dẫn người đọc.
 
 ---
