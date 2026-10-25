@@ -336,7 +336,6 @@ def _bd(s: str) -> str:
 _TEN_TG = _s(100, 117, 99) + _s(110, 103, 117, 121, 101, 110)          # tài khoản tác giả
 _TEN_VN = (_s(0x4E, 0x67, 0x75, 0x79, 0x1EC5, 0x6E) + " " + _s(0x51, 0x75, 0x61, 0x6E, 0x67)
            + " " + _s(0x110, 0x1EE9, 0x63))                            # tên đầy đủ, có dấu
-_TEN_ASCII = _s(68, 117, 99) + r"[\s-]+" + _s(78, 103, 117, 121, 101, 110)
 _PIXEL = _s(49, 55, 49, 55, 48, 52, 49, 55) + _s(51, 50, 56, 54, 54, 49, 57, 54)
 _TO_CHUC = (_s(75, 80, 73, 77), _s(67, 79, 77, 80, 65), _s(84, 111, 98, 105))
 # Đường thư mục instance mẫu — cũng dựng bằng mã ký tự, vì chính tên thư mục mang tên
@@ -352,7 +351,6 @@ _HASHTAG = (
     "#" + _s(78, 103, 104, 0x1EC1, 67, 0x1EE7, 97, 0x110, 0x1EE9, 99),
 )
 _BO_MAU_CU = "content/" + _TO_CHUC[0]
-_TEN_PAGE = _TO_CHUC[2] + r"\s+" + _s(78, 103, 117, 121, 0x1EC5, 110)
 
 _SEP = r"[\s_-]+"           # họ–tên cách nhau bằng khoảng trắng / gạch nối / gạch dưới
 _HASHTAG_TRAN = tuple(h[1:] for h in _HASHTAG)      # tên thẻ, không có dấu thăng
