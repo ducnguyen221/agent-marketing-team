@@ -35,7 +35,7 @@ ROOT = Path(__file__).resolve().parents[1]
 # Backslash dựng bằng chr(92) thay vì viết literal: chuỗi này đi qua nhiều tầng
 # (heredoc shell -> file -> parser Python), mỗi tầng ăn một lớp escape khác nhau.
 # Đây không phải cẩn thận thừa: đúng lỗi đó vừa làm hỏng dòng $ATLAS trong
-# publish-tobi.ps1 ( thành ký tự BEL) và làm file này không parse được 2 lần.
+# publish-<tên kênh>.ps1 ( thành ký tự BEL) và làm file này không parse được 2 lần.
 _BS = chr(92)
 CAM_TUYET_DOI = [
     "C:" + _BS + "Users" + _BS,   # bất kỳ đường home Windows nào, không riêng của ai
@@ -51,17 +51,19 @@ CAM_TUYET_DOI = [
 # tự miễn trừ chính file này — tức cổng mang sẵn thứ nó đi tìm, và không bao giờ thấy.
 # Tổng quát hoá (RQ-136): MỌI địa chỉ email (tên + a-còng + tên miền), không riêng 5 webmail `.com` —
 # địa chỉ công ty/trường học/tên miền riêng rò ra cũng là rò thật. Ngoại lệ duy nhất theo
-# MẪU (không theo file): placeholder có tên miền `example.<tld>` hoặc đuôi `.example`.
+# MẪU (không theo file): placeholder thuộc miền DÀNH RIÊNG (RFC 2606/6761) — `example.com|net|org`
+# hoặc tên miền kết thúc bằng `.test|.example|.invalid|.localhost`. `example.vn` KHÔNG nằm trong đó.
 MAU_EMAIL = re.compile(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}", re.I)
-MAU_EMAIL_GIU_CHO = re.compile(r"@(?:example\.[a-z]{2,}|[a-z0-9.-]+\.example)$", re.I)
+MAU_EMAIL_GIU_CHO = re.compile(
+    r"@(?:example\.(?:com|net|org)|[a-z0-9.-]+\.(?:test|example|invalid|localhost))$", re.I)
 # Miễn trừ thêm, cũng theo MẪU (không theo file, không nới EMAIL_MIEN_TRU):
 #   · remote SSH `git@<host>:` — hình dạng email nhưng là địa chỉ kho mã;
-#   · "địa chỉ" có đuôi tên miền là đuôi file ảnh/asset (`logo@2x.png`) — tên file, không phải hộp thư;
-#   · hộp thư của HỆ THỐNG: phần tên đứng trước @ đúng bằng `noreply` / `no-reply`
-#     (địa chỉ noreply của GitHub mang id và tên người vẫn là rò thật vì phần tên khác).
+#   · tên file ảnh nhiều độ phân giải, đúng dạng `<tên>@<số>x.<đuôi ảnh>` (ví dụ logo@2x.png) —
+#     CHỈ dạng này; địa chỉ thật bọc trong tên file ảnh (avatar-<email>.png) vẫn đỏ.
+# KHÔNG miễn `noreply@`/`no-reply@`: cây hiện không có chuỗi nào như vậy, và hộp thư riêng
+# đặt tên noreply vẫn là hộp thư — muốn cho phép thì phải thêm miễn trừ có số đếm.
 MAU_EMAIL_SSH = re.compile(r"\bgit@[A-Za-z0-9.-]+:")
-MAU_EMAIL_ASSET = re.compile(r"\.(?:png|jpe?g|gif|svg|webp)$", re.I)
-MAU_EMAIL_HETHONG = re.compile(r"^no-?reply@", re.I)
+MAU_EMAIL_ASSET = re.compile(r"@\d+x\.(?:png|jpe?g|gif|svg|webp)$", re.I)
 # Email liên hệ của tác giả: chủ dự án chủ động công khai ở khối author/owner của manifest
 # và mục Tác giả của README. Chỉ miễn ĐÚNG địa chỉ này (dựng bằng ghép chuỗi để file test
 # không tự chứa nó), đếm chính xác từng file; mọi địa chỉ khác đếm từ 0 ở mọi file.
@@ -141,8 +143,7 @@ def _email_la(text: str) -> list[str]:
     text = MAU_EMAIL_SSH.sub(" ", text)
     return [m.group(0).lower() for m in MAU_EMAIL.finditer(text)
             if not MAU_EMAIL_GIU_CHO.search(m.group(0))
-            and not MAU_EMAIL_ASSET.search(m.group(0))
-            and not MAU_EMAIL_HETHONG.match(m.group(0))]
+            and not MAU_EMAIL_ASSET.search(m.group(0))]
 
 
 def vi_pham_email(rel: str, text: str) -> list[str]:
@@ -180,7 +181,7 @@ def test_dot_bien_email_tac_gia(rel):
 
 def test_fixtures_trung_tinh():
     """`fixtures/` là mốc đối chứng — số liệu phải dùng được mà không lộ ai là ai."""
-    name = re.compile(r"KPIM|COMPA|Tobi", re.I)
+    name = re.compile("|".join(_TO_CHUC), re.I)
     dinh = [p.relative_to(ROOT).as_posix()
             for p, text in FILES
             if p.parts[len(ROOT.parts):][:1] == ("fixtures",) and name.search(text)]
@@ -198,7 +199,7 @@ def test_prompt_MAU_khong_khoa_vao_mot_nguoi():
     import unicodedata
     campaign = [unicodedata.normalize("NFC", x) for x in
            ("Nguy" + chr(0x1EC5) + "n Quang " + chr(0x110) + chr(0x1EE9) + "c",
-            "COMPA Class", "T" + "obi", "KP" + "IM")]
+            _TO_CHUC[1] + " Class", "T" + "obi", "KP" + "IM")]
     folder = ROOT / ".agents" / "prompts"
     assert folder.is_dir(), "không thấy .agents/prompts — đường dẫn đổi?"
 
@@ -252,7 +253,7 @@ def test_TEMPLATE_khong_mang_nhan_dien_that():
         "C:" + chr(92) + "Users" + chr(92) + "Duc" + "Nguyen",
     ]
     campaign = [unicodedata.normalize("NFC", x) for x in campaign]
-    # Tên kênh thật: bắt cả "AI News" lẫn "Data News" mà không đụng chữ "news" chung.
+    # Tên kênh thật: bắt cả hai kênh của chủ repo mà không đụng chữ "news" chung.
     mau_kenh = re.compile(r"\b(AI|Data)\s+News\b")
 
     dinh = []
@@ -290,9 +291,6 @@ def test_TEMPLATE_khong_mang_nhan_dien_that():
 # dung làm số đổi thì phải sửa con số ở đây — người sửa buộc phải nhìn thấy mình đang
 # đổi gì. Mục miễn trừ nào không còn khớp gì thì `test_mien_tru_khong_han` bắt gỡ.
 # ══════════════════════════════════════════════════════════════════════════════
-SELF = "tests/test_no_identity_leak.py"
-
-
 def _s(*ma: int) -> str:
     return "".join(map(chr, ma))
 
@@ -304,6 +302,28 @@ def _bo_dau(s: str) -> str:
     s = "".join(c for c in s if not unicodedata.combining(c))
     s = s.replace(chr(0x110), "D").replace(chr(0x111), "d").lower()
     return s.replace(chr(92), "/")
+
+
+_ENT_DEC = re.compile(r"&#([0-9]{1,7});")
+_ENT_HEX = re.compile(r"&#[xX]([0-9a-fA-F]{1,6});")
+_JSON_U = re.compile(r"\\u([0-9a-fA-F]{4})")
+
+
+def _giai_ma(s: str) -> str:
+    """Giải mã entity số (`&#NNN;`, `&#xHH;`) và escape JSON dạng gạch-ngược-u-bốn-chữ-số-hex: tên viết dưới dạng
+    mã hoá vẫn là tên. Áp cho mọi file văn bản, không phân biệt .html/.json. Mã nằm ngoài
+    Unicode hợp lệ hoặc là nửa cặp thay thế thì để nguyên."""
+    def doi(m, co_so):
+        n = int(m.group(1), co_so)
+        return chr(n) if 0 < n <= 0x10FFFF and not 0xD800 <= n <= 0xDFFF else m.group(0)
+    s = _ENT_DEC.sub(lambda m: doi(m, 10), s)
+    s = _ENT_HEX.sub(lambda m: doi(m, 16), s)
+    return _JSON_U.sub(lambda m: doi(m, 16), s)
+
+
+def _chuan(s: str) -> str:
+    """Chuẩn hoá đầy đủ cho các khoá bỏ dấu: giải mã rồi bỏ dấu."""
+    return _bo_dau(_giai_ma(s))
 
 
 def _bd(s: str) -> str:
@@ -340,8 +360,8 @@ _HO, _LOT, _TEN_DUC = (_s(78, 103, 117, 121, 0x1EC5, 110), _s(0x51, 0x75, 0x61, 
                          _s(0x110, 0x1EE9, 99))
 _TEN_NGUOI_BD = ("(?:" + _bd(_HO) + _SEP + _bd(_LOT) + _SEP + _bd(_TEN_DUC) + "|"
                  + _bd(_s(68, 117, 99)) + _SEP + _bd(_HO) + ")")
-_HASHTAG_BD = (r"(?<![a-z0-9_])#?(?:" + "|".join(_bd(h) for h in _HASHTAG_TRAN)
-               + r")(?![a-z0-9_])")
+# Không có lookahead sau tên: thẻ có hậu tố chữ/số (`<thẻ>room`, `<thẻ>2026`) vẫn là thẻ cũ.
+_HASHTAG_BD = r"(?<![a-z0-9_])#?(?:" + "|".join(_bd(h) for h in _HASHTAG_TRAN) + r")"
 _TEN_PAGE_BD = _bd(_TO_CHUC[2]) + r"[\s_-]*" + _bd(_HO)
 
 MAU_DANH_TINH = {
@@ -365,7 +385,7 @@ KHOA_BO_DAU = ("ten-nguoi", "hashtag-thuong-hieu", "bo-mau-cu", "ten-page")
 
 def _khop(khoa: str, van_ban: str):
     """Một lần so khớp đúng cách cổng đếm so: khoá bỏ dấu thì chuẩn hoá văn bản trước."""
-    t = _bo_dau(van_ban) if khoa in KHOA_BO_DAU else unicodedata.normalize("NFC", van_ban)
+    t = _chuan(van_ban) if khoa in KHOA_BO_DAU else unicodedata.normalize("NFC", van_ban)
     return re.search(MAU_DANH_TINH[khoa], t, flags=re.IGNORECASE)
 
 # Khoá CỨNG: áp cho cả cây. Đây là danh tính của MỘT người / MỘT máy — tên miền, tài
@@ -434,10 +454,10 @@ def dem_danh_tinh() -> Counter:
     hits: Counter = Counter()
     for p, text in FILES:
         rel = p.relative_to(ROOT).as_posix()
-        if rel == SELF or not text:
+        if not text:
             continue
         t = unicodedata.normalize("NFC", text)
-        t_bd = _bo_dau(text)
+        t_bd = _chuan(text)
         for khoa, mau in MAU_DANH_TINH.items():
             if not _ap_dung(rel, khoa):
                 continue
@@ -445,6 +465,23 @@ def dem_danh_tinh() -> Counter:
             if n:
                 hits[(rel, khoa)] = n
     return hits
+
+
+def vi_pham_duong(duong: list[str]) -> list[str]:
+    """Tên file/thư mục cũng là nội dung công khai: mỗi đường khớp một khoá toàn cây = vi phạm
+    (không miễn trừ). Khoá bỏ dấu so trên đường đã chuẩn hoá (gạch ngược gấp thành gạch xuôi)."""
+    loi = []
+    for rel in duong:
+        t, t_bd = unicodedata.normalize("NFC", rel), _chuan(rel)
+        for khoa in KHOA_CUNG:
+            if re.search(MAU_DANH_TINH[khoa], t_bd if khoa in KHOA_BO_DAU else t, flags=re.IGNORECASE):
+                loi.append(f"{rel} [{khoa}] 1 > 0")
+    return loi
+
+
+def test_ten_duong_khong_mang_danh_tinh():
+    duong = [p.relative_to(ROOT).as_posix() for p, _ in FILES]
+    assert vi_pham_duong(duong) == [], "tên đường dẫn mang danh tính: " + "; ".join(vi_pham_duong(duong)[:8])
 
 
 def test_dem_danh_tinh_khong_vuot_mien_tru():
@@ -476,7 +513,7 @@ def test_mau_bat_dung_muc_tieu():
         "ten-nguoi": "tác giả " + _TEN_VN + " viết",
         "pixel":     "fbq('init', '" + _PIXEL + "')",
         "to-chuc":   "đăng ở " + _TO_CHUC[1] + " Class",
-        "kenh-that": "kênh AI News hằng tuần",
+        "kenh-that": "kênh " + _s(65, 73) + " " + _s(78, 101, 119, 115) + " hằng tuần",
         "hashtag-thuong-hieu": "Chốt bài: " + _HASHTAG[1] + " " + _HASHTAG[2].lower(),
         "bo-mau-cu": "xem " + _BO_MAU_CU + "/02_campaigns/x.md",
         "ten-page": "Page " + _TO_CHUC[2] + " " + _s(78, 103, 117, 121, 0x1EC5, 110) + " đăng",
@@ -507,6 +544,8 @@ def test_dot_bien_bo_dau_va_khong_thang():
             "#" + _bo_dau(_HASHTAG_TRAN[1]),                 # thẻ #2 bỏ dấu
             "#" + _bo_dau(_HASHTAG_TRAN[2]).upper(),         # thẻ #3 bỏ dấu, chữ hoa
             "kênh " + _HASHTAG_TRAN[0] + " dạy",             # tên thương hiệu KHÔNG dấu thăng
+            "#" + _HASHTAG_TRAN[0] + "room",                 # hậu tố chữ
+            "#" + _HASHTAG_TRAN[1] + "2026",                 # hậu tố số
         ],
         "ten-page": [
             "Page " + _bo_dau(_TO_CHUC[2] + " " + tren_ten) + " đăng",     # bỏ dấu
@@ -529,10 +568,39 @@ def test_dot_bien_bo_dau_va_khong_thang():
             assert _khop(khoa, x), (khoa, "bỏ lọt ca lách", len(x))
     # Ca lành: từ thường chứa tiền tố, hoặc cùng hình dạng nhưng không phải thứ cấm.
     lanh = ("Compatible", _TO_CHUC[1] + "RE", "Page " + _TO_CHUC[2] + "as", _TO_CHUC[2] + "as",
-            _HASHTAG_TRAN[0] + "ic", "x" + _HASHTAG_TRAN[0], _TEN_TG, "content/sample-course/x.md")
+            "x" + _HASHTAG_TRAN[0], _TEN_TG, "content/sample-course/x.md")
     for khoa in KHOA_BO_DAU:
         for x in lanh:
             assert not _khop(khoa, x), (khoa, "bắt nhầm ca lành", len(x))
+
+
+def test_dot_bien_giai_ma_entity_va_json():
+    """Tên dạng entity số hoặc escape JSON vẫn phải đỏ; chuỗi mã hoá vô hại vẫn xanh."""
+    tren_ten = _s(78, 103, 117, 121, 0x1EC5, 110)
+    ten_page = _TO_CHUC[2] + " " + tren_ten
+    thuc_the = "".join("&#%d;" % ord(c) for c in ten_page)                  # entity thập phân
+    thuc_hex = "".join("&#x%X;" % ord(c) for c in _HASHTAG_TRAN[1])          # entity thập lục
+    json_the = "#" + "".join(_BS + "u%04x" % ord(c) if ord(c) > 127 else c for c in _HASHTAG_TRAN[2])
+    assert _khop("ten-page", "<b>" + thuc_the + "</b>"), "tên Page dạng entity bị bỏ lọt"
+    assert _khop("hashtag-thuong-hieu", "#" + thuc_hex), "hashtag dạng entity thập lục bị bỏ lọt"
+    assert _khop("hashtag-thuong-hieu", '{"tag": "' + json_the + '"}'), "hashtag dạng \\u bị bỏ lọt"
+    lanh = "&#169; 2026 &amp; &#x2014; &#0; &#xD800; " + _BS + "u00e9 " + _BS + "ud83d x"
+    for khoa in KHOA_BO_DAU:
+        assert not _khop(khoa, lanh), (khoa, "bắt nhầm chuỗi mã hoá vô hại")
+
+
+def test_dot_bien_duong_dan():
+    """Đường chứa tên thư mục bộ mẫu cũ / tên Page / thẻ cũ phải đỏ (danh sách đường trong bộ nhớ)."""
+    do = [
+        "content/" + _TO_CHUC[0] + "/02_campaigns/x.md",
+        "content" + _BS + _TO_CHUC[0] + _BS + "x.md",
+        "docs/" + _TO_CHUC[2] + "-" + _bo_dau(_s(78, 103, 117, 121, 0x1EC5, 110)) + ".md",
+        "docs/" + _HASHTAG_TRAN[1] + ".md",
+    ]
+    for x in do:
+        assert vi_pham_duong([x]), ("đường mang danh tính mà cổng xanh", len(x))
+    sach = ["content/sample-course/CAMPAIGNS.md", "output_styles/multichannel-style.md", "tests/conftest.py"]
+    assert vi_pham_duong(sach) == []
 
 
 def test_khoa_toan_cay_khong_co_mien_tru():
@@ -547,9 +615,12 @@ def test_email_tong_quat_va_placeholder():
     la = "ten" + "." + "ho" + "@" + "congty" + "." + "vn"
     assert vi_pham_email("docs/x.md", la), "email tên miền riêng mà cổng vẫn xanh"
     assert vi_pham_email("docs/x.md", "a" + "@" + "truong" + ".edu" + ".vn")
-    for ok in ("you" + "@" + "example" + ".com", "a" + "@" + "example" + ".org", "x" + "@" + "mail" + ".example"):
+    for ok in ("you" + "@" + "example" + ".com", "a" + "@" + "example" + ".org", "x" + "@" + "mail" + ".example",
+               "x" + "@" + "example" + ".com", "u" + "@" + "host" + ".test", "u" + "@" + "a" + ".invalid"):
         assert vi_pham_email("docs/x.md", ok) == [], ok
     assert vi_pham_email("docs/x.md", "you" + "@" + "notexample" + ".com")
+    assert vi_pham_email("docs/x.md", "a" + "@" + "example" + ".vn"), "example.vn không thuộc miền dành riêng"
+    assert vi_pham_email("docs/x.md", "a" + "@" + "example" + ".co" + ".uk")
 
 
 def test_email_mien_theo_mau_khong_theo_file():
@@ -557,7 +628,6 @@ def test_email_mien_theo_mau_khong_theo_file():
     xanh = (
         "git" + "@" + "github" + ".com:" + "owner/repo.git",      # remote SSH
         "logo" + "@" + "2x" + ".png", "anh" + "@" + "3x" + ".webp",   # tên file asset
-        "noreply" + "@" + "github" + ".com", "no-reply" + "@" + "accounts" + ".org",  # hệ thống
     )
     for ok in xanh:
         assert vi_pham_email("docs/x.md", ok) == [], ok
@@ -568,6 +638,9 @@ def test_email_mien_theo_mau_khong_theo_file():
         "ten" + "." + "ho" + "@" + "congty" + ".png" + ".vn",      # đuôi ảnh chỉ ở GIỮA tên miền
         "12345+" + "ten" + "@" + "users" + ".noreply" + ".github" + ".com",   # noreply nhưng phần tên là người
         "git" + "@" + "congty" + ".vn",                            # giống SSH nhưng không có dấu hai chấm
+        "avatar-" + thuc + ".png",                                 # địa chỉ thật bọc trong tên file ảnh
+        "avatar-" + "ten" + "@" + "congty" + ".png",               # đuôi ảnh không có dạng <số>x
+        "noreply" + "@" + "congty" + ".vn", "no-reply" + "@" + "congty" + ".vn",   # không còn miễn noreply
     )
     for x in do:
         assert vi_pham_email("docs/x.md", x), x
