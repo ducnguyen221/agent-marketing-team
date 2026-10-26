@@ -6,9 +6,11 @@ skills:
     use_when:
       - The right capability is unclear or the request has multiple steps.
       - A campaign brief needs clarification or its valid next step is unclear.
+      - A campaign needs a voice/video asset produced next (route, then hand off).
     do_not_use_when:
       - The user directly invoked a suitable skill for a single-skill request.
       - The request asks to approve a gate, publish, or update actual metrics.
+      - Standalone voice/video work with no campaign context.
     stages: [cross-cutting]
     modes: [consult, prepare, execute, standalone-edit]
     requires:
