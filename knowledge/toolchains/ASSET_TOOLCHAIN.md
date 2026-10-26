@@ -102,6 +102,7 @@ Tương đương bằng CLI: `video-studio narrate --project <project> --file sc
   `-Mode shortest` cắt theo cái ngắn hơn — chỉ dùng khi cố ý.
 - `-KeepSilent` giữ lại bản render câm để dựng lại nhanh.
 - `--instruct` của `video-studio narrate` chỉ để thử giọng (script này không nhận cờ đó); bản giao luôn ghim `-Profile`.
+- Tên profile giọng: liệt kê qua `voice-routing` (plugin `agent-voice-studio`), không đoán.
 
 **Tách bước, khi cần soi kỹ:**
 ```powershell
