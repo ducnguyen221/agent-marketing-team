@@ -580,12 +580,16 @@ def test_bang_hanh_vi_chung(kich_ban, bo_cuc, bien, repo, nha, tmp_path, monkeyp
 
 def _khoi_changelog_hien_hanh() -> str:
     """Khối CHANGELOG nói về hành vi hiện hành của bộ cài: `### Chưa phát hành` khi còn; khi đã phát
-    hành (khối đó thành mục của bản mới, không còn tiêu đề ấy) thì các bullet của mục `##` đầu tiên."""
+    hành (khối đó thành mục của bản mới, không còn tiêu đề ấy) thì các bullet của mục `##` MỚI NHẤT
+    có nói tới bộ cài (`--station <đường>`) — không phải mục đầu tiên: bản phát hành sau không đụng bộ cài
+    (ví dụ 3.1.0 dọn dữ liệu riêng) đứng trên, và khối của bộ cài vẫn là khối hiện hành của nó."""
     import re
     t = (ROOT / "CHANGELOG.md").read_text(encoding="utf-8")
     dau = t.find("### Chưa phát hành")
     if dau < 0:
-        dau = re.search(r"^## ", t, re.M).start()
+        muc = [m.start() for m in re.finditer(r"^## ", t, re.M)]
+        co_bo_cai = [a for a, b in zip(muc, muc[1:] + [len(t)]) if "`--station <đường>`" in t[a:b]]
+        dau = co_bo_cai[0] if co_bo_cai else muc[0]
         bullet = re.compile(r"^- ", re.M).search(t, dau)        # bỏ tiêu đề mục và đoạn dẫn
         dau = bullet.start() if bullet else dau
     cuoi = re.compile(r"^## ", re.M).search(t, dau + 4)
