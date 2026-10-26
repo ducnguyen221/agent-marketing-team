@@ -358,7 +358,7 @@ mà báo. Sáng hôm sau bạn chỉ thấy: hôm qua không có bài.
 3. **Nhìn được từ ngoài:** `launchctl print gui/$UID/<label>` in `state = running` kèm PID.
    Một job theo lịch mà còn `running` sau giờ cao nhất của nó là dấu hiệu treo.
 
-## Khởi động lại định kỳ máy chạy lịch — Đức quyết, CHƯA bật
+## Khởi động lại định kỳ máy chạy lịch — chủ repo quyết, CHƯA bật
 
 **Vì sao nghĩ tới (P1-24, Mac mini 02/10/2026):** Hot AI 18:00 hỏng sau 42 phút vì môi trường
 render của macOS kẹt (`Navigation timeout` ở frame 0 với mọi project; `WindowServer` 21 % và

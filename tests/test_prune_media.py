@@ -54,7 +54,7 @@ def _so_dang(p: Path, tuoi_ngay=30, **khoa) -> Path:
 def tram(tmp_path):
     """Một trạm giả có đủ: media quá hạn ĐÃ ĐĂNG, media còn hạn, và thứ CẤM ĐỤNG.
 
-    Có `*.published.json` vì luật hiện hành (Đức chốt 20/09) chỉ dọn khi CÓ bằng chứng;
+    Có `*.published.json` vì luật hiện hành (chủ repo chốt 20/09) chỉ dọn khi CÓ bằng chứng;
     một trạm giả không có sổ đăng nào thì mọi test dọn/dời bên dưới xanh vì lý do sai."""
     t = tmp_path / "tram"
     _so_dang(t / "kenh-a" / "out" / "2026-01-01" / "bai.json.published.json")
@@ -325,7 +325,7 @@ def test_khong_chay_neu_move_to_nam_TRONG_goc(tram):
 
 
 # ══ LUẬT MỚI: BẰNG CHỨNG ĐÃ ĐĂNG, không chỉ tuổi file ═══════════════════════
-# Đức chốt 2026-09-20: video chỉ dọn khi đã lên YouTube, audio chỉ dọn khi đã có bản
+# chủ repo chốt 2026-09-20: video chỉ dọn khi đã lên YouTube, audio chỉ dọn khi đã có bản
 # trong repo web. 14 ngày hạ xuống thành SÀN AN TOÀN — phải thoả CẢ HAI vế.
 
 def test_video_KHONG_co_bang_chung_thi_GIU(tmp_path):
@@ -465,7 +465,7 @@ def test_cau_dao_KHONG_chan_dry_run(tram):
 
 
 def test_days_0_khi_XOA_phai_go_them_co_rieng(tram):
-    """`--days 0` xoá cả file vừa render xong. Vẫn cho phép (Đức muốn 'dọn ngay' được),
+    """`--days 0` xoá cả file vừa render xong. Vẫn cho phép (chủ repo muốn 'dọn ngay' được),
     nhưng không được là một ký tự gõ nhầm trong dòng lệnh của bộ lập lịch."""
     con = tram / "kenh-a" / "out" / "moi" / "moi.mp4"
     r = _chay("--root", tram, "--delete", "--days", 0)

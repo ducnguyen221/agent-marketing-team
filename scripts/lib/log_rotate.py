@@ -6,7 +6,7 @@
 
 ## Vì sao (SUBTASK-WIN-RUNTIME-3 §4, Mac mini 03/10/2026)
 
-Đức gỡ job dọn tuần (`weekly-cleanup`): mỗi quy trình đã tự dọn media của nó (truyện quét lượt
+chủ repo gỡ job dọn tuần (`weekly-cleanup`): mỗi quy trình đã tự dọn media của nó (truyện quét lượt
 trước, tin xoá mp4 sau khi lên YouTube, tuần giữ 14 thư mục video + 54 bản audio). Lỗ hổng duy
 nhất còn lại là **log không xoay vòng** (~0,5 MB/lượt truyện, ~200 MB/năm). Nên xoay vòng đi theo
 chính các lượt chạy — đầu mỗi lượt truyện và mỗi lượt tin — không cần job riêng.

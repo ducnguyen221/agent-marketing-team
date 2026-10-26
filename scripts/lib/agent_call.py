@@ -247,7 +247,7 @@ def resolve_model(engine: str, model: str, cfg: dict) -> str:
 
 def dau_order(cfg) -> tuple[str, str]:
     """Mục ĐẦU của `order` -> (engine, model). `--engine order` dùng nó, để script trạm (runner
-    tin) đi đúng thứ tự Đức chốt trong `engines.json` mà không khoá cứng engine nào trong mã.
+    tin) đi đúng thứ tự chủ repo chốt trong `engines.json` mà không khoá cứng engine nào trong mã.
     `order` rỗng/hỏng là lỗi hợp đồng — không đoán một engine thay."""
     tho = cfg.get("order") or []
     if isinstance(tho, str):
@@ -267,7 +267,7 @@ def build_chain(engine, model, cfg, fallback=None) -> list[tuple[str, str]]:
 
     `--engine` luôn thắng `order`: người gọi nói rõ muốn engine nào thì lớp này không được
     âm thầm đổi ý ở lượt đầu. `order` chỉ quyết định thứ tự của những engine CÒN LẠI, và
-    bản thân nó là thứ Đức sửa để đổi engine chính (bằng cách đổi cả `--engine` của script
+    bản thân nó là thứ chủ repo sửa để đổi engine chính (bằng cách đổi cả `--engine` của script
     trạm, hoặc để script truyền `--engine` từ chính dòng đầu `order`).
     """
     dau = (engine, resolve_model(engine, model, cfg))

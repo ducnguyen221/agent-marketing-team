@@ -224,7 +224,7 @@ def _kham_du_lieu_mui_gio(so: So) -> None:
     biết phải đợi tới lúc nào. Đỏ cả bản cài vì chuyện đó là nói quá.
 
     Vì sao doctor phải hỏi câu này: `tzdata` đã khai trong `requirements.txt`, nhưng máy
-    của Đức có sẵn gói đó do một thứ khác kéo về, nên chạy ở đây thì ngon còn CI Windows
+    của chủ repo có sẵn gói đó do một thứ khác kéo về, nên chạy ở đây thì ngon còn CI Windows
     (máy sạch) thì đỏ. Thiếu một phụ thuộc đã khai là thứ chỉ máy sạch mới thấy — doctor
     là chỗ duy nhất trong repo biết hỏi máy đang chạy, nên nó phải hỏi.
     """
@@ -767,7 +767,7 @@ KHAM_THEM.append(kham_runner)
 # Mac mini 03/10/2026: agy tự cập nhật (1.2.16) và bỏ `claude-opus-4-6-thinking` khỏi danh mục;
 # mẫu đầu `order` trả `model_access` mọi lượt suốt hai ngày, chuỗi lùi lặng lẽ chạy bằng Gemini.
 # `agy models` là 0 token (~3 s) nên doctor hỏi được. Lệch chỉ NHẮC: chuỗi lùi vẫn cứu lượt chạy,
-# nhưng nó chạy bằng engine khác cái Đức chọn — đó là thứ phải thấy được.
+# nhưng nó chạy bằng engine khác cái chủ repo chọn — đó là thứ phải thấy được.
 
 def _muc_agy(cfg: dict) -> list[str]:
     """Mọi model agy mà trạm sẽ dùng: `order`, `engines.agy.best`, `TRUYEN_HOOK_ENGINE`."""

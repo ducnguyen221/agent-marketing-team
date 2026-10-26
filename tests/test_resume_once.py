@@ -2,7 +2,7 @@
 """Cổng P1-23: lượt truyện quá trần (mã 124) mà dải còn dở thì tự chạy tiếp ĐÚNG MỘT LẦN.
 
 Mac mini 02/10/2026: lượt 301–310 bị giết lúc 08:30 sau 9/10 chương; người phải
-`launchctl kickstart` tay. Ba kịch bản Đức chốt (SUBTASK-WIN-RUNTIME-2 §1):
+`launchctl kickstart` tay. Ba kịch bản chủ repo chốt (SUBTASK-WIN-RUNTIME-2 §1):
 
 * 124 + có `_resume.json` ⇒ chạy tiếp đúng 1 lần (kèm tin ⏳ "từ chương X");
 * 124 + KHÔNG có `_resume.json` ⇒ không chạy tiếp;

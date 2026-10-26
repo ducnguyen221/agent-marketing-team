@@ -223,7 +223,7 @@ def test_co_station_thi_separate_khong_hoi(repo, tmp_path):
 
 
 def test_MARKETING_STUDIO_DATA_da_dat_thi_TU_CHON_separate(repo, tmp_path, monkeypatch):
-    """Máy Đức: biến đã có từ trước ⇒ không hỏi, và KHÔNG BAO GIỜ tạo workspaces/."""
+    """máy chủ repo: biến đã có từ trước ⇒ không hỏi, và KHÔNG BAO GIỜ tạo workspaces/."""
     ngoai = tmp_path / "tram-cu"
     ngoai.mkdir()
     monkeypatch.setenv("MARKETING_STUDIO_DATA", str(ngoai))

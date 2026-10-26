@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Test cho `publish_evidence` — đọc BẰNG CHỨNG ĐÃ ĐĂNG của đường ống.
 
-Vì sao có module này: luật dọn kho (Đức chốt 2026-09-20) không còn là "quá 14 ngày thì
+Vì sao có module này: luật dọn kho (chủ repo chốt 2026-09-20) không còn là "quá 14 ngày thì
 xoá". Một file chỉ được dọn khi CÓ BẰNG CHỨNG nó đã ra khỏi máy — video đã lên YouTube,
 audio đã có bản trong repo web. Không có bằng chứng ⇒ giữ, và nói rõ vì sao giữ.
 

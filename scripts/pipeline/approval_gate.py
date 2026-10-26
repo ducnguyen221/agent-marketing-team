@@ -102,7 +102,7 @@ def post_has_content(campaign: Path, row: dict) -> bool:
 def why_not_ready(campaign: Path, row: dict) -> str:
     """Lý do bài này CHƯA được phép đem ra hỏi ở Cổng 2. Chuỗi rỗng = được hỏi.
 
-    FAIL-CLOSED ba nhánh (Đức chốt 11/09/2026):
+    FAIL-CLOSED ba nhánh (chủ repo chốt 11/09/2026):
       · chưa viết          — không có gì để đọc
       · chưa chấm cổng nào — KHÔNG ĐO ĐƯỢC nghĩa là *chưa biết*, không phải *đã qua*
       · máy chấm ĐỎ        — máy đã nói không thì đừng đem hỏi người

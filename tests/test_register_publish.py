@@ -84,10 +84,10 @@ def test_chua_duyet_thi_KHONG_ghi_da_dang(post):
 
 def test_approve_bat_buoc_co_dau_vet(post):
     _chay(post, "init")
-    _chay(post, "approve", "--by", "Đức", mong_doi=2)          # thiếu --note
-    r = _chay(post, "approve", "--by", "Đức", "--note", "ok đăng đi", "--post", "fb")
+    _chay(post, "approve", "--by", "Chủ kênh", mong_doi=2)          # thiếu --note
+    r = _chay(post, "approve", "--by", "Chủ kênh", "--note", "ok đăng đi", "--post", "fb")
     p = [x for x in _pj(post)["posts"] if x["channel"] == "facebook"][0]
-    assert p["review"]["approved_by"] == "Đức"
+    assert p["review"]["approved_by"] == "Chủ kênh"
     assert p["review"]["note"] == "ok đăng đi", "phải giữ NGUYÊN VĂN câu duyệt"
     assert p["review"]["approved_at"]
 
@@ -127,7 +127,7 @@ def test_thay_placeholder_va_cap_nhat_nguoc(post):
 
 
 def test_URL_that_vao_dung_cot_trong_bang_content(post):
-    """Đức 04/09: mở lại bài phải bấm được từ campaign.md, không phải đi lục publish.json."""
+    """chủ repo 04/09: mở lại bài phải bấm được từ campaign.md, không phải đi lục publish.json."""
     _chay(post, "init")
     _chay(post, "approve", "--by", "Đ", "--note", "ok")
     _chay(post, "set", "--post", "web", "--link", "https://vidu.vn/a.html", "--no-verify")

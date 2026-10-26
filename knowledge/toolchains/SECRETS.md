@@ -153,6 +153,7 @@ user thì mọi tiến trình con đọc được và nó lọt vào log.
 | Biến | Ai đọc | Không đặt thì |
 |---|---|---|
 | `MARKETING_STUDIO_DATA` | `studio_paths.py`, `run.ps1` — gốc trạm | script Python: `studio.local.json` → `<repo>/workspaces/`; `run.ps1` đi lên tìm `CHANNELS.md` trước |
+| `MARKETING_APPROVER` | `approver.py` — tên ghi vào `approved_by`/`by` của hồ sơ duyệt | khoá `approver` của `studio.local.json`; không có thì ghi «chủ kênh» |
 | `MARKETING_STUDIO_HOME` | `run.ps1` — thư mục repo | đi lên từ thư mục chiến dịch tìm `scripts/pipeline/campaign_cfg.py` (embedded: cha của trạm); không thấy thì DỪNG |
 | `OPCOS_WORKSPACES` | `init_station.py` (đề xuất), `doctor.py` (nhắc) — tuỳ chọn | không làm gì; có thì `init` đề xuất `<đó>/marketing` nếu mang `CHANNELS.md`, không bao giờ tự đổi trạm. Chỉ đọc từ môi trường thật: đặt cấp user (`setx` / plist), **`.env` KHÔNG được đọc** |
 | `MARKETING_STUDIO_PY` | mọi `.ps1` gọi Python (`Find-Python`) | `<repo>/.venv` → `python` → `python3` → `py`; khai mà hỏng thì DỪNG |

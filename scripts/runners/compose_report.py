@@ -81,7 +81,7 @@ def build(title, code, duration, log):
     ok = code == 0
     # Lượt CỐ Ý không làm gì (runner tin cách ngày, ngày lệch nhịp — `RUN_SKIPPED=cadence`): một
     # dòng ⏭, không ✅. Tin "✅ chạy xong sau 0 giây" mỗi ngày làm người đọc tưởng đã có bài
-    # (Đức hỏi 03/10). Wrapper launchd (`notify_run.py`) còn không gửi lượt này; wrapper Task
+    # (chủ repo hỏi 03/10). Wrapper launchd (`notify_run.py`) còn không gửi lượt này; wrapper Task
     # Scheduler ngoài repo gửi đúng dòng này. Mã khác 0 thì dấu đó không được che lỗi.
     bo_qua = find(r"\bRUN_SKIPPED=(\w+)", log)
     if ok and bo_qua:
@@ -172,7 +172,7 @@ def build(title, code, duration, log):
     reach = ""
     if rs == "low" and rl and rn:
         # Vách ngăn "LƯỢT TRƯỚC" là BẮT BUỘC, không phải trang trí: khối này nói về bài CŨ,
-        # nhưng nó nằm ngay dưới đoạn báo thành công của lượt HIỆN TẠI. Đêm 05/09/2026 Đức
+        # nhưng nó nằm ngay dưới đoạn báo thành công của lượt HIỆN TẠI. Đêm 05/09/2026 chủ repo
         # đọc tin ✅ của số W36 và tưởng lượt chạy hỏng, chỉ vì dòng 📉 đứng sát bên dưới.
         reach = (f"📉 <b>Các bài đăng TRƯỚC ĐÓ</b> (không liên quan lượt này): "
                  f"<b>{rl}/{rn} bài chưa có ai xem hay tương tác.</b> "

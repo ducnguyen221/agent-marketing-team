@@ -32,6 +32,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "lib"))
 import md_io  # noqa: E402
 import post_paths as PP  # noqa: E402
 import studio_paths as SP  # noqa: E402
+from approver import ten_nguoi_duyet  # noqa: E402
 
 SCHEMA = "publish/2"
 _URL = re.compile(r"https?://\S+", re.I)
@@ -308,7 +309,7 @@ def cmd_migrate(post: Path) -> int:
                    pj.get("post_id", ""), ch, fmt, kpi)
         p["quality_check"] = "passed"
         p["agent_status"] = "completed"
-        p["review"] = {"status": "approved", "feedback": "", "approved_by": "Đức",
+        p["review"] = {"status": "approved", "feedback": "", "approved_by": ten_nguoi_duyet(),
                        "approved_at": (pj.get("published_at", "") or "")[:10],
                        "note": "di trú từ publish/1 — bài đã đăng, duyệt qua chat trước khi "
                                "đăng, không có mốc giờ chính xác"}
@@ -385,7 +386,7 @@ def _cap_nhat_nguoc(post: Path, pj: dict) -> None:
 
     fm, body = md_io.read_fm(campaign_dir / "campaign.md")
     if da_dang:
-        # URL THẬT vào bảng Content — Đức yêu cầu 04/09: mở lại bài sau này không phải đi
+        # URL THẬT vào bảng Content — chủ repo yêu cầu 04/09: mở lại bài sau này không phải đi
         # lục từng publish.json, và campaign.html render được thành nút bấm.
         # Duyệt theo THỨ TỰ MẪU, không theo thứ tự trong publish.json: cột sinh ra theo thứ
         # tự đăng thì mỗi kênh một kiểu bảng, đọc chéo giữa các chiến dịch là rối.

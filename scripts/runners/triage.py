@@ -49,13 +49,13 @@ AI_BUDGET_USD = "0.10"
 # ── Tầng 1: phân loại bằng luật ─────────────────────────────────────────────
 # Thứ tự QUAN TRỌNG: xét từ cụ thể tới chung. Mỗi mục:
 #   (mã, nhãn tiếng Việt, regex, ai_xu_ly, chờ_là_hết, gợi ý mặc định)
-# `ai_xu_ly`: "chờ" = không ai phải làm gì · "Đức" = cần người · "agent" = sửa được bằng code.
+# `ai_xu_ly`: "chờ" = không ai phải làm gì · "người" = cần người · "agent" = sửa được bằng code.
 RULES = [
     ("nguon_sap", "Nguồn sập", "chờ", True,
      r"(5\d\d Server Error|502 Bad Gateway|503 Service|504 Gateway|Internal Server Error)",
      "Máy chủ của trang nguồn đang lỗi. Pipeline sẽ tự chạy lại ở lượt sau, không cần làm gì."),
 
-    ("nguon_mat_trang", "Nguồn đổi/xoá nội dung", "Đức", False,
+    ("nguon_mat_trang", "Nguồn đổi/xoá nội dung", "người", False,
      r"(404 Client Error|404 Not Found|HTTP Error 404)",
      "Đường dẫn bên nguồn không còn tồn tại — có thể trang đã đổi cấu trúc URL hoặc gỡ nội dung."),
 
@@ -82,7 +82,7 @@ RULES = [
      r"(429|rate.?limit|quota exceeded|too many requests|max_budget|budget exceeded)",
      "Đã chạm hạn mức của dịch vụ. Chờ hết chu kỳ hoặc nâng hạn mức."),
 
-    ("xac_thuc", "Hết hạn đăng nhập / thiếu quyền", "Đức", False,
+    ("xac_thuc", "Hết hạn đăng nhập / thiếu quyền", "người", False,
      r"(401 |403 |Unauthorized|Forbidden|invalid_grant|token (expired|invalid)|credential)",
      "Token hoặc phiên đăng nhập đã hết hạn — cần đăng nhập lại, agent không tự làm được."),
 
@@ -91,7 +91,7 @@ RULES = [
      r"Temporary failure in name resolution|SSLError|ReadTimeout|ConnectTimeout)",
      "Không nối được tới máy chủ. Thường tự hết ở lượt sau."),
 
-    ("o_dia", "Hết dung lượng ổ đĩa", "Đức", False,
+    ("o_dia", "Hết dung lượng ổ đĩa", "người", False,
      r"(No space left|ENOSPC|not enough space|Disk full|đĩa đầy)",
      "Ổ đĩa đầy. Phải dọn chỗ trước khi chạy lại."),
 
@@ -109,12 +109,12 @@ RULES = [
      r"SyntaxError|UnboundLocalError|AssertionError)",
      "Lỗi lập trình trong pipeline — sửa được bằng code."),
 
-    ("gpu", "GPU / mô hình cục bộ", "Đức", False,
+    ("gpu", "GPU / mô hình cục bộ", "người", False,
      r"(CUDA out of memory|CUDA error|no kernel image|torch\.cuda)",
      "GPU hết bộ nhớ hoặc driver trục trặc."),
 ]
 
-FALLBACK = ("khong_ro", "Chưa phân loại được", "Đức", False,
+FALLBACK = ("khong_ro", "Chưa phân loại được", "người", False,
             "Chưa nhận ra dạng lỗi này. Cần đọc log để biết chuyện gì xảy ra.")
 
 
@@ -171,13 +171,13 @@ Trả về DUY NHẤT một object JSON, không kèm giải thích, không kèm 
 {{
   "cause": "Nguyên nhân, 1-2 câu, tiếng Việt, KHÔNG dùng thuật ngữ lập trình. Nói cho người không biết code hiểu chuyện gì đã xảy ra.",
   "action": "Việc cần làm tiếp theo, 1-2 câu, cụ thể. Nếu chỉ cần chờ thì nói rõ là chờ và chờ tới khi nào.",
-  "owner": "cho" | "duc" | "agent",
+  "owner": "cho" | "nguoi" | "agent",
   "severity": "thap" | "trung" | "cao",
   "category_confirm": "đồng ý với phân loại sơ bộ, hoặc nêu phân loại đúng hơn bằng vài từ"
 }}
 
 Quy tắc:
-- "owner": "cho" = không ai phải làm gì, tự hết. "duc" = cần con người. "agent" = sửa được bằng code.
+- "owner": "cho" = không ai phải làm gì, tự hết. "nguoi" = cần con người. "agent" = sửa được bằng code.
 - "severity": "cao" chỉ khi mất dữ liệu hoặc hỏng kéo dài; nguồn sập tạm thời là "thap".
 - Nếu log cho thấy nguyên nhân nằm NGOÀI tầm kiểm soát (máy chủ bên thứ ba lỗi), phải nói thẳng
   là không cần sửa gì.
@@ -258,7 +258,7 @@ def append_excel(row):
 
 
 OWNER_TEXT = {"cho": "⏳ Không cần làm gì — chờ là hết",
-              "duc": "🙋 Cần anh xử lý",
+              "nguoi": "🙋 Cần anh xử lý",
               "agent": "🤖 Sửa được bằng code"}
 SEV_ICON = {"thap": "🟢", "trung": "🟡", "cao": "🔴"}
 
@@ -293,9 +293,9 @@ def main():
     ai = None if a.no_ai else ask_claude(a.title, a.exit, label, errline, text)
     cause = (ai or {}).get("cause") or hint
     action = (ai or {}).get("action") or ("Chờ lượt chạy sau." if waitable else "Xem log để biết chi tiết.")
-    owner_k = (ai or {}).get("owner") or {"chờ": "cho", "Đức": "duc", "agent": "agent"}[owner]
+    owner_k = (ai or {}).get("owner") or {"chờ": "cho", "người": "nguoi", "agent": "agent"}[owner]
     if owner_k not in OWNER_TEXT:
-        owner_k = "duc"
+        owner_k = "nguoi"
     sev = (ai or {}).get("severity") or ("thap" if waitable else "trung")
     if sev not in SEV_ICON:
         sev = "trung"

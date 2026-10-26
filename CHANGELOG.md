@@ -107,7 +107,7 @@ Scheduler lẫn launchd. Lịch chạy KHÔNG đổi trong repo (Mac tự chỉn
   chờ (giả lập: `RENDER_PROBE_TIMEOUT=1 RENDER_HEAL_WAITS=1,1`), `RENDER_HEAL=0` tắt thang;
   video-studio 0.2.5/0.2.6 (chưa biết `--heal`) ⇒ nhắc một dòng rồi probe như cũ, không đọc nhầm
   thành "cấu hình sai". RUNBOOK: giờ khởi động lại định kỳ nên sau truyện (~07:00), trước 17:00.
-- **Log xoay vòng trong lượt chạy** (Đức đã gỡ `weekly-cleanup` trên Mac). `scripts/lib/log_rotate.py`
+- **Log xoay vòng trong lượt chạy** (chủ repo đã gỡ `weekly-cleanup` trên Mac). `scripts/lib/log_rotate.py`
   (mã chung, job dọn tuần cũng dùng): `*.log` sửa quá 60 ngày ⇒ xoá, trên 5 MB ⇒ cắt giữ 1 MB cuối
   tại chỗ, file vừa ghi trong 1 h không cắt, tên bắt đầu `_` (state/sổ của heal_agent) và file
   không phải log không đụng, thư mục con `render-stuck/<giờ>` quá 60 ngày ⇒ xoá; không bao giờ làm
@@ -126,7 +126,7 @@ Scheduler lẫn launchd. Lịch chạy KHÔNG đổi trong repo (Mac tự chỉn
   "đã tự chữa — chạy tiếp bình thường" ⇒ nay chỉ xét phần log SAU `RENDER_PREFLIGHT=ok`, kẹt lại
   thì báo "KẸT LẠI khi dựng thật — khởi động lại máy". Phía video-studio 0.2.7 sửa cách nhận/giết
   tiến trình mồ côi, đối chiếu SID chủ trên Windows và che secret ba lớp (xem CHANGELOG của repo đó).
-- **Wrapper Task Scheduler giữ nguyên (Đức chọn 04/10):** wrapper báo Telegram của Task Scheduler (hạ tầng máy, `notify-run.ps1`) nằm
+- **Wrapper Task Scheduler giữ nguyên (chủ repo chọn 04/10):** wrapper báo Telegram của Task Scheduler (hạ tầng máy, `notify-run.ps1`) nằm
   ngoài repo; lượt bỏ qua theo nhịp trên Windows vẫn ra MỘT dòng "⏭ … bỏ qua theo nhịp … không phải
   lỗi" (văn do `compose_report.py` soạn), không còn ✅. launchd thì không gửi gì. Các task tin trên
   Windows hiện đều Disabled (lịch đã chuyển sang Mac).
@@ -170,7 +170,7 @@ P5-02/10-TOI). Mọi thay đổi chạy giống nhau dưới Task Scheduler lẫ
   đổi trần — đặt 1 để giả lập máy kẹt khi nghiệm thu. Render hỏng vì `Navigation timeout` cũng
   được `compose_report` gắn gợi ý khởi động lại. Hot AI 02/10 18:00 hỏng sau 42 phút vì môi trường
   macOS kẹt; khởi động lại máy là hết.
-- **Khởi động lại định kỳ**: chỉ ghi thành bước tài liệu cho Đức quyết (`docs/RUNBOOK-DOI-MAY.md`
+- **Khởi động lại định kỳ**: chỉ ghi thành bước tài liệu cho chủ repo quyết (`docs/RUNBOOK-DOI-MAY.md`
   mục "Khởi động lại định kỳ máy chạy lịch") — `pmset repeat restart` cần admin, kèm ba điều phải
   kiểm (tự đăng nhập, không cắt ngang lượt truyện, Windows).
 - **Sau review độc lập (02/10)** — 4 Phải sửa + các Nên sửa:

@@ -183,7 +183,7 @@ cho tới lúc có người thắc mắc sao bấm không ăn. Nên nhịp CHỈ
 thành công; gửi được tin **không tính**. Xem `logs/tg-poll-alive.json`, đọc bằng
 `approve_bus.py poller-status`.
 
-**Poller KHÔNG đi qua `notify-run.ps1`** (Đức chốt 10/09): nó chạy gần như liên tục, báo
+**Poller KHÔNG đi qua `notify-run.ps1`** (chủ repo chốt 10/09): nó chạy gần như liên tục, báo
 mỗi lượt là hàng nghìn tin một ngày — và tin báo nhiều tới mức đó thì không ai đọc nữa,
 tức là mất luôn tác dụng cảnh báo cho MỌI task khác. Bù lại nó tự chứng minh còn sống bằng
 nhịp ở trên.

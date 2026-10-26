@@ -136,7 +136,7 @@ def test_nhanh_1_tham_so_station_thang_tat_ca(repo_gia, tmp_path, monkeypatch):
 
 
 def test_nhanh_2_bien_moi_truong_THANG_studio_local_json(repo_gia, tmp_path, monkeypatch):
-    """Máy Đức: biến đã đặt từ trước; một studio.local.json lạc vào repo không được cướp trạm."""
+    """máy chủ repo: biến đã đặt từ trước; một studio.local.json lạc vào repo không được cướp trạm."""
     monkeypatch.setenv("MARKETING_STUDIO_DATA", str(tmp_path / "bien"))
     _ghi_local(repo_gia, mode="embedded", station_path=SP.WORKSPACE)
     (repo_gia / SP.WORKSPACE).mkdir()

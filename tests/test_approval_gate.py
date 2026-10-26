@@ -62,8 +62,8 @@ def _g1(campaign, cid):
 @pytest.mark.parametrize("by,quote", [
     ("", "duyệt nhé"),
     ("   ", "duyệt nhé"),
-    ("Đức", ""),
-    ("Đức", "   "),
+    ("Chủ kênh", ""),
+    ("Chủ kênh", "   "),
 ])
 def test_thieu_chung_nhan_thi_KHONG_ghi_cong(tmp_path, by, quote):
     """Không có tên người duyệt, hoặc không có câu người nói, thì cổng không mở."""
@@ -76,14 +76,14 @@ def test_thieu_chung_nhan_thi_KHONG_ghi_cong(tmp_path, by, quote):
 def test_cong_la_thi_nem_loi(tmp_path):
     campaign = _cam(tmp_path)
     with pytest.raises(ValueError):
-        AG.open_gate(campaign, "g9", ["T-001"], by="Đức", quote="ok", via="phiên")
+        AG.open_gate(campaign, "g9", ["T-001"], by="Chủ kênh", quote="ok", via="phiên")
 
 
 # ── Ghi cổng ────────────────────────────────────────────────────────────────
 
 def test_mo_g1_ghi_cot_va_doi_status(tmp_path):
     campaign = _cam(tmp_path)
-    done = AG.open_gate(campaign, "g1", ["T-001"], by="Đức", quote="ok làm bài này",
+    done = AG.open_gate(campaign, "g1", ["T-001"], by="Chủ kênh", quote="ok làm bài này",
                       via="phiên")
     assert done == ["T-001"]
     d = {x["content_id"]: x for x in AG.read_content_table(campaign)[3]}["T-001"]
@@ -94,7 +94,7 @@ def test_mo_g1_ghi_cot_va_doi_status(tmp_path):
 def test_mo_cong_VAO_SO_SU_KIEN(tmp_path):
     """Sổ sự kiện là thứ duy nhất trả lời được *ai* duyệt và *qua đường nào*."""
     campaign = _cam(tmp_path)
-    AG.open_gate(campaign, "g1", ["T-001"], by="Đức", quote="ok", via="phiên")
+    AG.open_gate(campaign, "g1", ["T-001"], by="Chủ kênh", quote="ok", via="phiên")
     ds = [x for x in EV.read(campaign) if x["job"] == "g1_approved"]
     assert ds, [x["job"] for x in EV.read(campaign)]
     assert ds[-1]["via"] == "phiên", "không ghi lại đi qua mặt tiền nào"
@@ -103,7 +103,7 @@ def test_mo_cong_VAO_SO_SU_KIEN(tmp_path):
 def test_mo_lai_KHONG_ghi_de_va_KHONG_sinh_su_kien_thu_hai(tmp_path):
     """Idempotent: mặt tiền có thể gọi lại (bấm hai lần, chạy lại lệnh) — không được nhân đôi."""
     campaign = _cam(tmp_path)
-    AG.open_gate(campaign, "g1", ["T-001"], by="Đức", quote="ok", via="phiên")
+    AG.open_gate(campaign, "g1", ["T-001"], by="Chủ kênh", quote="ok", via="phiên")
     ngay_dau = _g1(campaign, "T-001")
     lan_hai = AG.open_gate(campaign, "g1", ["T-001"], by="ai đó", quote="ok lần nữa",
                          via="phiên")
@@ -114,7 +114,7 @@ def test_mo_lai_KHONG_ghi_de_va_KHONG_sinh_su_kien_thu_hai(tmp_path):
 
 def test_bai_khong_co_trong_bang_thi_bo_qua_khong_no(tmp_path):
     campaign = _cam(tmp_path)
-    done = AG.open_gate(campaign, "g1", ["T-001", "T-404"], by="Đức", quote="ok",
+    done = AG.open_gate(campaign, "g1", ["T-001", "T-404"], by="Chủ kênh", quote="ok",
                       via="phiên")
     assert done == ["T-001"]
 
@@ -127,7 +127,7 @@ def test_mo_cong_KHONG_xep_viec(tmp_path):
     """
     campaign = _cam(tmp_path)
     lookahead = WQ.count(campaign)["pending"]
-    AG.open_gate(campaign, "g1", ["T-001"], by="Đức", quote="ok", via="phiên")
+    AG.open_gate(campaign, "g1", ["T-001"], by="Chủ kênh", quote="ok", via="phiên")
     assert WQ.count(campaign)["pending"] == lookahead
 
 
@@ -135,7 +135,7 @@ def test_mo_cong_KHONG_xep_viec(tmp_path):
 
 def test_tu_choi_ghi_phan_hoi_va_KHONG_mo_cong(tmp_path):
     campaign = _cam(tmp_path)
-    AG.reject(campaign, "g1", ["T-001"], by="Đức", quote="mở bài dài quá", via="phiên")
+    AG.reject(campaign, "g1", ["T-001"], by="Chủ kênh", quote="mở bài dài quá", via="phiên")
     assert _g1(campaign, "T-001") == "", "từ chối mà cổng vẫn mở"
     ph = AG.read_feedback(campaign, "T-001")
     assert ph and "dài quá" in ph[-1]["text"]
@@ -145,8 +145,8 @@ def test_tu_choi_ghi_phan_hoi_va_KHONG_mo_cong(tmp_path):
 def test_tu_choi_GIU_DU_phan_hoi_cu(tmp_path):
     """Vòng viết lại lặp được, nên ghi đè lần trước là mất dấu vết vì sao bài thành thế."""
     campaign = _cam(tmp_path)
-    AG.reject(campaign, "g1", ["T-001"], by="Đức", quote="lần một", via="phiên")
-    AG.reject(campaign, "g1", ["T-001"], by="Đức", quote="lần hai", via="phiên")
+    AG.reject(campaign, "g1", ["T-001"], by="Chủ kênh", quote="lần một", via="phiên")
+    AG.reject(campaign, "g1", ["T-001"], by="Chủ kênh", quote="lần hai", via="phiên")
     assert [x["text"] for x in AG.read_feedback(campaign, "T-001")] == ["lần một", "lần hai"]
 
 
@@ -179,7 +179,7 @@ def test_ho_so_bai_chua_co_thu_muc_thi_rong(tmp_path):
 def test_CLI_thieu_nguyen_van_thi_khong_chay(tmp_path):
     campaign = _cam(tmp_path)
     with pytest.raises(SystemExit) as e:
-        AG.main([str(campaign), "open", "--gate", "g1", "--post", "T-001", "--by", "Đức"])
+        AG.main([str(campaign), "open", "--gate", "g1", "--post", "T-001", "--by", "Chủ kênh"])
     assert e.value.code == 2
     assert _g1(campaign, "T-001") == ""
 
@@ -188,7 +188,7 @@ def test_CLI_mo_roi_chay_lai_van_ma_0(tmp_path, capsys):
     """Idempotent nghĩa là chạy lại vẫn 0. Trả khác 0 thì thợ tưởng hỏng và thử lại 3 lần."""
     campaign = _cam(tmp_path)
     args = [str(campaign), "open", "--gate", "g1", "--post", "T-001",
-            "--by", "Đức", "--quote", "ok"]
+            "--by", "Chủ kênh", "--quote", "ok"]
     assert AG.main(args) == 0
     assert AG.main(args) == 0
 
@@ -217,7 +217,7 @@ def test_CLI_cho_TACH_bai_san_sang_khoi_bai_chua_the_hoi(tmp_path, capsys):
     """
     campaign = _cam(tmp_path)
     # T-001 đã viết và chấm xanh; T-002 mới có dòng trong bảng.
-    AG.open_gate(campaign, "g1", ["T-001", "T-002"], by="Đức", quote="ok", via="phiên")
+    AG.open_gate(campaign, "g1", ["T-001", "T-002"], by="Chủ kênh", quote="ok", via="phiên")
     post = campaign / "T-001_bai-mot"
     post.mkdir()
     (post / "content.md").write_text(

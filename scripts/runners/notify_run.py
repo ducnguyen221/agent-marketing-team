@@ -46,7 +46,7 @@ Không đặt `--timeout` thì hành vi y như trước: chờ đến khi nào x
 Runner tin hằng ngày chạy cách ngày (Hot AI ngày chẵn, Hot Data ngày lẻ) nhưng launchd gọi MỖI
 ngày: ngày lệch nhịp nó thoát 0 sau 0 giây với dòng `RUN_SKIPPED=<lý do>`. Trước 1.1.9 lượt đó
 vẫn ra tin "✅ … chạy 00:00:00" — mỗi ngày một tin trông như đã đăng bài mà không có gì
-(Đức hỏi 03/10). Mã 0 + dấu đó ⇒ **không gửi**, chỉ in một dòng vào log của job. Mã khác 0 thì
+(chủ repo hỏi 03/10). Mã 0 + dấu đó ⇒ **không gửi**, chỉ in một dòng vào log của job. Mã khác 0 thì
 dấu đó không được nuốt tin lỗi: vẫn báo như thường.
 
 ## Ba tầng soạn tin (giống wrapper Windows)

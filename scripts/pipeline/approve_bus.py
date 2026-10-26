@@ -75,6 +75,7 @@ import md_io  # noqa: E402
 import event_log as EV  # noqa: E402
 import telegram_io  # noqa: E402
 import approval_gate as AG  # noqa: E402
+from approver import ten_nguoi_duyet  # noqa: E402
 
 # File này là MẶT TIỀN Telegram, không phải kho cổng. Mọi phép ghi cổng nằm ở
 # `approval_gate.py` và mặt tiền trong phiên gọi vào đúng chỗ đó. Tách 12/09/2026 vì trước
@@ -258,7 +259,7 @@ def send_gate(campaign: Path, gate: str, *, bot, batch: int | None = None,
 
     # CỔNG 2 phải GỬI KÈM BÀI. Cổng bắt người duyệt NỘI DUNG mà chỉ chở mã bài + tiêu đề
     # thì là mời họ gật đầu về thứ không nhìn thấy — con dấu cao su, không phải cổng.
-    # (Đức hỏi đúng chỗ này 11/09/2026.)
+    # (chủ repo hỏi đúng chỗ này 11/09/2026.)
     #
     # Cổng 1 thì KHÔNG gửi: duyệt đề tài là liếc một dòng, đính file vào chỉ làm phiền.
     if gate == "g2":
@@ -398,7 +399,7 @@ def _handle_one(u: dict, *, campaign: Path, st: dict, result: dict, bot,
             #
             # Đây là chỗ ta thay cho "hàng đợi bền" của OpenClaw: rủi ro thật hẹp hơn kiến
             # trúc của họ nhiều, nên vá đúng chỗ hẹp đó thay vì nhập cả một tầng hàng đợi.
-            done = _apply(campaign, y["gate"], cids, by="Đức (Telegram)",
+            done = _apply(campaign, y["gate"], cids, by=f"{ten_nguoi_duyet()} (Telegram)",
                             note="duyệt qua Telegram", now=now)
             result.setdefault("_da_tieu", set()).add(tok)
             result["duyet"] += done
@@ -413,7 +414,7 @@ def _handle_one(u: dict, *, campaign: Path, st: dict, result: dict, bot,
         else:
             result.setdefault("_da_tieu", set()).add(tok)   # từ chối cũng là đã xử lý xong
             result["reject"] += cids
-            AG.reject(campaign, y["gate"], cids, by="Đức (Telegram)",
+            AG.reject(campaign, y["gate"], cids, by=f"{ten_nguoi_duyet()} (Telegram)",
                        quote="từ chối bằng nút — không kèm lý do", via="nút")
             _ack(bot.tra_loi_nut, cq["id"], "Đã từ chối.")
             _ack(bot.sua_tin, cq["message"]["message_id"],
@@ -450,7 +451,7 @@ def _handle_one(u: dict, *, campaign: Path, st: dict, result: dict, bot,
                 return _execute_command(campaign, cid, ml.group(1), (ml.group(2) or "").strip(),
                                       bot=bot, result=result)
             _ghi_phan_hoi(campaign, cid, text)
-            EV.write(campaign, "feedback", post=cid, by="Đức (Telegram)", text=text[:300])
+            EV.write(campaign, "feedback", post=cid, by=f"{ten_nguoi_duyet()} (Telegram)", text=text[:300])
             WQ.add(campaign, "next", post=cid, source="feedback")
             result.setdefault("feedback", []).append(cid)
             result["xu_ly"] += 1
@@ -498,7 +499,7 @@ def _execute_command(campaign: Path, cid: str, cmd: str, reason: str, *, bot, re
         return
     gate = "g2" if (cid in {d["content_id"] for d in waiting_at(campaign, "g2")}) else "g1"
     if cmd.lower().startswith(("duy", "duyệt")):
-        done = _apply(campaign, gate, [cid], by="Đức (Telegram)",
+        done = _apply(campaign, gate, [cid], by=f"{ten_nguoi_duyet()} (Telegram)",
                         note=reason or "duyệt qua Telegram", now=now)
         result["duyet"] += done
         for c in done:
@@ -508,7 +509,7 @@ def _execute_command(campaign: Path, cid: str, cmd: str, reason: str, *, bot, re
         _ack(bot.gui, f"✅ {cid}: đã duyệt." if done else f"⚠️ {cid}: không ghi được (xem log).")
     else:
         result["reject"].append(cid)
-        AG.reject(campaign, gate, [cid], by="Đức (Telegram)",
+        AG.reject(campaign, gate, [cid], by=f"{ten_nguoi_duyet()} (Telegram)",
                    quote=reason or "từ chối qua Telegram — không kèm lý do", via="chữ")
         if reason:
             # Có lý do thì đó là chỉ dẫn sửa -> đưa vào vòng viết lại.

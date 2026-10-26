@@ -183,7 +183,7 @@ def test_soat_xong_thi_duoc_dang(post):
     M.make(d, cau=cau, run=_cau_gia())
     anh = PP.p(d, "fb_image")
     assert M.trang_thai_soat(anh)[0] is False
-    code, _ = M.verify(d, by="Đức", quote="chữ trên ảnh đúng dấu hết")
+    code, _ = M.verify(d, by="Chủ kênh", quote="chữ trên ảnh đúng dấu hết")
     assert code == 0 and M.trang_thai_soat(anh)[0] is True
 
 
@@ -191,14 +191,14 @@ def test_soat_THIEU_nguoi_hoac_cau_noi_thi_khong_ghi(post):
     d, cau = post
     M.make(d, cau=cau, run=_cau_gia())
     assert M.verify(d, by="", quote="ok")[0] == 3
-    assert M.verify(d, by="Đức", quote="  ")[0] == 3
+    assert M.verify(d, by="Chủ kênh", quote="  ")[0] == 3
     assert M.trang_thai_soat(PP.p(d, "fb_image"))[0] is False
 
 
 def test_soat_thay_SAI_thi_khong_duoc_dang(post):
     d, cau = post
     M.make(d, cau=cau, run=_cau_gia())
-    M.verify(d, by="Đức", quote="vùng 2 sai dấu chữ 'khoá'", failed=True)
+    M.verify(d, by="Chủ kênh", quote="vùng 2 sai dấu chữ 'khoá'", failed=True)
     ok, why = M.trang_thai_soat(PP.p(d, "fb_image"))
     assert ok is False and "failed" in why
 
@@ -207,7 +207,7 @@ def test_anh_bi_DOI_sau_khi_soat_thi_khong_duoc_dang(post):
     """Byte đem đăng phải là byte đã soát."""
     d, cau = post
     M.make(d, cau=cau, run=_cau_gia())
-    M.verify(d, by="Đức", quote="đúng dấu")
+    M.verify(d, by="Chủ kênh", quote="đúng dấu")
     PP.p(d, "fb_image").write_bytes(_png(1920, 1080) + b"sua-tay")
     ok, why = M.trang_thai_soat(PP.p(d, "fb_image"))
     assert ok is False and "đổi SAU khi soát" in why
@@ -217,7 +217,7 @@ def test_prompt_DOI_sau_khi_sinh_anh_thi_khong_cho_soat(post):
     d, cau = post
     M.make(d, cau=cau, run=_cau_gia())
     PP.p(d, "fb_prompt").write_text(PROMPT + " Thêm một thẻ.", encoding="utf-8")
-    code, kq = M.verify(d, by="Đức", quote="đúng")
+    code, kq = M.verify(d, by="Chủ kênh", quote="đúng")
     assert code == 1 and "prompt đã đổi" in kq["reason"], kq
 
 

@@ -663,7 +663,7 @@ def test_ghi_cong_XONG_thi_token_BI_TIEU(tmp_path):
 
 # ── Phản hồi bằng VĂN BẢN, gắn với bài qua reply ────────────────────────────
 #
-# Thay cho nút "Sửa lại" (Đức chốt 10/09): Đức TRẢ LỜI thẳng vào tin của bài, gõ nhận xét
+# Thay cho nút "Sửa lại" (chủ repo chốt 10/09): chủ repo TRẢ LỜI thẳng vào tin của bài, gõ nhận xét
 # tự do. Không phải nhớ mã bài — Telegram cho biết tin nào đang được trả lời, ta tra ngược
 # `message_id -> content_id` từ lúc gửi.
 #
@@ -778,7 +778,7 @@ def test_g2_VAN_moi_duyet_bai_da_viet_that(tmp_path):
 def test_cong2_PHAI_gui_KEM_BAI_chu_khong_chi_tieu_de(tmp_path):
     """Cổng 2 bắt người DUYỆT NỘI DUNG — nội dung phải tới được tay họ.
 
-    ĐÃ XẢY RA THẬT 11/09/2026: Đức nhận tin cổng 2 rồi hỏi lại *"nếu đã có nội dung tại sao
+    ĐÃ XẢY RA THẬT 11/09/2026: chủ repo nhận tin cổng 2 rồi hỏi lại *"nếu đã có nội dung tại sao
     tôi không thấy file gửi lên telegram"*. Tin chỉ chở mã bài + tiêu đề; `telegram_io` lúc
     đó **không có hàm gửi file nào cả**.
 
@@ -821,7 +821,7 @@ def _cham_diem(campaign, folder, verdict, fail_block=0):
 
 
 def test_g2_CHAN_bai_truot_cong_may(tmp_path):
-    """Máy đã chấm ĐỎ thì đừng hỏi người. Đức chốt 11/09/2026: chặn hẳn.
+    """Máy đã chấm ĐỎ thì đừng hỏi người. chủ repo chốt 11/09/2026: chặn hẳn.
 
     ĐÃ XẢY RA THẬT: NEN-001 trượt 7 cổng chặn (thiếu 400 từ, 0 nguồn, còn 2 placeholder)
     mà vẫn được gửi lên Telegram xin duyệt, không một lời cảnh báo. Người duyệt không có

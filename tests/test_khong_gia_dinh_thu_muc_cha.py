@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Cổng chặn tái diễn: không file nào trong repo được giả định TÊN thư mục chứa các repo.
 
-Đức, 30/09/2026: "cài ở một máy tính mới ở folder bất kỳ nó vẫn phải nhận diện được, không
+chủ repo, 30/09/2026: "cài ở một máy tính mới ở folder bất kỳ nó vẫn phải nhận diện được, không
 hard code mà phải theo folder cha — gọi là repo hay code đều phải được". Bản 1.0.1 viết cứng
 `~/Code/...` ở `run.ps1`, `web_publish.py`, hai chuỗi hướng dẫn cài, `.env.example` và năm
 tài liệu; Mac clone ở `~/Repo` phải ghi đè tay. Đường tới repo anh em / repo web nay suy từ

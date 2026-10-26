@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Nhận diện theo THƯ MỤC CHA — repo anh em, trạm của chúng, python của venv, repo web.
 
-Vì sao có file này (Đức, 30/09/2026): "cài ở một máy tính mới ở folder bất kỳ nó vẫn phải
+Vì sao có file này (chủ repo, 30/09/2026): "cài ở một máy tính mới ở folder bất kỳ nó vẫn phải
 nhận diện được, không hard code mà phải theo folder cha — gọi là repo hay code đều phải
 được". Máy Windows clone các repo vào thư mục `Code`, Mac vào `Repo`; bản trước viết cứng tên
 `Code` ở năm chỗ và Mac phải ghi đè tay ba dòng `channel.yml` + khai `MARKETING_STUDIO_HOME`.

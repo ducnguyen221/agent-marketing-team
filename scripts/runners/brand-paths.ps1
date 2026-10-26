@@ -926,7 +926,7 @@ function Invoke-RenderPreflight {
 
 function Invoke-LogRotate {
   <#
-    Xoay vòng log NGAY TRONG lượt chạy (SUBTASK-WIN-RUNTIME-3 §4): Đức gỡ job dọn tuần trên Mac, nên
+    Xoay vòng log NGAY TRONG lượt chạy (SUBTASK-WIN-RUNTIME-3 §4): chủ repo gỡ job dọn tuần trên Mac, nên
     đầu mỗi lượt tin/truyện gọi `scripts/lib/log_rotate.py` — xoá `*.log` quá 60 ngày, cắt file trên
     5 MB (giữ 1 MB cuối, không đụng file vừa ghi trong 1 h), xoá thư mục con quá hạn của -OldDirs
     (gói chẩn đoán `render-stuck/<giờ>/`). Luôn kèm `<trạm>/logs/launchd` (log stdout/stderr của

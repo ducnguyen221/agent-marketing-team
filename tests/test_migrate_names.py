@@ -40,7 +40,7 @@ def _cu(tmp_path):
 
     (campaign / "logs" / "su-kien.jsonl").write_text(
         json.dumps({"luc": "2026-09-01T10:00:00+07:00", "viec": "g1_duyet",
-                    "bai": "T-001", "boi": "Đức", "qua": "phiên"}, ensure_ascii=False)
+                    "bai": "T-001", "boi": "Chủ kênh", "qua": "phiên"}, ensure_ascii=False)
         + "\n"
         + json.dumps({"luc": "2026-09-01T11:00:00+07:00", "viec": "viec_hong",
                       "bai": "T-001", "buoc": "cham-cong", "ly_do": "x",
@@ -90,7 +90,7 @@ def test_so_su_kien_doi_ca_KHOA_len_TEN_su_kien(tmp_path):
     ds = [json.loads(x) for x in
           (campaign / "logs" / "events.jsonl").read_text(encoding="utf-8").splitlines()]
     assert [d["job"] for d in ds] == ["g1_approved", "job_failed"]
-    assert ds[0]["at"] and ds[0]["post"] == "T-001" and ds[0]["by"] == "Đức"
+    assert ds[0]["at"] and ds[0]["post"] == "T-001" and ds[0]["by"] == "Chủ kênh"
     assert ds[0]["via"] == "phiên"
     assert ds[1]["step"] == "check-gates", "tên bước trong sổ cũng phải đổi"
     assert ds[1]["will_retry"] is True

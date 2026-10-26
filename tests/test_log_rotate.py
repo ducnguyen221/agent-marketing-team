@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Cổng SUBTASK-WIN-RUNTIME-3 §4: log xoay vòng NGAY TRONG lượt chạy (job dọn tuần đã gỡ trên Mac).
 
-Mac mini 03/10/2026: Đức gỡ `weekly-cleanup` — mỗi quy trình đã tự dọn media, chỉ còn log lớn
+Mac mini 03/10/2026: chủ repo gỡ `weekly-cleanup` — mỗi quy trình đã tự dọn media, chỉ còn log lớn
 mãi (~0,5 MB/lượt truyện). Bốn thứ phải đúng:
 
 * luật: `*.log` quá 60 ngày ⇒ xoá; > 5 MB ⇒ cắt giữ 1 MB cuối; file vừa ghi trong 1 h không cắt;

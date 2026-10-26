@@ -48,7 +48,7 @@ OUT_DIR = os.path.join(ENGINE, "truyen-out", "out")
 BGM2 = os.path.join(ASSETS, "Nhạc nền tiên hiệp 2.mp3")
 VOICE = "a-tun"          # giọng cũ — giữ làm phao cứu sinh, xem pick_voice()
 
-# Luân phiên HAI giọng — Đức quyết 31/08/2026 sau khi nghe A/B.
+# Luân phiên HAI giọng — chủ repo quyết 31/08/2026 sau khi nghe A/B.
 # Pool cũ ["a-tun-v1","a-tun-v2","a-tun-v3"] đã bỏ: clone chép cả NHỊP NÓI của clip mẫu
 # nên luân phiên = đổi tốc độ đọc theo ngày. Tốc độ đo trên cùng một đoạn (speed 0.9):
 #     a-tun 2.53  ·  a-tun-v1 2.55 (+0.8%)  ·  a-tun-v3 2.89 (+14%)

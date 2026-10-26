@@ -249,8 +249,8 @@ def test_TEMPLATE_khong_mang_nhan_dien_that():
     # Tên miền, email, tên người, id pixel của kênh đầu tiên.
     campaign = [
         "ducng" + "uyen.vn", "ducng" + "uyen221", "ducng" + "uyen.ams",
-        "Duc Ngu" + "yen", "17170417" + "32866196",
-        "C:" + chr(92) + "Users" + chr(92) + "Duc" + "Nguyen",
+        _s(68, 117, 99) + " Ngu" + "yen", "17170417" + "32866196",
+        "C:" + chr(92) + "Users" + chr(92) + _s(68, 117, 99) + "Nguyen",
     ]
     campaign = [unicodedata.normalize("NFC", x) for x in campaign]
     # Tên kênh thật: bắt cả hai kênh của chủ repo mà không đụng chữ "news" chung.
@@ -361,6 +361,11 @@ _TEN_NGUOI_BD = ("(?:" + _bd(_HO) + _SEP + _bd(_LOT) + _SEP + _bd(_TEN_DUC) + "|
 # Không có lookahead sau tên: thẻ có hậu tố chữ/số (`<thẻ>room`, `<thẻ>2026`) vẫn là thẻ cũ.
 _HASHTAG_BD = r"(?<![a-z0-9_])#?(?:" + "|".join(_bd(h) for h in _HASHTAG_TRAN) + r")"
 _TEN_PAGE_BD = _bd(_TO_CHUC[2]) + r"[\s_-]*" + _bd(_HO)
+# Tên gọi riêng đứng MỘT MÌNH (dạng có dấu hoặc không dấu, chữ đứng riêng, PHÂN BIỆT hoa/thường
+# dù cổng truyền IGNORECASE — nhóm cờ cục bộ). Lookbehind loại tên đầy đủ (ghi công; khoá `ten-nguoi` lo).
+# Không bỏ dấu: bỏ dấu + hạ chữ thường sẽ bắt nhầm từ thường mang đúng chữ ấy.
+_TEN_GOI = ("(?-i:(?<!" + _LOT + " )(?<!" + _LOT + "_)(?<!" + _LOT + "-)" + r"(?<![^\W\d_])(?:"
+            + _s(0x110, 0x1EE9, 99) + "|" + _s(68, 117, 99) + r")(?![^\W\d_]))")
 
 MAU_DANH_TINH = {
     "ten-mien":  re.escape(_TEN_TG + ".vn"),
@@ -373,6 +378,7 @@ MAU_DANH_TINH = {
     "hashtag-thuong-hieu": _HASHTAG_BD,
     "bo-mau-cu": _bd(_BO_MAU_CU),
     "ten-page":  _TEN_PAGE_BD,
+    "ten-goi":   _TEN_GOI,
 }
 
 # Bốn khoá so khớp trên văn bản ĐÃ BỎ DẤU (mẫu cũng đã bỏ dấu, xem _bd): bỏ dấu là cách
@@ -390,7 +396,7 @@ def _khop(khoa: str, van_ban: str):
 # khoản, tên thật, id pixel quảng cáo. Ở đâu cũng là rò rỉ, trừ những chỗ ghi công đã
 # liệt kê trong MIEN_TRU.
 KHOA_CUNG = ("ten-mien", "handle", "ten-nguoi", "pixel",
-             "hashtag-thuong-hieu", "bo-mau-cu", "ten-page")
+             "hashtag-thuong-hieu", "bo-mau-cu", "ten-page", "ten-goi")
 
 # Vùng MÁY: phần repo mà người clone đem đi chạy. Ở đây cấm thêm cả tên tổ chức và tên
 # kênh thật — chúng không phải secret, nhưng để trong máy thì khuôn hỏng: người khác
@@ -572,6 +578,22 @@ def test_dot_bien_bo_dau_va_khong_thang():
             assert not _khop(khoa, x), (khoa, "bắt nhầm ca lành", len(x))
 
 
+def test_dot_bien_ten_goi_rieng():
+    """Khoá `ten-goi`: tên gọi riêng đứng một mình phải ĐỎ; từ thường và tên đầy đủ (ghi công) XANH."""
+    ten, ten_a = _s(0x110, 0x1EE9, 99), _s(68, 117, 99)
+    do = ('by="' + ten + '"', ten + " chốt 10/09", ten_a, "Máy " + ten, "(" + ten + " hỏi)",
+          "Chủ " + ten_a + ".")
+    for x in do:
+        assert _khop("ten-goi", x), ("bỏ lọt", len(x))
+    xanh = ("đạo " + ten.lower(), "có " + ten.lower(), "Đạo " + ten.lower(), _TEN_VN,
+            _LOT + " " + ten, _LOT + "_" + ten, _LOT + "-" + ten, _HO + " " + _LOT + " " + ten,
+            ten_a + "Nguyen", "x" + ten_a.lower(), ten_a.lower(), ten.lower(), "#" + _HASHTAG_TRAN[0],
+            "Chủ kênh", "Chủ kênh (Telegram)", "chủ repo")
+    for x in xanh:
+        assert not _khop("ten-goi", x), ("bắt nhầm", len(x))
+    assert "ten-goi" not in KHOA_BO_DAU
+
+
 def test_dot_bien_giai_ma_entity_va_json():
     """Tên dạng entity số hoặc escape JSON vẫn phải đỏ; chuỗi mã hoá vô hại vẫn xanh."""
     tren_ten = _s(78, 103, 117, 121, 0x1EC5, 110)
@@ -603,7 +625,7 @@ def test_dot_bien_duong_dan():
 
 def test_khoa_toan_cay_khong_co_mien_tru():
     """Ba khoá cấm mới là cấm TUYỆT ĐỐI: thêm mục miễn trừ cho chúng là mở cửa lại."""
-    moi = {"hashtag-thuong-hieu", "bo-mau-cu", "ten-page"}
+    moi = {"hashtag-thuong-hieu", "bo-mau-cu", "ten-page", "ten-goi"}
     assert moi <= set(KHOA_CUNG), "khoá cấm mới phải nằm trong KHOA_CUNG (áp toàn cây)"
     assert not [k for k in MIEN_TRU if k[1] in moi], "khoá cấm toàn cây không được có miễn trừ"
 

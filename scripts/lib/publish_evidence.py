@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Bằng chứng ĐÃ ĐĂNG — sổ của đường ống, đọc để biết một file còn cần giữ hay không.
 
-Luật kho (Đức chốt 2026-09-20) không còn là "quá 14 ngày thì xoá". Tuổi file chỉ nói
+Luật kho (chủ repo chốt 2026-09-20) không còn là "quá 14 ngày thì xoá". Tuổi file chỉ nói
 file cũ; nó không nói sản phẩm đã ra khỏi máy. Một lượt render hỏng nửa chừng cũng già
 đi đúng 14 ngày như một tập đã lên sóng. Nên luật hiện hành là:
 

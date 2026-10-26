@@ -5,7 +5,7 @@
 # `notify-run.ps1` bọc mọi scheduled task và báo Telegram MỖI LƯỢT. Cái đó đúng cho việc
 # chạy thưa (bản tin ngày, video tuần). Poller này chạy gần như liên tục — báo mỗi lượt là
 # hàng nghìn tin một ngày, và tin báo mà nhiều tới mức đó thì không ai đọc nữa, tức là mất
-# luôn tác dụng cảnh báo cho MỌI task khác. (Đức chốt 10/09/2026.)
+# luôn tác dụng cảnh báo cho MỌI task khác. (chủ repo chốt 10/09/2026.)
 #
 # Đổi lại, nó tự có cách chứng minh còn sống: mỗi lượt `getUpdates` THÀNH CÔNG ghi một nhịp
 # vào `logs/tg-poll-alive.json`. `approve_bus.py poller-status` đọc nhịp đó và nói sống/chết.

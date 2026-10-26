@@ -81,10 +81,10 @@ kho cổng, **chép nguyên văn câu người vừa nói**:
 
 ```
 python scripts/pipeline/approval_gate.py <chiến dịch> open --gate g2 \
-       --post NEN-004,NEN-005 --by "Đức" --quote "ok, duyệt bài 004 và 005"
+       --post NEN-004,NEN-005 --by "<tên người duyệt>" --quote "ok, duyệt bài 004 và 005"
 
 python scripts/pipeline/approval_gate.py <chiến dịch> reject --gate g2 \
-       --post NEN-004 --by "Đức" --quote "mở bài dài quá, cắt bớt"
+       --post NEN-004 --by "<tên người duyệt>" --quote "mở bài dài quá, cắt bớt"
 ```
 
 ⚠️ **`--quote` không phải thủ tục giấy tờ.** Nó là thứ ngăn agent tự đóng dấu thay

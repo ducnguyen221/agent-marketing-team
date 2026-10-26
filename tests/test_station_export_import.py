@@ -429,7 +429,7 @@ def test_import_KHONG_lay_ma_thoat_cua_doctor_lam_ma_cua_minh(tram, tmp_path):
     out = tmp_path / "goi.zip"
     STN.export_station(tram, out)
     # `doctor` PHẢI đỏ ở ca này — nhưng ép nó đỏ bằng một giá trị TỰ DỰNG, không dựa vào
-    # việc máy đang chạy test chưa cài trạm giọng. Máy Đức đã cài đủ từ PV-G4, nên vế
+    # việc máy đang chạy test chưa cài trạm giọng. máy chủ repo đã cài đủ từ PV-G4, nên vế
     # `kq["doctor"]["code"] != 0` là một khẳng định về MÔI TRƯỜNG, và nó sẽ đỏ giả đúng
     # trên máy đã cài xong (REVIEW-P2 Ghi nhận 6).
     that = STN._kham

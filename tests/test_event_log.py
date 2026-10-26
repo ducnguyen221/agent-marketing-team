@@ -27,8 +27,8 @@ def test_ghi_hai_lan_thi_GIU_CA_HAI(tmp_path):
     file này.
     """
     campaign = _cam(tmp_path)
-    EV.write(campaign, "g1_approved", post="T-001", by="Đức")
-    EV.write(campaign, "g2_rejected", post="T-001", by="Đức", reason="mở bài dài")
+    EV.write(campaign, "g1_approved", post="T-001", by="Chủ kênh")
+    EV.write(campaign, "g2_rejected", post="T-001", by="Chủ kênh", reason="mở bài dài")
 
     ds = EV.read(campaign, post="T-001")
     assert [x["job"] for x in ds] == ["g1_approved", "g2_rejected"], ds
@@ -116,8 +116,8 @@ def test_giu_dung_thu_tu_thoi_gian(tmp_path):
 def test_moi_dong_la_JSON_doc_lai_duoc_bang_tay(tmp_path):
     """Sổ phải đọc được bằng mắt và bằng `jq` — nó là thứ người sẽ mở lúc đang hoảng."""
     campaign = _cam(tmp_path)
-    EV.write(campaign, "g2_approved", post="T-003", by="Đức (Telegram)")
+    EV.write(campaign, "g2_approved", post="T-003", by="Chủ kênh (Telegram)")
     tho = EV.log_path(campaign).read_text(encoding="utf-8")
     assert tho.endswith("\n"), "thiếu xuống dòng cuối ⇒ dòng sau bị nối vào dòng này"
     o = json.loads(tho.strip())
-    assert o["job"] == "g2_approved" and o["post"] == "T-003" and o["by"] == "Đức (Telegram)"
+    assert o["job"] == "g2_approved" and o["post"] == "T-003" and o["by"] == "Chủ kênh (Telegram)"

@@ -10,7 +10,7 @@
 
 Lượt truyện 301–310 bị wrapper giết lúc 08:30 — mã 124, sau 9/10 chương: giọng `a-tun-v1` mất
 ~55 phút/chương nên 10 chương vượt trần 30600 s. Người phải `launchctl kickstart` tay; lượt chạy
-tiếp dùng cache chương + `_resume.json` và xong sau 1 h 26. Đức chốt: runner TỰ chạy tiếp.
+tiếp dùng cache chương + `_resume.json` và xong sau 1 h 26. chủ repo chốt: runner TỰ chạy tiếp.
 
 ## Vì sao nằm ở runner, không ở wrapper báo cáo
 
