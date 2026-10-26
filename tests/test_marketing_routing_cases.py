@@ -37,12 +37,15 @@ def _cases_file() -> dict:
     return yaml.safe_load(CASES_PATH.read_text(encoding="utf-8"))
 
 
-def test_fixture_locks_all_24_cases_and_each_phase_oracle():
+CASE_COUNT = 25  # 24 ca gốc + 1 (SPR-42)
+
+
+def test_fixture_locks_all_25_cases_and_each_phase_oracle():
     document = _cases_file()
     assert document["schema"] == 1
     assert tuple(document["phases"]) == PHASES
     cases = document["cases"]
-    assert [case["id"] for case in cases] == [f"{number:02}" for number in range(1, 25)]
+    assert [case["id"] for case in cases] == [f"{number:02}" for number in range(1, CASE_COUNT + 1)]
 
     for case in cases:
         scenarios = [{"id": "default", **case}, *case.get("scenario_variants", [])]
