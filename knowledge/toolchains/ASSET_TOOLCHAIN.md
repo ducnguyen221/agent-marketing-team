@@ -96,10 +96,12 @@ powershell -NoProfile -ExecutionPolicy Bypass `
   -Profile <tên profile> -Speed 1.0 -Mode fit
 ```
 
+Tương đương bằng CLI: `video-studio narrate --project <project> --file script.txt --out <folder_path>/video.mp4 --profile <tên profile> --mode fit`
+
 - `-Mode fit` (mặc định): lệch độ dài thì giữ khung hình cuối hoặc chèn im lặng.
   `-Mode shortest` cắt theo cái ngắn hơn — chỉ dùng khi cố ý.
 - `-KeepSilent` giữ lại bản render câm để dựng lại nhanh.
-- `-Instruct` chỉ để thử giọng, không dùng cho bản giao: mỗi câu ra một giọng khác nhau — bản giao luôn ghim `-Profile`.
+- `--instruct` của `video-studio narrate` chỉ để thử giọng (script này không nhận cờ đó); bản giao luôn ghim `-Profile`.
 
 **Tách bước, khi cần soi kỹ:**
 ```powershell
