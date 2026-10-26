@@ -119,7 +119,7 @@ theo timeline, không dựa thời gian thực; không thì render ra sai khung.
 **Thứ tự làm:** chia cảnh + lời đọc từng cảnh → viết HTML → `lint` → `preview` → `render` →
 lồng tiếng → giao `video.mp4`.
 
-- Ảnh người dùng đưa vào phải khớp đúng cảnh cần dùng nó. Cơ chế ánh xạ ảnh → cảnh (ví dụ file `images.json`) chưa có ở công cụ video — đang chờ; tới lúc đó, đối chiếu từng ảnh với cảnh bằng tay trước khi render.
+- Ảnh người dùng đưa vào phải khớp đúng cảnh cần dùng nó. Với project `repo-today`, `video-studio render --images images.json` nhận ánh xạ cảnh → ảnh (`{"schema_version": 1, "scenes": {"1": "anh/a.png"}}`, số cảnh tính từ 1, đường ảnh tương đối neo vào thư mục chứa `images.json`); project khác vẫn đối chiếu từng ảnh với cảnh bằng tay trước khi render.
 
 ## 5. Short — cắt có chủ đích
 
