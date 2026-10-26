@@ -2451,3 +2451,76 @@ cases:
           - render_unapproved_asset
           - publish
         limitation: null
+  - id: '25'
+    critical: false
+    prompt: Làm video bài giảng có lồng tiếng từ nội dung đã duyệt.
+    context:
+      campaign: absent
+      media_toolchain: available
+    entrypoint_variants:
+      - router
+    expected_by_phase:
+      A0:
+        primary: marketing-routing
+        alternatives: []
+        supports: []
+        references_required:
+          - MAP.md
+          - knowledge/toolchains/ASSET_TOOLCHAIN.md
+        references_forbidden: []
+        ask: []
+        allowed:
+          - read_media_requirements
+          - describe_next_valid_step
+        forbidden:
+          - render_unapproved_asset
+          - publish
+        limitation: Giọng nói và dựng/ghép video thuộc plugin khác (voice-routing, video-routing); router chỉ chỉ đường.
+      A1:
+        primary: marketing-routing
+        alternatives: []
+        supports: []
+        references_required:
+          - MAP.md
+          - knowledge/toolchains/ASSET_TOOLCHAIN.md
+        references_forbidden: []
+        ask: []
+        allowed:
+          - read_media_requirements
+          - describe_next_valid_step
+        forbidden:
+          - render_unapproved_asset
+          - publish
+        limitation: Giọng nói và dựng/ghép video thuộc plugin khác (voice-routing, video-routing); router chỉ chỉ đường.
+      B:
+        primary: marketing-routing
+        alternatives: []
+        supports: []
+        references_required:
+          - MAP.md
+          - knowledge/toolchains/ASSET_TOOLCHAIN.md
+        references_forbidden: []
+        ask: []
+        allowed:
+          - read_media_requirements
+          - describe_next_valid_step
+        forbidden:
+          - render_unapproved_asset
+          - publish
+        limitation: Giọng nói và dựng/ghép video thuộc plugin khác (voice-routing, video-routing); router chỉ chỉ đường.
+      C:
+        primary: marketing-routing
+        alternatives: []
+        supports: []
+        references_required:
+          - MAP.md
+          - knowledge/toolchains/ASSET_TOOLCHAIN.md
+        references_forbidden: []
+        ask: []
+        allowed:
+          - read_media_requirements
+          - describe_next_valid_step
+        forbidden:
+          - render_unapproved_asset
+          - publish
+        limitation: Giọng nói và dựng/ghép video thuộc plugin khác (voice-routing, video-routing); router chỉ chỉ đường.

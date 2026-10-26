@@ -1,6 +1,6 @@
 # Đánh giá định tuyến marketing
 
-`tests/fixtures/marketing_routing_cases.yaml` khóa 24 tình huống giả lập, payload có nội dung, rubric và oracle riêng cho từng mốc A0/A1/B/C. `payload_refs` trỏ tới payload trong cùng fixture; không thay bằng nhãn `provided`/`synthetic` hoặc đường dẫn máy. Mỗi scenario variant là một input riêng, có oracle riêng. Bộ test pytest chỉ kiểm cấu trúc fixture; nó không chạy mô hình và không phải bằng chứng hành vi.
+`tests/fixtures/marketing_routing_cases.yaml` khóa 25 tình huống giả lập, payload có nội dung, rubric và oracle riêng cho từng mốc A0/A1/B/C. `payload_refs` trỏ tới payload trong cùng fixture; không thay bằng nhãn `provided`/`synthetic` hoặc đường dẫn máy. Mỗi scenario variant là một input riêng, có oracle riêng. Bộ test pytest chỉ kiểm cấu trúc fixture; nó không chạy mô hình và không phải bằng chứng hành vi.
 
 ## Quy trình đánh giá
 
@@ -9,7 +9,7 @@
 3. Chạy thêm từng `entrypoint_variants` được khai báo. Một case chỉ đạt khi cả hai lượt của mọi biến thể đều đạt. Báo tổng số invocation thực, không gọi hai lượt là hai case độc lập.
 4. Reviewer độc lập chấm năm chiều định tuyến: route, câu hỏi làm rõ, phạm vi tài liệu, đầu ra và quyền hạn. Mỗi chiều là pass/fail. Case critical trượt ở bất kỳ lượt nào làm checkpoint không đạt.
 5. Chấm riêng rubric SC6 chuyên môn gồm bốn mục 0/1/2: (a) insight gắn với nguồn và phân khúc, có bất đồng và giới hạn độ tin cậy; (b) chủ đề nối nhu cầu khán giả với mục tiêu, CTA và giá trị riêng; (c) draft giữ thông điệp và bằng chứng, không thêm claim thiếu căn cứ; (d) biên tập rõ, đúng giọng mà không đổi dữ kiện/CTA. Chỉ nhận candidate khi cả bốn mục đều đạt 2; bịa dữ kiện hoặc vượt quyền chặn chấp nhận. Ghi trích dẫn input/evidence cho từng điểm và lưu baseline cạnh candidate trên cùng payload.
-6. Không gộp SC6 với 24 case định tuyến. Không tuyên bố cải thiện chất lượng hay giảm context nếu chưa có so sánh baseline/candidate cùng input và số đo tương ứng; khi không đo token ghi `NOT_MEASURED`.
+6. Không gộp SC6 với 25 case định tuyến (24 gốc + 1 ca SPR-42). Không tuyên bố cải thiện chất lượng hay giảm context nếu chưa có so sánh baseline/candidate cùng input và số đo tương ứng; khi không đo token ghi `NOT_MEASURED`.
 7. Ghi lỗi baseline riêng trước khi đổi prompt hoặc tài liệu. Candidate chỉ chạy lại sau thay đổi; không sửa expected/rubric sau khi xem output.
 
 ## Quyền ghi trong catalog

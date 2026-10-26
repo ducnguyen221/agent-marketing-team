@@ -89,16 +89,17 @@ HyperFrames render HTML/CSS thành MP4 câm; OmniVoice lồng tiếng vào.
 **Một lệnh, ra video hoàn chỉnh** (cách dùng mặc định):
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass `
-  -File "$env:VIDEO_STATION\render_and_narrate.ps1" `
+  -File "<thư mục agent-video-studio>\scripts\render_and_narrate.ps1" `
   -Project "$env:VIDEO_STATION\<project>" `
   -TextFile script.txt `
   -Out "<folder_path>\video.mp4" `
-  -Instruct "female, young adult, moderate pitch" -Speed 1.0 -Mode fit
+  -Profile <tên profile> -Speed 1.0 -Mode fit
 ```
 
 - `-Mode fit` (mặc định): lệch độ dài thì giữ khung hình cuối hoặc chèn im lặng.
   `-Mode shortest` cắt theo cái ngắn hơn — chỉ dùng khi cố ý.
 - `-KeepSilent` giữ lại bản render câm để dựng lại nhanh.
+- `-Instruct` chỉ để thử giọng, không dùng cho bản giao: mỗi câu ra một giọng khác nhau — bản giao luôn ghim `-Profile`.
 
 **Tách bước, khi cần soi kỹ:**
 ```powershell
@@ -114,6 +115,8 @@ theo timeline, không dựa thời gian thực; không thì render ra sai khung.
 
 **Thứ tự làm:** chia cảnh + lời đọc từng cảnh → viết HTML → `lint` → `preview` → `render` →
 lồng tiếng → giao `video.mp4`.
+
+- Ảnh người dùng đưa vào phải khớp đúng cảnh cần dùng nó. Cơ chế ánh xạ ảnh → cảnh (ví dụ file `images.json`) chưa có ở công cụ video — đang chờ; tới lúc đó, đối chiếu từng ảnh với cảnh bằng tay trước khi render.
 
 ## 5. Short — cắt có chủ đích
 

@@ -34,6 +34,7 @@ Chọn một skill chính và tối đa hai skill hỗ trợ có lý do. Đây l
 - Hỏi tư vấn không mở hoặc đánh dấu G1/G2/G3. Campaign chưa G1 vẫn có thể được đọc/chẩn đoán; nội dung phụ thuộc campaign chưa được sản xuất.
 - Draft độc lập không tạo campaign/post hay trạng thái. Draft thuộc campaign luôn theo mode campaign và cổng hiện hành; không dùng sửa chữ để né G1.
 - Lập kế hoạch đo trước publish là tư vấn/chuẩn bị; số thực chỉ cập nhật ở measure sau publish.
+- Giọng nói → `voice-routing`; dựng/ghép video → `video-routing`: đó là plugin khác, router này chỉ chỉ đường, không tự làm.
 
 ## Kiểm chất lượng và dừng
 Kiểm tra skill có thật, mode khai báo, đầu vào/đầu ra và references liên quan trong catalog. Dừng phần phụ thuộc nếu thiếu nguồn, đường dẫn, quyết định quan trọng hoặc điều kiện cổng; nói rõ điều đang thiếu và bước hợp lệ kế tiếp.
