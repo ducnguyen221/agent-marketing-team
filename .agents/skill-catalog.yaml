@@ -6,7 +6,7 @@ skills:
     use_when:
       - The right capability is unclear or the request has multiple steps.
       - A campaign brief needs clarification or its valid next step is unclear.
-      - A campaign needs a voice/video asset produced next (route, then hand off).
+      - A campaign needs a voice/video asset produced next, such as voiceover or narration for an approved promo or ad video with one consistent voice (route, then hand off).
     do_not_use_when:
       - The user directly invoked a suitable skill for a single-skill request.
       - The request asks to approve a gate, publish, or update actual metrics.
