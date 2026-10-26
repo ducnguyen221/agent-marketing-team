@@ -3,6 +3,48 @@
 Mỗi mục là một phiên bản. Mục đầu luôn là số trong `pyproject.toml`
 (`tests/test_version_sync.py` giữ điều này). Phiên bản chưa gắn tag ghi rõ "chưa phát hành".
 
+## 3.1.0 — 2026-10-26
+
+Dọn dữ liệu riêng khỏi cây công khai (sprint `SPR-01` của sổ agent-marketing-team). Mức MINOR vì ba thay đổi người
+dùng thấy: đường bộ mẫu đổi, khuôn giọng Facebook thành khuôn trung tính, tên người duyệt mặc định đi ra cấu hình. Bản
+cài cũ vẫn chạy; ai trỏ vào đường bộ mẫu cũ hoặc trông vào tên người duyệt mặc định cũ thì thấy khác.
+
+### Người dùng thấy gì
+
+- Bộ mẫu dạy học nay là `content/sample-course/` — bộ mẫu **hư cấu** cùng hình dạng một instance thật (`instance.yml`,
+  `CAMPAIGNS.md` viết tay theo định dạng `new_campaign.py`, hai workbook schema 24 cột). Bộ mẫu cũ mang tên tổ chức
+  không còn trong cây; README, MAP và docs trỏ sang đường mới.
+- `output_styles/tobi-post.md` là khuôn trung tính điền chỗ trống (`<TÊN KÊNH>`, `<hashtag thương hiệu 1..3>`, cách tự
+  xưng theo `xung_ho`); `multichannel-style.md` không còn hashtag thương hiệu cụ thể, luật 6–13 hashtag giữ nguyên.
+- Tên người duyệt ghi vào hồ sơ duyệt/đăng (`approved_by`, `by` của mặt tiền Telegram) không còn là hằng trong mã:
+  `MARKETING_APPROVER` → `studio.local.json["approver"]` → vai mặc định «chủ kênh» (`scripts/lib/approver.py`; khai ở
+  `SECRETS.md`, `.env.example`). File cấu hình hỏng thì in cảnh báo ra stderr rồi dùng vai mặc định, không dừng việc duyệt.
+- `triage.py`: khoá chủ việc `duc` → `nguoi` (nhãn «Cần anh xử lý» giữ nguyên). Sổ Excel cũ còn dòng mang khoá cũ;
+  không mã nào đọc ngược cột đó. Lời kể trong comment/tài liệu chỉ còn gọi «chủ repo».
+- `templates/CAMPAIGN_TEMPLATE.xlsx`: xoá trường `cp:lastModifiedBy`; hai workbook mẫu dùng `creator` chung, mốc giờ cố định.
+
+### Cổng chống quay lại
+
+- `tests/test_no_identity_leak.py`: thêm bốn khoá toàn cây không miễn trừ — hashtag thương hiệu cũ (`#` tuỳ chọn, bắt cả
+  hậu tố), đường bộ mẫu cũ, tên Page cũ, và `ten-goi` (tên gọi riêng đứng một mình, phân biệt hoa/thường, chỉ loại trừ khi
+  đứng sau đủ họ + lót của mục ghi công). So khớp sau khi bỏ dấu, giải mã `&#NNN;`/`\uXXXX`, gấp gạch ngược; quét cả tên
+  đường dẫn `git ls-files`; không miễn chính file test; email miễn theo mẫu hẹp (miền RFC 2606/6761, `@<n>x.<ảnh>`,
+  `git@host:`), bỏ miễn `noreply@` chung.
+
+### Tồn dư — lịch sử Git và bản công khai
+
+- Bản này chỉ dọn **cây hiện tại**. Lịch sử Git công khai vẫn chứa dữ liệu đã gỡ: 21 commit chạm bộ mẫu cũ và hai file
+  `output_styles/` (từ `da15552` 2026-07-21 tới `8ddcb6b` 2026-10-18), và **mọi tag `v1.0.0`…`v3.0.0`** — GitHub tự sinh
+  archive zip/tar cho từng tag và từng release. Ai dùng `git log`/`git show` hay tải archive tag cũ vẫn thấy. Fork: 0
+  (đếm 25/10/2026). Trang Pages đổi sang bản dọn khi bản này lên `main`. Bản clone trên máy khác và cache ngoài tầm kiểm.
+- Quyết định của chủ repo (26/10/2026): **chấp nhận để lịch sử** — không viết lại, không force-push, băm commit và tag
+  giữ nguyên. Hai đường khác (viết lại lịch sử bằng `git filter-repo` rồi tạo lại tag/release; hoặc repo mới sạch lịch
+  sử, repo cũ chuyển private/archive) để ngỏ, là việc riêng nếu chủ repo xem lại khi quyết public/private.
+- Tồn dư ở cây hiện tại, **có chủ ý**: tên đầy đủ tác giả ở NOTICE, LICENSE, README mục Tác giả, `docs/index.html` và
+  manifest plugin (ghi công). **Chưa dọn**: ví dụ mã bài/đường asset của bộ mẫu cũ trong `knowledge/data_model/DATA_MODEL.md`
+  (file nằm dưới khoá baseline băm đã review — việc riêng); phần cổng chưa bắt được là thân bài tự do và slug/mã campaign
+  cũ ngoài vùng máy — bảo vệ chính vẫn là review diff trước khi commit.
+
 ## 3.0.0 — 2026-10-20
 
 ### Nâng cấp từ 2.x
