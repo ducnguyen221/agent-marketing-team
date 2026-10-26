@@ -364,7 +364,10 @@ _TEN_PAGE_BD = _bd(_TO_CHUC[2]) + r"[\s_-]*" + _bd(_HO)
 # Tên gọi riêng đứng MỘT MÌNH (dạng có dấu hoặc không dấu, chữ đứng riêng, PHÂN BIỆT hoa/thường
 # dù cổng truyền IGNORECASE — nhóm cờ cục bộ). Lookbehind loại tên đầy đủ (ghi công; khoá `ten-nguoi` lo).
 # Không bỏ dấu: bỏ dấu + hạ chữ thường sẽ bắt nhầm từ thường mang đúng chữ ấy.
-_TEN_GOI = ("(?-i:(?<!" + _LOT + " )(?<!" + _LOT + "_)(?<!" + _LOT + "-)" + r"(?<![^\W\d_])(?:"
+# Loại trừ chỉ khi đứng trước là ĐỦ họ + lót (có dấu hoặc không dấu, ba kiểu nối): «<lót> <tên>» hai
+# từ không phải ghi công và không khoá nào khác bắt (TK12 RF2).
+_HO_LOT = tuple(ho + sep + _LOT + sep for ho in (_HO, _bo_dau(_HO).capitalize()) for sep in (" ", "_", "-"))
+_TEN_GOI = ("(?-i:" + "".join("(?<!" + re.escape(x) + ")" for x in _HO_LOT) + r"(?<![^\W\d_])(?:"
             + _s(0x110, 0x1EE9, 99) + "|" + _s(68, 117, 99) + r")(?![^\W\d_]))")
 
 MAU_DANH_TINH = {
@@ -582,11 +585,12 @@ def test_dot_bien_ten_goi_rieng():
     """Khoá `ten-goi`: tên gọi riêng đứng một mình phải ĐỎ; từ thường và tên đầy đủ (ghi công) XANH."""
     ten, ten_a = _s(0x110, 0x1EE9, 99), _s(68, 117, 99)
     do = ('by="' + ten + '"', ten + " chốt 10/09", ten_a, "Máy " + ten, "(" + ten + " hỏi)",
-          "Chủ " + ten_a + ".")
+          "Chủ " + ten_a + ".", _LOT + " " + ten, _LOT + "_" + ten, _LOT + "-" + ten_a)
     for x in do:
         assert _khop("ten-goi", x), ("bỏ lọt", len(x))
     xanh = ("đạo " + ten.lower(), "có " + ten.lower(), "Đạo " + ten.lower(), _TEN_VN,
-            _LOT + " " + ten, _LOT + "_" + ten, _LOT + "-" + ten, _HO + " " + _LOT + " " + ten,
+            _HO + " " + _LOT + " " + ten, _HO + "_" + _LOT + "_" + ten, _HO + "-" + _LOT + "-" + ten,
+            _bo_dau(_HO).capitalize() + " " + _LOT + " " + ten_a,
             ten_a + "Nguyen", "x" + ten_a.lower(), ten_a.lower(), ten.lower(), "#" + _HASHTAG_TRAN[0],
             "Chủ kênh", "Chủ kênh (Telegram)", "chủ repo")
     for x in xanh:

@@ -47,3 +47,10 @@ def test_gia_tri_rong_hoac_sai_kieu_bi_bo_qua(repo_gia, monkeypatch, gia_tri):
     monkeypatch.setenv("MARKETING_APPROVER", "  ")
     _ghi_local(repo_gia, approver=gia_tri)
     assert AP.ten_nguoi_duyet() == "chủ kênh"
+
+
+def test_file_hong_roi_ve_mac_dinh_va_canh_bao(repo_gia, capsys):
+    (repo_gia / SP.LOCAL_CONFIG).write_text("{hỏng", encoding="utf-8")
+    assert AP.ten_nguoi_duyet() == "chủ kênh"
+    err = capsys.readouterr().err
+    assert SP.LOCAL_CONFIG in err and "chủ kênh" in err

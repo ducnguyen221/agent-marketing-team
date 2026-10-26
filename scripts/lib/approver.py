@@ -11,6 +11,7 @@ người khác không được mang tên chủ repo.
 from __future__ import annotations
 
 import os
+import sys
 
 import studio_paths as SP
 
@@ -21,8 +22,11 @@ def ten_nguoi_duyet(mac_dinh: str = "chủ kênh") -> str:
         return v
     try:
         v = SP.local_config().get("approver")
-    except SP.StudioPathsError:
-        v = None   # file cấu hình hỏng: các đường khác đã báo; tên người duyệt không đáng làm dừng việc
+    except SP.StudioPathsError as e:
+        # File cấu hình hỏng: không dừng việc duyệt, nhưng phải NÓI — hồ sơ sẽ ghi vai mặc định
+        # thay cho tên đã cấu hình, dấu vết kiểm toán lệch mà không ai biết (TK12 RF1).
+        print(f"[approver] {SP.LOCAL_CONFIG} không đọc được ({e}); ghi «{mac_dinh}»", file=sys.stderr)
+        v = None
     if isinstance(v, str) and v.strip():
         return v.strip()
     return mac_dinh
