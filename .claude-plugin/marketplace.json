@@ -10,7 +10,7 @@
     {
       "name": "agent-marketing-team",
       "description": "Multi-channel marketing campaign engine with human approval gates; skills run from the repository.",
-      "version": "3.1.0",
+      "version": "3.2.0",
       "source": "./",
       "license": "MIT"
     }

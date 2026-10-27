@@ -3,10 +3,23 @@
 Mỗi mục là một phiên bản. Mục đầu luôn là số trong `pyproject.toml`
 (`tests/test_version_sync.py` giữ điều này). Phiên bản chưa gắn tag ghi rõ "chưa phát hành".
 
-### Lô P6 SPR-43 (chưa phát hành, sau 3.1.0)
+## 3.2.0 — 2026-10-27
 
-Bổ sung lô P6 (sprint `SPR-43` của sổ agent-marketing-team): bổ sung năng lực nghiên cứu, giọng thương hiệu, SEO kỹ
-thuật và YouTube vào bộ playbook. Chưa đổi số phiên bản; bump gộp sau Cổng 2.
+Gộp hai đợt: P5 (sprint `SPR-42`, chỉ đường giọng/video) và P6 (sprint `SPR-43`, năng lực nghiên cứu, giọng thương
+hiệu, SEO kỹ thuật và YouTube). Mức MINOR vì thêm skill `market-research`.
+
+### Đợt P5 (SPR-42): chỉ đường giọng và video
+
+- `ASSET_TOOLCHAIN.md` §3 thêm lệnh lồng tiếng chọn profile giọng (`-Profile <tên profile>`, hoặc `video-studio narrate --profile`),
+  kèm con trỏ: tên profile xem ở `voice-routing`.
+- `ASSET_TOOLCHAIN.md` §4 ghi nguyên tắc ghép ảnh vào đúng cảnh, khớp `video-studio render --images` của `agent-video-studio`.
+- `marketing-routing`: mô tả và một dòng chỉ đường cho việc lồng tiếng/dựng video đi kèm chiến dịch đã duyệt, giữ việc
+  thuần giọng ở `voice-routing`; thêm ca kiểm tuyến vào `tests/fixtures/marketing_routing_cases.yaml` và
+  `docs/skill-routing-evaluation.md`. Kiểm tuyến phiên mới đạt 5/5 sau hai vòng sửa mô tả.
+
+### Đợt P6 (SPR-43)
+
+Bổ sung năng lực nghiên cứu, giọng thương hiệu, SEO kỹ thuật và YouTube vào bộ playbook.
 
 #### Người dùng thấy gì
 
