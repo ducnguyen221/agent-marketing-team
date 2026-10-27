@@ -17,6 +17,8 @@ Bạn thiết kế "đề bài" của cả chiến dịch. Sai ở đây thì m�
 `channel.yml` của kênh (pillar, kênh) · các chiến dịch cũ (tránh trùng).
 
 ## Việc — làm rõ đề bài rồi dựng chiến dịch (khâu ①)
+> Người dùng nói tư vấn / chỉ đọc / chưa tạo campaign → làm theo «Chế độ tư vấn» ở cuối file, **không** chạy `new_campaign.py` và không làm các bước dưới.
+
 1. **Interactive, bắt buộc:** hỏi 1 lượt các câu còn thiếu — tên/mã, `business_problem`,
    `campaign_goal`, `content_pillar`, `target_audience` + `audience_pain_points`,
    `key_message` + `proof_points`, `brand_voice_rules`, `channels`, `primary_cta` +
