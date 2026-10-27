@@ -56,6 +56,9 @@ Có bài ngắn (post) cần mở thành blog:
 3. Thêm nguồn cho mọi số liệu và lời gán; việc nào chưa có nguồn gắn `[KIỂM CHỨNG]`.
 4. **Dừng** trước khi viết bản đầy đủ để người dùng xem dàn ý đã mở rộng (ở chế độ `campaign` thì dừng trước khi ghi `content.md`). Ngoài chiến dịch, việc này chạy ở chế độ `standalone-edit`, không tạo thư mục bài.
 
+### Chấm cổng blog ngoài chiến dịch
+`scripts/pipeline/blog_gates.py` chỉ chạy trên một thư mục bài, nên chế độ `standalone-edit` muốn chấm cổng thì dựng thư mục bài **tạm** (trong `.tmp/`, xoá khi xong): `atlas/blog.md` (bài) và `research.md` (cho cổng nguồn G05). Thiếu `channel.yml` ở thư mục bài hoặc thư mục cha thì cổng thoát mã 2 và không chấm gì: chép `templates/station/_channel/channel.yml` vào thư mục tạm rồi điền khối `brand:`, hoặc truyền `--home-domain <giá trị giữ chỗ>` và nói rõ đó là giá trị giữ chỗ trong báo cáo.
+
 ## Đầu ra
 - Với `campaign`: File `content.md` chứa các khối `## post:<format>`, danh sách CTA và claim cần kiểm chứng.
 - Với `standalone-edit`: Bản sửa hoàn chỉnh kèm bảng giải thích thay đổi.
