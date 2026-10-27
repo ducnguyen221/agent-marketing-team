@@ -58,3 +58,5 @@ Mỗi phát hiện một khối bốn ô: **Mức** · **Vị trí** (trang/dòn
 ## Khi nào DỪNG
 - Ranking drop >30% sau core update → **chờ 14 ngày, không panic-edit**, quan sát rồi mới sửa.
 - Khách đòi cam kết thứ hạng tuyệt đối → giải thích SEO không cam kết được, đề xuất mục tiêu đo được.
+
+Thiết kế tham khảo: affaan-m/ECC agent `seo-specialist` (MIT), viết lại bằng tiếng Việt, không chép đoạn.

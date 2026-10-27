@@ -5,7 +5,7 @@ Mỗi mục là một phiên bản. Mục đầu luôn là số trong `pyproject
 
 ### Lô P6 SPR-43 (chưa phát hành, sau 3.1.0)
 
-Chưng cất lô P6 (sprint `SPR-43` của sổ agent-marketing-team): bổ sung năng lực nghiên cứu, giọng thương hiệu, SEO kỹ
+Bổ sung lô P6 (sprint `SPR-43` của sổ agent-marketing-team): bổ sung năng lực nghiên cứu, giọng thương hiệu, SEO kỹ
 thuật và YouTube vào bộ playbook. Chưa đổi số phiên bản; bump gộp sau Cổng 2.
 
 #### Người dùng thấy gì
