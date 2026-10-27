@@ -608,9 +608,9 @@ def test_env_restore_exdev_retains_copy_and_never_falls_back_to_copy2(repo_git, 
     assert target.is_dir() and not (repo_git / SP.WORKSPACE).exists()
 
 
-def _posix_os(real_os, secret_env, env, rename_calls, before_link=None):
+def _posix_os(real_os, secret_env, env, rename_calls, before_link=None, fail_unlink=False):
     """`os` giả POSIX: ghi lại mọi `rename` trả `.env` về repo (POSIX `rename` đè im lặng nên
-    không được gọi), và cho chèn một cuộc đua ngay trước `link`."""
+    không được gọi), cho chèn một cuộc đua ngay trước `link`, và cho `unlink` tên ở kho secret hỏng."""
     class PosixOS:
         name = "posix"
 
@@ -626,6 +626,11 @@ def _posix_os(real_os, secret_env, env, rename_calls, before_link=None):
             if before_link and Path(src) == secret_env and Path(dst) == env:
                 before_link()
             return real_os.link(src, dst)
+
+        def unlink(self, path, *args, **kwargs):
+            if fail_unlink and Path(path) == secret_env:
+                raise PermissionError(errno.EACCES, "injected unlink failure", str(path))
+            return real_os.unlink(path, *args, **kwargs)
 
     return PosixOS()
 
@@ -680,6 +685,33 @@ def test_posix_env_rollback_never_clobbers_env_that_appears_at_link(repo_git, tm
     assert env.read_bytes() == b"FOREIGN-SOURCE", "a path that appeared at the boundary stays untouched"
     assert secret_env.read_bytes() == original_env and target.is_dir()
     assert not (repo_git / SP.WORKSPACE).exists()
+
+
+def test_posix_env_rollback_unlink_failure_says_both_names_are_one_file(repo_git, tmp_path, monkeypatch):
+    home = tmp_path / "fake-home"
+    home.mkdir()
+    monkeypatch.setenv("HOME", str(home))
+    monkeypatch.setenv("USERPROFILE", str(home))
+    env = repo_git / ".env"
+    env.write_text("ORIGINAL=not-a-secret\n", encoding="utf-8")
+    original_env = env.read_bytes()
+    secret_env = tmp_path / "fake-secret" / ".env"
+    target = tmp_path / "trạm-env-posix-unlink"
+    _, moved, injected = _inject_config_write_error(monkeypatch, repo_git)
+    rename_calls = []
+    monkeypatch.setattr(ST, "os", _posix_os(ST.os, secret_env, env, rename_calls, fail_unlink=True))
+    with pytest.raises(SC.ContractError, match="rollback incomplete") as error:
+        ST.migrate_sang_separate(station=str(target), kho_secret=str(secret_env.parent))
+
+    message = str(error.value)
+    assert "injected unlink failure" in message
+    assert "two names for the SAME file" in message
+    assert str(env) in message and str(secret_env) in message
+    assert moved["done"] and injected["count"] == 1 and not rename_calls
+    assert os.path.samefile(env, secret_env), "both names must still point at the one restored file"
+    assert env.read_bytes() == original_env
+    # Bước .env không xác minh được nên các bước sau giữ nguyên, không dời cây về.
+    assert target.is_dir() and not (repo_git / SP.WORKSPACE).exists()
 
 
 def test_dangling_secret_env_destination_is_rejected_before_tree_move(repo_git, tmp_path, monkeypatch):

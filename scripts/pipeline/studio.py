@@ -280,12 +280,19 @@ def _tra_file_khong_de(nguon: Path, dich: Path):
     hard link (`link` hỏng với EEXIST nếu đích có — kiểm và tạo là một bước) rồi mới gỡ tên ở
     nguồn; inode giữ nguyên nên phép kiểm danh tính sau đó vẫn đúng. Khác ổ (EXDEV) hay hệ
     tệp không có hard link thì hỏng và để nguyên — không bao giờ rơi về chép.
+    Link xong mà gỡ tên nguồn hỏng: hai đường giờ là MỘT file — thông báo phải nói rõ điều đó.
     """
     if os.name == "nt":
         os.rename(nguon, dich)
         return
     os.link(nguon, dich)
-    os.unlink(nguon)
+    try:
+        os.unlink(nguon)
+    except OSError as e:
+        raise OSError(
+            f"restored by hard link but the old name could not be removed ({e}): {dich} and {nguon} "
+            f"are now two names for the SAME file, so editing either edits both; check {dich}, then "
+            f"delete {nguon} by hand") from e
 
 
 def _link_or_reparse(st):
