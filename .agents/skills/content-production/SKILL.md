@@ -1,6 +1,6 @@
 ---
 name: content-production
-description: Produce ready-to-publish multi-channel assets from an approved campaign item, or polish independent drafts via 7-pass copy editing without bypassing campaign gates.
+description: Write and polish marketing content inside or outside a campaign, including a brand voice profile from published posts, blog drafting and editing, quote and source attribution, raw idea to angles, Facebook post to blog, and 7-pass copy editing, campaign assets. Not for strategy advice or bypassing Gate 1.
 ---
 
 # Sản xuất nội dung & Biên tập (Content Production)
@@ -13,6 +13,7 @@ Sản xuất nội dung đa kênh sẵn-đăng từ brief chiến dịch đã du
 - Tái chế một nội dung gốc sang nhiều định dạng kênh phát hành khác nhau.
 - Người dùng chỉ có ý thô, cần bóc angle và đề xuất cấu trúc (mục «Ý thô → angle»).
 - Nâng một post có sẵn thành blog (mục «Nâng post → blog»).
+- Hồ sơ giọng từ bài đã đăng; viết/sửa blog; dẫn nguồn đúng luật.
 
 ## Khi không dùng
 - Sản xuất asset cho chiến dịch chưa có brief hoặc chưa qua Gate 1 (cần hoàn tất ở `campaign-pipeline`). Hai việc «Ý thô → angle» và «Nâng post → blog» không vướng dòng này vì chạy trước brief hoặc ở chế độ `standalone-edit`.

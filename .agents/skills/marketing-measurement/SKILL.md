@@ -1,6 +1,6 @@
 ---
 name: marketing-measurement
-description: Design tracking plans, UTM conventions, metric hierarchies, and controlled A/B test briefs without claiming unverified analytics connectors or declaring premature winners.
+description: Diagnose and measure marketing performance, including YouTube CTR, impressions and retention diagnosis, funnel bottleneck across the five-tier funnel, KPIs per content format, tracking plans, UTM conventions, metric hierarchies, and controlled A/B test briefs. Never claims unverified analytics connectors or declares premature winners.
 ---
 
 # Đo lường & Thử nghiệm (Marketing Measurement)
@@ -11,6 +11,8 @@ Thiết kế hệ thống chỉ số đo lường (KPI), kế hoạch gắn th�
 - Cần lập kế hoạch đo lường hiệu quả chiến dịch (KPI hierarchy, mốc chốt D+1/D+7/D+30).
 - Cần quy chuẩn hóa tham số gắn thẻ UTM liên kênh (Facebook, LinkedIn, Email, YouTube).
 - Cần thiết kế đề cương thử nghiệm A/B (giả thuyết, mẫu số, chỉ số chính và chỉ số an toàn).
+- Chẩn đoán video YouTube có impression cao mà CTR thấp, hoặc giữ chân kém: bảng chẩn đoán ở `knowledge/playbooks/YOUTUBE_GROWTH.md`.
+- Tìm điểm nghẽn của phễu 5 tầng và chọn KPI theo từng format nội dung: `knowledge/playbooks/MEASUREMENT_PLAYBOOK.md`.
 
 ## Khi không dùng
 - Đòi hỏi kết nối API analytics tự động trực tiếp từ nền tảng (hiện tại nhập số liệu thủ công).

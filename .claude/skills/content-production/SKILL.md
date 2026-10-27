@@ -1,6 +1,6 @@
 ---
 name: content-production
-description: Produce ready-to-publish multi-channel assets from an approved campaign item, or polish independent drafts via 7-pass copy editing without bypassing campaign gates.
+description: Write and polish marketing content inside or outside a campaign, including a brand voice profile from published posts, blog drafting and editing, quote and source attribution, raw idea to angles, Facebook post to blog, and 7-pass copy editing, campaign assets. Not for strategy advice or bypassing Gate 1.
 ---
 
 # content-production — adapter nguồn

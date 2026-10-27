@@ -1,6 +1,6 @@
 ---
 name: marketing-measurement
-description: Design tracking plans, UTM conventions, metric hierarchies, and controlled A/B test briefs without claiming unverified analytics connectors or declaring premature winners.
+description: Diagnose and measure marketing performance, including YouTube CTR, impressions and retention diagnosis, funnel bottleneck across the five-tier funnel, KPIs per content format, tracking plans, UTM conventions, metric hierarchies, and controlled A/B test briefs. Never claims unverified analytics connectors or declares premature winners.
 ---
 
 # marketing-measurement — adapter nguồn

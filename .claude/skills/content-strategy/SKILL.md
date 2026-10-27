@@ -1,6 +1,6 @@
 ---
 name: content-strategy
-description: Turn business goals and customer insights into prioritized content topics, pillar-spoke topic clusters, customer journey mapping, and distribution plans without writing full drafts.
+description: Turn business goals and customer insights into prioritized content topics, content pillars, pillar-fit scoring of a topic, pillar-spoke topic clusters, and customer journey mapping, without writing full drafts. Not for posting times, posting schedules or channel cadence (route to marketing-routing, distribution-manager role).
 ---
 
 # content-strategy — adapter nguồn

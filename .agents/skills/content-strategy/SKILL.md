@@ -1,6 +1,6 @@
 ---
 name: content-strategy
-description: Turn business goals and customer insights into prioritized content topics, pillar-spoke topic clusters, customer journey mapping, and distribution plans without writing full drafts.
+description: Turn business goals and customer insights into prioritized content topics, content pillars, pillar-fit scoring of a topic, pillar-spoke topic clusters, and customer journey mapping, without writing full drafts. Not for posting times, posting schedules or channel cadence (route to marketing-routing, distribution-manager role).
 ---
 
 # Chiến lược nội dung (Content Strategy)
@@ -11,10 +11,12 @@ Thiết kế danh mục đề tài, cụm chủ đề (Pillar & Spoke) và kế 
 - Người dùng hỏi "tháng này nên viết gì", "lên kế hoạch đề tài", "làm cụm bài SEO".
 - Cần sắp xếp thứ tự ưu tiên đề tài nội dung theo mục tiêu (traffic, lead, giữ chân).
 - Cần xây dựng kiến trúc cụm nội dung (Topic Cluster) kết nối giữa các bài viết.
+- Hỏi một đề tài có hợp content pillar của kênh không (pillar-fit): chấm theo `knowledge/playbooks/CONTENT_STRATEGY.md`.
 
 ## Khi không dùng
 - Đã có đề tài cụ thể và cần viết bài hoàn chỉnh (dùng `content-production`).
 - Chiến dịch đã có cấu trúc và cần kiểm tra tiến độ các bước (dùng `campaign-pipeline`).
+- Hỏi giờ đăng, lịch đăng, lưới nhịp tuần hay phân phối theo kênh: dùng `marketing-routing` (vai `distribution-manager`, `knowledge/playbooks/MULTICHANNEL_PUBLISHING.md`).
 
 ## Đầu vào cần có
 - Mục tiêu kinh doanh hoặc định hướng chu kỳ (tăng nhận diện, giáo dục, tạo lead).

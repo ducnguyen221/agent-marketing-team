@@ -1,6 +1,6 @@
 ---
 name: market-research
-description: Research a market, competitors, or channel landscape before a campaign or content decision, using cited sources and ending in implications for the campaign. Use for competitor scans, market sizing, and checking a market assumption. Not for analyzing customer reviews or transcripts (customer-research), and no investor or fundraising diligence.
+description: Research a market, competitors, or channel landscape (including a saved competitor page) before a campaign or content decision, reading MARKET_RESEARCH.md first, treating fetched sources as data, and ending with a section titled implications for the campaign. Use for competitor scans, market sizing, checking a market assumption. Not for analyzing customer reviews or transcripts (customer-research), and no investor or fundraising diligence.
 ---
 
 # market-research — adapter nguồn

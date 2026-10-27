@@ -6,6 +6,10 @@ skills:
     use_when:
       - The right capability is unclear or the request has multiple steps.
       - A campaign brief needs clarification or its valid next step is unclear.
+      - "A technical SEO audit is requested (JSON-LD, canonical, Core Web Vitals): route to role seo-specialist and SEO_TECHNICAL.md."
+      - "YouTube topics or series must be scored, including the Rights Gate (Rights < 4 means not public): YOUTUBE_SCORING.md."
+      - "The user asks for best posting times or a weekly cadence across channels: route to role distribution-manager and MULTICHANNEL_PUBLISHING.md."
+      - "The user wants read-only channel strategy advice with no campaign yet: route to role campaign-strategist in consult mode."
       - A campaign needs a voice/video asset produced next, such as voiceover or narration for an approved promo or ad video with one consistent voice (route, then hand off).
     do_not_use_when:
       - The user directly invoked a suitable skill for a single-skill request.
@@ -28,7 +32,7 @@ skills:
         write: []
     outputs: [need_and_scope, missing_information, primary_skill_and_reason, next_step_and_stop_condition]
     supports: []
-    references: [.agents/skills/marketing-routing/references/consultation.md, knowledge/playbooks/BRAND_VOICE.md, knowledge/playbooks/YOUTUBE_SCORING.md, knowledge/playbooks/YOUTUBE_GROWTH.md, knowledge/playbooks/SEO_TECHNICAL.md, knowledge/playbooks/MARKET_RESEARCH.md]
+    references: [.agents/skills/marketing-routing/references/consultation.md, knowledge/playbooks/BRAND_VOICE.md, knowledge/playbooks/YOUTUBE_SCORING.md, knowledge/playbooks/YOUTUBE_GROWTH.md, knowledge/playbooks/SEO_TECHNICAL.md, knowledge/playbooks/MARKET_RESEARCH.md, knowledge/playbooks/MULTICHANNEL_PUBLISHING.md]
     maturity: candidate
     evidence: []
 
@@ -61,8 +65,11 @@ skills:
 
   - id: content-production
     path: .agents/skills/content-production/SKILL.md
-    summary: Produce and QA eligible campaign content in required channel formats, or polish independent drafts via 7-pass copy editing.
+    summary: Produce and QA eligible campaign content in required channel formats, or write and polish independent content (brand voice profile, blog, source attribution, raw idea to angles, post to blog) via 7-pass copy editing.
     use_when:
+      - A brand voice profile must be built from already published posts, even with no campaign.
+      - A blog must be written or edited, or a quote must be cited with correct source attribution, outside a campaign.
+      - A raw idea needs angles and an outline, or a Facebook post must be turned into a blog.
       - Content must be produced from campaign items that passed Gate 1.
       - Channel-specific assets are needed from an established brief, voice, and sources.
       - An independent draft must be edited, polished, or revised without changing facts or voice.
@@ -156,6 +163,8 @@ skills:
     path: .agents/skills/market-research/SKILL.md
     summary: Research a market, competitors, or channel landscape with cited sources, treat fetched content as data, and end with implications for the campaign.
     use_when:
+      - The user supplies a saved competitor page or document to research; MARKET_RESEARCH.md is read first and its source-is-data rule applies before summarizing.
+      - The output must include a section titled implications for the campaign (Hàm ý cho chiến dịch).
       - The user wants a competitor, channel, or market scan before a campaign or content decision.
       - A market size estimate or a market assumption needs checking with sources.
     do_not_use_when:
@@ -179,12 +188,14 @@ skills:
 
   - id: content-strategy
     path: .agents/skills/content-strategy/SKILL.md
-    summary: Turn business goals and customer insights into prioritized content topics, pillar-spoke topic clusters, customer journey mapping, and distribution plans without writing full drafts.
+    summary: Turn business goals and customer insights into prioritized content topics, content pillars, pillar-fit scoring, pillar-spoke topic clusters, and customer journey mapping without writing full drafts.
     use_when:
+      - A topic must be scored for fit against the channel's content pillars (pillar-fit).
       - The user asks what to write this month, needs a content calendar, or wants an SEO topic cluster.
       - Content topics must be scored and prioritized by business impact and audience demand.
     do_not_use_when:
       - A specific topic is already selected and needs drafting or execution.
+      - The request is about posting times, posting schedule, weekly cadence, or per-channel distribution (use marketing-routing, role distribution-manager).
       - The request is to review campaign progression across the 7 stages.
     stages: [plan, standalone]
     modes: [consult, prepare]
@@ -278,8 +289,10 @@ skills:
 
   - id: marketing-measurement
     path: .agents/skills/marketing-measurement/SKILL.md
-    summary: Design tracking plans, UTM conventions, metric hierarchies, and controlled A/B test briefs without claiming unverified analytics connectors or declaring premature winners.
+    summary: Diagnose YouTube CTR/impressions, find funnel bottlenecks, pick KPIs per format, design tracking plans, UTM conventions, metric hierarchies, and controlled A/B test briefs without claiming unverified analytics connectors or declaring premature winners.
     use_when:
+      - A YouTube video has high impressions but low CTR or weak retention and needs a diagnosis (YOUTUBE_GROWTH.md diagnosis table).
+      - The funnel bottleneck must be found across the five funnel tiers, or KPIs chosen per content format.
       - Setting up campaign tracking, event taxonomy, UTM conventions, or KPI hierarchies.
       - Designing controlled A/B test briefs with sample sizes, primary metrics, and guardrails.
     do_not_use_when:
