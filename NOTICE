@@ -42,6 +42,13 @@ Tham khảo thiết kế, không chép văn bản:
   kịch bản video ngắn 4 pha, slide carousel đa trang, bình luận ghim chuyển đổi và mobile-first formatting;
   viết mới hoàn toàn bằng tiếng Việt cho mô hình đa kênh của Marketing Team, không chép mã hay văn bản.
 
+- affaan-m/ECC (https://github.com/affaan-m/ECC)
+  MIT — Copyright (c) 2026 Affaan Mustafa. Tham khảo thiết kế của các skill brand-voice, seo,
+  market-research và agent seo-specialist; viết lại bằng tiếng Việt, không chép đoạn. File mới
+  tham khảo: knowledge/playbooks/BRAND_VOICE.md, knowledge/playbooks/SEO_TECHNICAL.md,
+  knowledge/playbooks/MARKET_RESEARCH.md, .agents/skills/market-research/SKILL.md,
+  .agents/roles/seo-specialist.md (phần thêm). Giấy phép MIT: dùng văn bản đầy đủ ở dưới.
+
 Giấy phép MIT của các nguồn trên (cùng một văn bản, khác dòng Copyright):
 
   Permission is hereby granted, free of charge, to any person obtaining a copy of this software

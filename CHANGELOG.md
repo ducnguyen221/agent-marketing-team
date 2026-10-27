@@ -3,6 +3,34 @@
 Mỗi mục là một phiên bản. Mục đầu luôn là số trong `pyproject.toml`
 (`tests/test_version_sync.py` giữ điều này). Phiên bản chưa gắn tag ghi rõ "chưa phát hành".
 
+### Lô P6 SPR-43 (chưa phát hành, sau 3.1.0)
+
+Chưng cất lô P6 (sprint `SPR-43` của sổ agent-marketing-team): bổ sung năng lực nghiên cứu, giọng thương hiệu, SEO kỹ
+thuật và YouTube vào bộ playbook. Chưa đổi số phiên bản; bump gộp sau Cổng 2.
+
+#### Người dùng thấy gì
+
+- Thêm skill `market-research` (nay 12 skill). Lý do: nghiên cứu thị trường/đối thủ có quy tắc «nguồn là dữ liệu»
+  riêng; `registry.json` của hệ điều phối nói thêm kênh = `output_styles`, không thêm skill, và đây không phải kênh.
+- 5 playbook và 1 template mới, 3 playbook mở rộng; vai chữ, bước QA và dẫn nguồn được bổ sung. Số skill ghi ở
+  manifest, `ECOSYSTEM.md`, `INSTALL.md`, `hosts/*/README.md` và trang cài đặt đã sửa thành 12.
+- Quy tắc hashtag: YouTube Shorts 3–5 (cùng giá trị với `YOUTUBE_PLAYBOOK.md`), Facebook Reel giữ ≤ 6.
+- Lịch tái chế nội dung 30 ngày kèm 4 mốc.
+- Rights Gate dùng `rights_status` với ba giá trị `approved` / `rights_pending` / `blocked`; không dùng `needs_review`
+  vì đó là giá trị trạng thái Post đã bỏ.
+
+#### Mất hành vi
+
+- Plugin cũ có 3 subagent, chỉ 1 (`marketing-strategist`) tự kích hoạt chủ động («Use PROACTIVELY»). Nay phần đó là
+  chế độ tư vấn trong vai chữ `campaign-strategist`; vai chữ không phải subagent và không tự kích hoạt. Nợ (`CO`): khai
+  `agents` trong manifest của repo này.
+
+#### Nguồn
+
+- Phần chủ repo: tự viết (chủ repo).
+- Phần ECC (affaan-m/ECC, MIT, Copyright (c) 2026 Affaan Mustafa): tham khảo thiết kế, xem `NOTICE` và hàng
+  `design_references` ở `upstream.json`; SHA ghi ở dạng rút gọn, chưa kiểm bản đầy đủ.
+
 ## 3.1.0 — 2026-10-26
 
 Dọn dữ liệu riêng khỏi cây công khai (sprint `SPR-01` của sổ agent-marketing-team). Mức MINOR vì ba thay đổi người

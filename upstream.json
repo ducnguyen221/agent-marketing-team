@@ -77,6 +77,22 @@
       ],
       "copied_text": false,
       "note": "Tham khảo kiến trúc thiết kế và phương pháp luận cho ma trận nội dung 8 định dạng, kịch bản video ngắn 4 pha, slide carousel đa trang, bình luận ghim chuyển đổi và mobile-first formatting; viết mới hoàn toàn bằng tiếng Việt cho mô hình đa kênh hệ thống, không chép mã hay câu chữ"
+    },
+    "affaan-m/ECC": {
+      "url": "https://github.com/affaan-m/ECC",
+      "license": "MIT",
+      "copyright": "Copyright (c) 2026 Affaan Mustafa",
+      "upstream_ref": "d8409a4b0 (SHA rút gọn, chưa kiểm bản đầy đủ); bản vá c70874f (SHA rút gọn, chưa kiểm)",
+      "used_in": [
+        "knowledge/playbooks/BRAND_VOICE.md",
+        "knowledge/playbooks/SEO_TECHNICAL.md",
+        "knowledge/playbooks/MARKET_RESEARCH.md",
+        ".agents/skills/market-research/SKILL.md",
+        ".agents/roles/seo-specialist.md"
+      ],
+      "reference_skills": ["brand-voice", "seo", "market-research", "agent seo-specialist"],
+      "copied_text": false,
+      "note": "tham khảo thiết kế; viết lại bằng tiếng Việt, không chép đoạn"
     }
   }
 }

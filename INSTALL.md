@@ -201,8 +201,8 @@ macOS: `.venv/bin/python scripts/pipeline/doctor.py`. Chép nguyên văn mọi d
 ## 8. Khởi động lại host và xác nhận skill
 
 Phiên đang chạy có thể chưa thấy skill của repo. Hướng dẫn người dùng mở **phiên mới** của host tại
-**thư mục repo**, rồi hỏi: *"Liệt kê skill của repo này."* Phải thấy đủ bốn: `campaign-pipeline`,
-`content-production`, `hook-writer`, `thread-writer`. Thiếu thì bảo agent mở trực tiếp
+**thư mục repo**, rồi hỏi: *"Liệt kê skill của repo này."* Phải thấy đủ 12 skill (`ls .agents/skills`), gồm `campaign-pipeline`,
+`content-production`, `market-research`, `hook-writer`, `thread-writer`. Thiếu thì bảo agent mở trực tiếp
 `.agents/skills/campaign-pipeline/SKILL.md` và ghi rõ host đó chưa tự nạp skill.
 
 ## 9. Xác minh bằng trạm mẫu (offline)
@@ -239,7 +239,7 @@ tên job khi chưa khai kênh/chiến dịch — đó là kết quả đúng c�
 - Doctor (mã thoát <n>):
   <dán nguyên văn từng dòng>
 - Trạm mẫu: <dòng cuối của check_tree>
-- Việc bạn cần làm tiếp: <mở phiên mới của host tại thư mục repo, kiểm 4 skill; tạo kênh đầu tiên>
+- Việc bạn cần làm tiếp: <mở phiên mới của host tại thư mục repo, kiểm 12 skill; tạo kênh đầu tiên>
 - Gỡ khi cần: powershell -NoProfile -ExecutionPolicy Bypass -File .\uninstall.ps1 -DryRun
 ```
 
@@ -250,7 +250,7 @@ tên job khi chưa khai kênh/chiến dịch — đó là kết quả đúng c�
   Đừng xoá thư mục repo để cài lại: ở chế độ `embedded` nội dung nằm trong đó.
 - **Gỡ:** `uninstall.ps1 -DryRun` (xem trước) rồi `uninstall.ps1` (macOS: `./uninstall.sh`). Chỉ gỡ
   `studio.local.json` và hook pre-commit của bộ cài; **giữ** trạm, `.env` và repo.
-- **Nâng cấp từ bản cũ (plugin `auto-marketing`):** bản cũ trùng việc với bốn skill của repo
+- **Nâng cấp từ bản cũ (plugin `auto-marketing`):** bản cũ trùng việc với 12 skill của repo
   này. Cài và xác nhận skill của studio đã nạp (mục 8) **trước**, rồi mới gỡ bản cũ — hỏi
   người dùng trước khi gỡ. Claude Code: `claude plugin list` tìm dòng `auto-marketing@…`, rồi
   `claude plugin uninstall auto-marketing@<marketplace>`. Codex/Antigravity: xoá thư mục skill
