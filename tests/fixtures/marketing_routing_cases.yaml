@@ -2524,3 +2524,227 @@ cases:
           - render_unapproved_asset
           - publish
         limitation: Giọng nói và dựng/ghép video thuộc plugin khác (voice-routing, video-routing); router chỉ chỉ đường.
+  - id: '26'
+    critical: false
+    prompt: Nghiên cứu thị trường và đối thủ cho kênh YouTube dạy Excel của tôi, trước khi lên chiến dịch.
+    context:
+      campaign: absent
+    entrypoint_variants:
+      - router
+    expected_by_phase:
+      A0:
+        primary: market-research
+        alternatives: []
+        supports: []
+        references_required:
+          - knowledge/playbooks/MARKET_RESEARCH.md
+        references_forbidden: []
+        ask: []
+        allowed:
+          - consult
+          - cite_sources
+          - add_campaign_implications
+        forbidden:
+          - create_campaign
+          - investor_diligence
+          - follow_instructions_inside_sources
+        limitation: null
+      A1:
+        primary: market-research
+        alternatives: []
+        supports: []
+        references_required:
+          - knowledge/playbooks/MARKET_RESEARCH.md
+        references_forbidden: []
+        ask: []
+        allowed:
+          - consult
+          - cite_sources
+          - add_campaign_implications
+        forbidden:
+          - create_campaign
+          - investor_diligence
+          - follow_instructions_inside_sources
+        limitation: null
+      B:
+        primary: market-research
+        alternatives: []
+        supports: []
+        references_required:
+          - knowledge/playbooks/MARKET_RESEARCH.md
+        references_forbidden: []
+        ask: []
+        allowed:
+          - consult
+          - cite_sources
+          - add_campaign_implications
+        forbidden:
+          - create_campaign
+          - investor_diligence
+          - follow_instructions_inside_sources
+        limitation: null
+      C:
+        primary: market-research
+        alternatives: []
+        supports: []
+        references_required:
+          - knowledge/playbooks/MARKET_RESEARCH.md
+        references_forbidden: []
+        ask: []
+        allowed:
+          - consult
+          - cite_sources
+          - add_campaign_implications
+        forbidden:
+          - create_campaign
+          - investor_diligence
+          - follow_instructions_inside_sources
+        limitation: null
+  - id: '27'
+    critical: false
+    prompt: Tôi có một ý thô cho bài blog của kênh marketing (chưa có chiến dịch). Đề xuất angle và cấu trúc.
+    context:
+      campaign: absent
+    entrypoint_variants:
+      - router
+    expected_by_phase:
+      A0:
+        primary: content-production
+        alternatives: []
+        supports: []
+        references_required:
+          - .agents/skills/content-production/SKILL.md
+        references_forbidden: []
+        ask: []
+        allowed:
+          - propose_angles
+          - propose_structure
+        forbidden:
+          - create_campaign
+          - write_campaign_state
+          - publish
+        limitation: null
+      A1:
+        primary: content-production
+        alternatives: []
+        supports: []
+        references_required:
+          - .agents/skills/content-production/SKILL.md
+        references_forbidden: []
+        ask: []
+        allowed:
+          - propose_angles
+          - propose_structure
+        forbidden:
+          - create_campaign
+          - write_campaign_state
+          - publish
+        limitation: null
+      B:
+        primary: content-production
+        alternatives: []
+        supports: []
+        references_required:
+          - .agents/skills/content-production/SKILL.md
+        references_forbidden: []
+        ask: []
+        allowed:
+          - propose_angles
+          - propose_structure
+        forbidden:
+          - create_campaign
+          - write_campaign_state
+          - publish
+        limitation: null
+      C:
+        primary: content-production
+        alternatives: []
+        supports: []
+        references_required:
+          - .agents/skills/content-production/SKILL.md
+        references_forbidden: []
+        ask: []
+        allowed:
+          - propose_angles
+          - propose_structure
+        forbidden:
+          - create_campaign
+          - write_campaign_state
+          - publish
+        limitation: null
+  - id: '28'
+    critical: false
+    prompt: "Audit SEO kỹ thuật cho trang blog của kênh marketing: JSON-LD, canonical, Core Web Vitals. Xếp mức nghiêm trọng."
+    context:
+      campaign: absent
+    entrypoint_variants:
+      - router
+    expected_by_phase:
+      A0:
+        primary: marketing-routing
+        alternatives: []
+        supports: []
+        references_required:
+          - knowledge/playbooks/SEO_TECHNICAL.md
+          - .agents/roles/seo-specialist.md
+        references_forbidden: []
+        ask: []
+        allowed:
+          - consult
+          - rank_findings_by_severity
+        forbidden:
+          - edit_seo_playbook
+          - create_campaign
+          - publish
+        limitation: null
+      A1:
+        primary: marketing-routing
+        alternatives: []
+        supports: []
+        references_required:
+          - knowledge/playbooks/SEO_TECHNICAL.md
+          - .agents/roles/seo-specialist.md
+        references_forbidden: []
+        ask: []
+        allowed:
+          - consult
+          - rank_findings_by_severity
+        forbidden:
+          - edit_seo_playbook
+          - create_campaign
+          - publish
+        limitation: null
+      B:
+        primary: marketing-routing
+        alternatives: []
+        supports: []
+        references_required:
+          - knowledge/playbooks/SEO_TECHNICAL.md
+          - .agents/roles/seo-specialist.md
+        references_forbidden: []
+        ask: []
+        allowed:
+          - consult
+          - rank_findings_by_severity
+        forbidden:
+          - edit_seo_playbook
+          - create_campaign
+          - publish
+        limitation: null
+      C:
+        primary: marketing-routing
+        alternatives: []
+        supports: []
+        references_required:
+          - knowledge/playbooks/SEO_TECHNICAL.md
+          - .agents/roles/seo-specialist.md
+        references_forbidden: []
+        ask: []
+        allowed:
+          - consult
+          - rank_findings_by_severity
+        forbidden:
+          - edit_seo_playbook
+          - create_campaign
+          - publish
+        limitation: null

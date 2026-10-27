@@ -21,15 +21,15 @@ PLANNED_REFERENCES = {
 }
 PHASE_ROUTES = {
     "A0": {"marketing-routing", "campaign-pipeline", "content-production", "hook-writer",
-           "thread-writer", "campaign-strategist", "content-strategist", "growth-analyst"},
+           "thread-writer", "campaign-strategist", "content-strategist", "growth-analyst", "market-research"},
     "A1": {"marketing-routing", "campaign-pipeline", "content-production", "hook-writer",
-           "thread-writer", "growth-analyst", "content-strategist", "content-strategy", "customer-research", "direct-consultation"},
+           "thread-writer", "growth-analyst", "content-strategist", "content-strategy", "customer-research", "direct-consultation", "market-research"},
     "B": {"marketing-routing", "campaign-pipeline", "content-production", "hook-writer",
           "thread-writer", "growth-analyst", "content-strategist", "content-strategy", "customer-research", "offer-design", "lead-generation", "direct-consultation",
-          "conversion-optimization"},
+          "conversion-optimization", "market-research"},
     "C": {"marketing-routing", "campaign-pipeline", "content-production", "hook-writer",
           "thread-writer", "growth-analyst", "content-strategist", "content-strategy", "customer-research", "offer-design", "lead-generation", "marketing-measurement", "direct-consultation",
-          "conversion-optimization"},
+          "conversion-optimization", "market-research"},
 }
 
 
@@ -37,10 +37,10 @@ def _cases_file() -> dict:
     return yaml.safe_load(CASES_PATH.read_text(encoding="utf-8"))
 
 
-CASE_COUNT = 25  # 24 ca gốc + 1 (SPR-42)
+CASE_COUNT = 28  # 24 ca gốc + 1 (SPR-42) + 3 (SPR-43)
 
 
-def test_fixture_locks_all_25_cases_and_each_phase_oracle():
+def test_fixture_locks_all_28_cases_and_each_phase_oracle():
     document = _cases_file()
     assert document["schema"] == 1
     assert tuple(document["phases"]) == PHASES
