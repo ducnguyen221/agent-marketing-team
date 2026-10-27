@@ -1,7 +1,7 @@
 # Checklist QA một asset — chạy TRƯỚC khi đẩy sang người duyệt
 
 Agent tự chạy. Mục nào trượt thì sửa trước, đừng đẩy sang người kèm lỗi bạn tự thấy được.
-Kết quả ghi vào `05_Approval` (10 cột `chk_*`) khi người duyệt xác nhận.
+Kết quả ghi vào `05_Approval` (11 cột `chk_*`) khi người duyệt xác nhận.
 
 ## Nguồn và tính đúng đắn
 

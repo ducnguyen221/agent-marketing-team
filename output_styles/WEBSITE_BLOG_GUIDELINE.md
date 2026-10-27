@@ -44,7 +44,7 @@ never:
 5. **Kết luận** — 1 đoạn ngắn + **1 câu chốt mạnh in đậm** dạng "không phải X, mà là Y".
 6. **CTA mềm** — Kết nối, thảo luận hoặc định hướng đón đọc bài tiếp theo.
 
-Mỗi mục H2 đi theo chuỗi: ý chính, chất liệu (bằng chứng và ví dụ), hệ quả, khuyến nghị. Chuỗi chi tiết xem `agent-writing-studio` `shared/genres/blog.md` mục cấu trúc, nếu đã cài.
+Mỗi mục H2 đi theo chuỗi: ý chính → giải thích → chất liệu (trải nghiệm, ví dụ hoặc nguồn) → bài học → khuyến nghị; mục nào dừng ở phần giải thích là mục nói lại điều người đọc đã biết. Chi tiết: `agent-writing-studio` `shared/genres/blog.md` mục 2 «Khung viết», nếu đã cài.
 
 ---
 

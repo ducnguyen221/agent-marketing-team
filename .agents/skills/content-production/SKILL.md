@@ -11,9 +11,11 @@ Sản xuất nội dung đa kênh sẵn-đăng từ brief chiến dịch đã du
 - Sản xuất bài viết (blog, social, email, newsletter, landing copy) cho chiến dịch đã qua Gate 1.
 - Biên tập, làm sắc nét và gọt giũa bản nháp (loại bỏ sáo rỗng AI, làm rõ luận điểm, kiểm tra claim).
 - Tái chế một nội dung gốc sang nhiều định dạng kênh phát hành khác nhau.
+- Người dùng chỉ có ý thô, cần bóc angle và đề xuất cấu trúc (mục «Ý thô → angle»).
+- Nâng một post có sẵn thành blog (mục «Nâng post → blog»).
 
 ## Khi không dùng
-- Chưa có brief hoặc chiến dịch chưa qua Gate 1 (cần hoàn tất ở `campaign-pipeline`).
+- Sản xuất asset cho chiến dịch chưa có brief hoặc chưa qua Gate 1 (cần hoàn tất ở `campaign-pipeline`). Hai việc «Ý thô → angle» và «Nâng post → blog» không vướng dòng này vì chạy trước brief hoặc ở chế độ `standalone-edit`.
 - Tư vấn định hướng chiến lược hoặc thay đổi gói dịch vụ/offer (dùng `content-strategy`).
 
 ## Hai chế độ hoạt động
@@ -44,7 +46,7 @@ Sản xuất nội dung đa kênh sẵn-đăng từ brief chiến dịch đã du
 Khi người dùng chỉ đưa một ý thô (một câu, một ghi chú), đừng hỏi ngược cả loạt câu. Làm theo thứ tự:
 1. Nêu 3 angle khả dĩ, mỗi angle một dòng: luận điểm + người đọc được gì.
 2. Chọn 1 angle khuyến nghị, nói lý do và rủi ro.
-3. Đề xuất cấu trúc (outline), giọng, hook, CTA, hashtag.
+3. Đề xuất tiêu đề, cấu trúc (outline), ý hình, giọng, hook, CTA, hashtag.
 4. Gắn nhãn `inferred` cho mọi điều tự suy; **dừng** chờ người dùng gật angle trước khi viết bản đầy đủ.
 
 ## Nâng post → blog
@@ -52,7 +54,7 @@ Có bài ngắn (post) cần mở thành blog:
 1. Giữ giọng và luận điểm gốc; không viết lại thành giọng khác.
 2. Mở chiều sâu: giải nghĩa key-term, thêm khung hoặc quy trình áp dụng, thêm ví dụ.
 3. Thêm nguồn cho mọi số liệu và lời gán; việc nào chưa có nguồn gắn `[KIỂM CHỨNG]`.
-4. **Dừng** trước khi ghi `content.md` để người dùng xem dàn ý đã mở rộng.
+4. **Dừng** trước khi viết bản đầy đủ để người dùng xem dàn ý đã mở rộng (ở chế độ `campaign` thì dừng trước khi ghi `content.md`). Ngoài chiến dịch, việc này chạy ở chế độ `standalone-edit`, không tạo thư mục bài.
 
 ## Đầu ra
 - Với `campaign`: File `content.md` chứa các khối `## post:<format>`, danh sách CTA và claim cần kiểm chứng.
@@ -72,7 +74,7 @@ Có bài ngắn (post) cần mở thành blog:
 
 Ví dụ bịa để minh hoạ: tư liệu chỉ có báo cáo nội bộ của «Công ty Mẫu A» nói doanh thu quý tăng.
 - ❌ «Ban lãnh đạo Công ty Mẫu A cho biết họ sẽ mở thêm 10 chi nhánh.» (không có trong tư liệu)
-- ✅ «Theo báo cáo nội bộ của Công ty Mẫu A (ngày truy cập 01/01/2030), doanh thu quý tăng. Kế hoạch mở rộng chưa được công bố.»
+- ✅ «Theo báo cáo nội bộ của Công ty Mẫu A (phát hành 01/01/2030, giả định), doanh thu quý tăng.» Tư liệu không nói gì về kế hoạch mở rộng, nên bài không nhắc.
 
 Bản đầy đủ: xem `agent-writing-studio` `skills/02-cowriter/references/05-source-attribution.md` nếu đã cài.
 
