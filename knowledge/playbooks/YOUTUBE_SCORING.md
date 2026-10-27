@@ -127,7 +127,7 @@ Mỗi series có một hồ sơ gồm các trường sau (tên trường giữ n
 
 Trường để `unknown` hoặc bỏ trống được tính là chưa xác minh, không được hiểu là `yes`.
 
-**Trường điều kiện** (dùng ở mục 5.2) gồm đúng bốn trường của nhóm «Điều kiện cho phép»: `commercial_use_allowed`, `youtube_distribution_allowed`, `territory`, `duration`. Với `territory` và `duration`, `yes` nghĩa là chứng từ phủ đúng vùng phát hành thực tế và còn hạn suốt thời gian series công khai; `no` nghĩa là chứng từ không phủ hoặc đã hết hạn.
+**Trường điều kiện** (dùng ở mục 5.2) gồm đúng bốn trường của nhóm «Điều kiện cho phép»: `commercial_use_allowed`, `youtube_distribution_allowed`, `territory`, `duration`. `commercial_use_allowed` chỉ xét khi kênh bật kiếm tiền; kênh không kiếm tiền thì bỏ qua trường này khi xếp trạng thái. Với `territory` và `duration`, `yes` nghĩa là chứng từ phủ đúng vùng phát hành thực tế và còn hạn suốt thời gian series công khai; `no` nghĩa là chứng từ không phủ hoặc đã hết hạn.
 
 **Mốc chấm `Rc`** (ngưỡng khởi điểm, chưa đo): 5 = có giấy phép hoặc hợp đồng bằng văn bản, đã lưu trong `proof_documents`; 4 = có xác nhận bằng văn bản (chưa phải hợp đồng), phạm vi lãnh thổ và thời hạn đã ghi rõ; 3 trở xuống = còn bất kỳ trường điều kiện `unknown`, thiếu chứng từ, hoặc chỉ dựa vào lời kể.
 

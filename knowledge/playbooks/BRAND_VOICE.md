@@ -19,7 +19,7 @@ Chọn tập nguồn mạnh nhất đang có, theo thứ tự ưu tiên giảm d
 |---|---|---|
 | 1 | Bài gốc gần đây do chính tác giả đăng (post, thread, video script) | Chất liệu tốt nhất vì phản ánh cách viết hiện tại |
 | 2 | Bài dài: blog, newsletter, ghi chú ra mắt, bản nhận định | Cho thấy cách lập luận và chuyển ý |
-| 3 | Thư hoặc tin nhắn thật đã có phản hồi tốt | Cho thấy giọng một-một |
+| 3 | Thư hoặc tin nhắn thật đã có phản hồi tốt | Cho thấy giọng một-một; bỏ tên, liên hệ và nội dung riêng của người khác trước khi trích, hồ sơ chỉ giữ đặc điểm giọng |
 | 4 | Tài liệu sản phẩm, changelog, chữ trên trang đích | Chỉ làm nền; thường khô hơn giọng thật |
 
 Quy tắc thu thập:
@@ -51,7 +51,7 @@ Mỗi mục trong danh sách «không bao giờ» của một hồ sơ cần m�
 
 Điều cấm không có bằng chứng thì chỉ là sở thích của người viết hồ sơ. Khi tập mẫu mâu thuẫn nhau, ghi chỗ tách ra thay vì trộn.
 
-> **BV7 — danh sách cấm thuộc từng giọng, không có danh sách chung.** Một thủ pháp bị cấm ở giọng này có thể là chữ ký của giọng khác (ví dụ: câu chốt đối lập «không phải X, mà là Y» là bắt buộc ở khuôn blog của repo này). Vì vậy repo không giữ danh sách cấm toàn cục; mỗi hồ sơ tự liệt kê và tự chứng minh.
+> **Danh sách cấm thuộc từng giọng, không có danh sách chung.** Một thủ pháp bị cấm ở giọng này có thể là chữ ký của giọng khác (ví dụ: câu chốt đối lập «không phải X, mà là Y» là bắt buộc ở khuôn blog của repo này). Vì vậy repo không giữ danh sách cấm toàn cục; mỗi hồ sơ tự liệt kê và tự chứng minh.
 
 ## 4. Kiểm bài theo giọng: PASS / REVISE / BLOCK
 

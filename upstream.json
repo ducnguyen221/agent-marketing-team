@@ -88,7 +88,8 @@
         "knowledge/playbooks/SEO_TECHNICAL.md",
         "knowledge/playbooks/MARKET_RESEARCH.md",
         ".agents/skills/market-research/SKILL.md",
-        ".agents/roles/seo-specialist.md"
+        ".agents/roles/seo-specialist.md",
+        "knowledge/toolchains/ATLAS_CHANNEL.md"
       ],
       "reference_skills": ["brand-voice", "seo", "market-research", "agent seo-specialist"],
       "copied_text": false,
