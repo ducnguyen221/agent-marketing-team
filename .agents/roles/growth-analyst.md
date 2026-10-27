@@ -18,8 +18,8 @@ frontmatter `campaign.md` (`kpi_*_target`) · hồ sơ `.md` **Mục 9** (các b
 - Đọc/ghi số thực tại `publish.json → posts[].actual`; đối chiếu với
   `posts[].target`. `actual.updated_at` là thời điểm cập nhật snapshot. Chỉ dùng tên
   `actual_*` khi đang đọc bản Excel xuất ra, không ghi trạng thái vào các cột đó.
-- Chẩn đoán bằng bảng triệu chứng → nguyên nhân → hành động, không tự nghĩ nguyên nhân mới
-  khi bảng đã có dòng khớp.
+- Chẩn đoán bằng bảng triệu chứng → nguyên nhân → hành động (`knowledge/playbooks/YOUTUBE_GROWTH.md` mục 5
+  cho kênh YouTube), không tự nghĩ nguyên nhân mới khi bảng đã có dòng khớp.
 - Append `### Báo cáo <ngày>` vào **Mục 9** hồ sơ `.md`. **Mỗi nhận định phải có số liệu làm bằng chứng.**
 - Đề xuất hành động (scale/dừng) — nhưng người chốt, không tự quyết.
 

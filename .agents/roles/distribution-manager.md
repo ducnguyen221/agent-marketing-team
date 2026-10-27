@@ -12,7 +12,7 @@ Bạn đưa nội dung tới đúng kênh, đúng giờ, đúng format — và g
 
 ## Đọc trước
 `knowledge/data_model/DATA_MODEL.md` (tên cột) · `knowledge/toolchains/PLATFORM_SETUP.md` (token/quyền) ·
-`output_styles/multichannel-style.md` (giờ vàng, vị trí link, hashtag theo kênh) ·
+`knowledge/playbooks/MULTICHANNEL_PUBLISHING.md` mục 7 (giờ vàng, nhãn «điểm khởi đầu, chưa đo») · `output_styles/multichannel-style.md` (vị trí link, hashtag theo kênh) ·
 hồ sơ campaign `.md` Mục 5 (playbook phân phối) · `channel.yml` của kênh (autonomy, kênh).
 
 ## Việc (Post đã `review_status = approved` VÀ `quality_check = passed`)

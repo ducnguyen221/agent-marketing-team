@@ -54,3 +54,42 @@ Mọi liên kết dẫn về website hoặc trang đích bắt buộc phải có
 4. **Cỡ mẫu và thời gian tối thiểu:**
    - Thời gian chạy tối thiểu: Ít nhất 7 ngày đầy đủ để triệt tiêu ảnh hưởng của chu kỳ ngày trong tuần (day-of-week effect).
    - Cỡ mẫu tối thiểu: Cần đủ số lượt chuyển đổi ở mỗi biến thể trước khi đối chiếu; nếu dưới ngưỡng, duy trì trạng thái thử nghiệm chưa kết luận.
+
+---
+
+## 5. Phễu nội dung 5 tầng và cột `funnel`
+
+Phễu thiên về nội dung (không phải phễu bán hàng thuần) giúp gán mỗi bài vào một tầng và đo chỗ tắc bằng số. Cột `funnel_stage` trong dữ liệu chỉ có 4 giá trị (`awareness · consideration · conversion · retention`, xem `knowledge/data_model/DATA_MODEL.md`), nên 5 tầng được ánh xạ như sau:
+
+| Tầng | Vai của nội dung | Chỉ số chính | Giá trị `funnel` |
+|---|---|---|---|
+| 1. Được thấy | kéo người chưa biết mình | impressions, reach, tỷ lệ người xem mới, CTR | `awareness` |
+| 2. Tin | chứng minh giá trị và chiều sâu | thời gian xem/đọc, đọc hết, lưu, chia sẻ | `consideration` |
+| 3. Đăng ký | cho một lý do ở lại | tỷ lệ đăng ký, ghi danh bản tin, theo dõi | `consideration` |
+| 4. Quay lại | giữ nhịp, tạo thói quen | người quay lại, mở/click email, giữ chân theo tuần | `retention` |
+| 5. Kinh doanh | chuyển người đã quen sang hành động | lead, lịch hẹn, đăng ký, doanh thu | `conversion` |
+
+Tầng 2 và 3 cùng map về `consideration`; phân biệt bằng chỉ số chính, không bằng thêm giá trị mới vào cột (không đổi từ vựng dữ liệu).
+
+### 5.1 Tìm điểm tắc rồi mới sửa
+So từng tầng với baseline của chính kênh. Tầng rớt nhiều nhất so với baseline là chỗ cần thí nghiệm. **Sửa điểm tắc trước**, đừng tối ưu tầng đang ổn (ví dụ kéo thêm người vào khi tầng Quay lại đang rò).
+
+### 5.2 KPI theo format
+Mỗi định dạng có KPI riêng, đặt mục tiêu riêng; không dùng chung một con số cho mọi format.
+
+| Format | KPI chính | KPI phụ |
+|---|---|---|
+| Video dài | thời gian/% xem trung bình, CTR thumbnail | sub mới mỗi video, comment |
+| Short / Reel | lượt xem có tương tác, tỷ lệ xem lại, chia sẻ | follow từ Short |
+| Blog dài | traffic tự nhiên, đọc hết, thời gian trên trang | backlink, lead đến từ nút CTA |
+| Post mạng xã hội | tỷ lệ tương tác trên người tiếp cận | lưu, chia sẻ, vào trang cá nhân |
+| Bản tin | tỷ lệ mở, click | trả lời, giữ chân theo tuần |
+
+KPI chính phải gắn với một tầng phễu (thời gian xem cho tầng Tin, tỷ lệ đăng ký cho tầng Đăng ký, lead cho tầng Kinh doanh). Chỉ số phù phiếm (số người theo dõi, impressions đứng một mình) chỉ là chỉ số phụ.
+
+### 5.3 Giữ chân trước, kéo người mới sau
+Hai chỉ số vòng lặp cần theo dõi: **giữ chân theo tuần** (tỷ lệ người xem/đọc tuần này còn quay lại sau 4 tuần) và **hệ số lan truyền** (mỗi người đang dùng/xem kéo thêm bao nhiêu người mới). Chưa có baseline của kênh thì ghi «chưa đo», không mượn con số chung. Nguyên tắc ưu tiên: vá giữ chân trước khi mở rộng thu hút, vì kéo người vào một phễu rò chỉ đốt công sức.
+
+### 5.4 Nhịp rà số
+- **Hàng tuần:** chụp số từng kênh, không quá 30 phút; ghi bài tốt nhất, bài kém nhất và đúng một hành động tiếp theo.
+- **Hàng quý:** rà cả phễu: điểm tắc ở đâu, trụ nào vượt/hụt, nhóm 10% cao nhất nhân rộng, nhóm 10% thấp nhất dừng hoặc viết lại; đặt giả thuyết cho quý sau. Khâu đo xem `workflows/07_measure.md`.
