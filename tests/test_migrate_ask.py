@@ -581,24 +581,28 @@ def test_env_restore_exdev_retains_copy_and_never_falls_back_to_copy2(repo_git, 
     secret_env = tmp_path / "fake-secret" / ".env"
     target = tmp_path / "trạm-env-exdev"
     _, moved, injected = _inject_config_write_error(monkeypatch, repo_git)
-    original_rename = ST.os.rename
     copy_calls = []
 
-    def fail_restore_rename(src, dst):
-        if Path(src) == secret_env and Path(dst) == env:
-            raise OSError(errno.EXDEV, "cross-device restore")
-        return original_rename(src, dst)
+    def fail_restore(primitive):
+        # Khôi phục dùng os.rename trên Windows và os.link trên POSIX: tiêm EXDEV vào cả hai.
+        def restore(src, dst):
+            if Path(src) == secret_env and Path(dst) == env:
+                raise OSError(errno.EXDEV, "cross-device restore")
+            return primitive(src, dst)
+        return restore
 
     def forbidden_copy2(*args, **kwargs):
         copy_calls.append((args, kwargs))
         raise AssertionError("rollback must not fall back to copy2")
 
-    monkeypatch.setattr(ST.os, "rename", fail_restore_rename)
+    monkeypatch.setattr(ST.os, "rename", fail_restore(ST.os.rename))
+    monkeypatch.setattr(ST.os, "link", fail_restore(ST.os.link))
     monkeypatch.setattr(ST.shutil, "copy2", forbidden_copy2)
     with pytest.raises(SC.ContractError, match="rollback incomplete") as error:
         ST.migrate_sang_separate(station=str(target), kho_secret=str(secret_env.parent))
 
     assert "injected local config write failure" in str(error.value)
+    assert "cross-device restore" in str(error.value)
     assert moved["done"] and injected["count"] == 1
     assert not copy_calls and not env.exists() and secret_env.read_bytes() == original_env
     assert target.is_dir() and not (repo_git / SP.WORKSPACE).exists()
