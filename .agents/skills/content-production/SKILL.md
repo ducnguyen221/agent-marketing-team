@@ -29,7 +29,7 @@ Sản xuất nội dung đa kênh sẵn-đăng từ brief chiến dịch đã du
 
 ## Quy trình sản xuất & Biên tập
 1. **Tiếp nhận & Xác định chế độ:** Nhận brief hoặc bản nháp; kiểm tra tính hợp lệ của Gate 1 nếu là campaign.
-2. **Khung bài & Giọng điệu:** Chọn công thức (`COPY_FRAMEWORKS.md`) và giọng theo kênh (`brand.md`, `output_styles/`).
+2. **Khung bài & Giọng điệu:** Chọn công thức (`COPY_FRAMEWORKS.md`) và giọng theo kênh (`brand.md`, `output_styles/`). Dựng hoặc rà hồ sơ giọng: `knowledge/playbooks/BRAND_VOICE.md`.
 3. **Áp dụng 7 lượt biên tập (`COPY_EDITING.md`):**
    - Lượt 1: Cấu trúc & Mạch lập luận (Flow & Structure).
    - Lượt 2: Độ rõ ràng & Tinh gọn (cắt sáo rỗng AI).
@@ -40,6 +40,20 @@ Sản xuất nội dung đa kênh sẵn-đăng từ brief chiến dịch đã du
    - Lượt 7: Rà soát an toàn (loại bỏ PII, không lộ tool nội bộ).
 4. **Kiểm tra QA:** Chạy checklist `checklists/QA_ASSET.md` trước khi bàn giao.
 
+## Ý thô → angle
+Khi người dùng chỉ đưa một ý thô (một câu, một ghi chú), đừng hỏi ngược cả loạt câu. Làm theo thứ tự:
+1. Nêu 3 angle khả dĩ, mỗi angle một dòng: luận điểm + người đọc được gì.
+2. Chọn 1 angle khuyến nghị, nói lý do và rủi ro.
+3. Đề xuất cấu trúc (outline), giọng, hook, CTA, hashtag.
+4. Gắn nhãn `inferred` cho mọi điều tự suy; **dừng** chờ người dùng gật angle trước khi viết bản đầy đủ.
+
+## Nâng post → blog
+Có bài ngắn (post) cần mở thành blog:
+1. Giữ giọng và luận điểm gốc; không viết lại thành giọng khác.
+2. Mở chiều sâu: giải nghĩa key-term, thêm khung hoặc quy trình áp dụng, thêm ví dụ.
+3. Thêm nguồn cho mọi số liệu và lời gán; việc nào chưa có nguồn gắn `[KIỂM CHỨNG]`.
+4. **Dừng** trước khi ghi `content.md` để người dùng xem dàn ý đã mở rộng.
+
 ## Đầu ra
 - Với `campaign`: File `content.md` chứa các khối `## post:<format>`, danh sách CTA và claim cần kiểm chứng.
 - Với `standalone-edit`: Bản sửa hoàn chỉnh kèm bảng giải thích thay đổi.
@@ -48,6 +62,25 @@ Sản xuất nội dung đa kênh sẵn-đăng từ brief chiến dịch đã du
 - Giữ nguyên sự thật và giọng tác giả; không tự ý thay đổi offer, cam kết hoặc chính sách giá.
 - Không bịa đặt chứng chỉ, logo đối tác hoặc lời chứng thực của khách hàng.
 - Số khối `## post:` phải khớp chính xác số dòng Post trong campaign.
+
+### Dẫn nguồn
+- Chỉ gán lời cho một nguồn khi nguồn đó có thật trong tư liệu đang cầm và truy được tới đoạn cụ thể.
+- Tiêu đề bài báo không phải lời toà soạn; không trích tiêu đề như một phát biểu.
+- Mốc thời gian và quan hệ nhân quả cũng là dữ kiện, cần nguồn như số liệu.
+- Không có nguồn thì viết là quan điểm của tác giả, hoặc bỏ.
+- Chạy `chk_quote_attribution` ở `checklists/QA_ASSET.md` trước khi bàn giao.
+
+Ví dụ bịa để minh hoạ: tư liệu chỉ có báo cáo nội bộ của «Công ty Mẫu A» nói doanh thu quý tăng.
+- ❌ «Ban lãnh đạo Công ty Mẫu A cho biết họ sẽ mở thêm 10 chi nhánh.» (không có trong tư liệu)
+- ✅ «Theo báo cáo nội bộ của Công ty Mẫu A (ngày truy cập 01/01/2030), doanh thu quý tăng. Kế hoạch mở rộng chưa được công bố.»
+
+Bản đầy đủ: xem `agent-writing-studio` `skills/02-cowriter/references/05-source-attribution.md` nếu đã cài.
+
+### Chiều sâu và liên tục
+- Giải nghĩa key-term ở lần đầu; mở sang khung/quy trình và khái niệm lân cận, không xoáy một khái niệm.
+- Nối mạch với bài trước khi hợp; khái niệm đã giải thích sâu thì chỉ tóm 1–2 câu rồi trỏ lại.
+- Chủ đề nền tảng phải có lập luận và dẫn chứng cụ thể, không nói khơi khơi.
+- Chi tiết: `.agents/prompts/content-write-prompt.txt:38-52`.
 
 ## Tài liệu tham khảo
 - Sổ tay biên tập 7 lượt: `knowledge/playbooks/COPY_EDITING.md`

@@ -44,6 +44,8 @@ never:
 5. **Kết luận** — 1 đoạn ngắn + **1 câu chốt mạnh in đậm** dạng "không phải X, mà là Y".
 6. **CTA mềm** — Kết nối, thảo luận hoặc định hướng đón đọc bài tiếp theo.
 
+Mỗi mục H2 đi theo chuỗi: ý chính, chất liệu (bằng chứng và ví dụ), hệ quả, khuyến nghị. Chuỗi chi tiết xem `agent-writing-studio` `shared/genres/blog.md` mục cấu trúc, nếu đã cài.
+
 ---
 
 ## 3. CÁC ĐỊNH DẠNG TRỰC QUAN (VISUAL FORMATS) TRÊN WEBSITE
@@ -116,10 +118,11 @@ Hoặc bảng ma trận so sánh đối đầu:
 ## 4. ĐỘ DÀI & CHIỀU SÂU CHUYÊN MÔN
 
 - **Độ dài bài Deep-dive:** **2.500–4.000 từ**. Đủ chiều sâu để chuyển thể thành kịch bản Podcast hoặc video phân tích.
-- **Lăng kính chính kiến 3 lớp (Bắt buộc):**
+- **Lăng kính 3 góc (Bắt buộc):**
   1. *Technical:* Công nghệ, kiến trúc, code, công cụ.
   2. *Business Value:* Thời gian, chi phí, lợi ích kinh doanh thực tế.
   3. *Human & Adoption:* Người dùng tiếp nhận thế nào, rào cản thích ứng là gì.
+- **3 lớp khi viết về một công cụ:** (1) khái niệm: công cụ là gì, giải quyết việc gì; (2) ứng dụng: dùng cho tình huống nào, ai hợp, ai không; (3) phản biện: giới hạn, rủi ro, khi nào không nên dùng. Không dừng ở «công cụ này đang hot».
 - **Key-term ngành:** Giải thích rõ thuật ngữ tiếng Anh khi xuất hiện lần đầu.
 - **Use-case thực tế:** Luôn gắn liền với bài toán của doanh nghiệp hoặc người đi làm tại Việt Nam.
 

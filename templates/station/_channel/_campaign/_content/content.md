@@ -49,6 +49,11 @@ content_name: "Tên làm việc của content"
 2. {{ý chính 2}}
 3. {{ý chính 3}}
 
+### Key point · key-term · CTA
+- **Key point (3–6):** {{các ý người xem phải mang về}}
+- **Key-term / framework:** {{thuật ngữ hoặc khung cần giải nghĩa lần đầu}}
+- **CTA:** {{một hành động tiếp theo, khớp lời hứa của bài}}
+
 ### Ẩn dụ đời thường (≥1, bắt buộc)
 {{ẩn dụ giúp người ngoài ngành hiểu ngay}}
 
@@ -140,7 +145,7 @@ content_name: "Tên làm việc của content"
 
 **Chốt (3–5s):** {{câu đóng + CTA}}
 
-**Caption:** {{1–2 câu + ≤3 hashtag}}
+**Caption:** {{1–2 câu + 3–5 hashtag}}
 
 ---
 

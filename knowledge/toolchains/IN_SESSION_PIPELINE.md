@@ -151,7 +151,7 @@ runtime:
   approval_via: session             # MẶC ĐỊNH — hỏi thẳng trong phiên, không nhắn Telegram
   writer_cmd: powershell -File "{channel}/write-post.ps1" -Post "{post}" -Skills "{skills}"
   writer_skills:
-    - kpim-skills:blog-writing      # giọng tác giả + chân dung độc giả
+    - agent-writing-studio:02-cowriter   # ví dụ: bộ viết theo hồ sơ giọng của kênh
 ```
 
 `approval_via: telegram` bật lại đường Telegram khi anh không ngồi trước máy. Giá trị lạ
