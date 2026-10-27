@@ -75,7 +75,8 @@ sinh ra khi kênh tự khai `fb_pixel_id`.
 Cổng `tests/test_no_identity_leak.py::test_TEMPLATE_khong_mang_nhan_dien_that` quét cả cây khuôn và
 đỏ ngay khi một tên miền, email, tên người hay id pixel thật lọt vào.
 
-## Bốn khuôn còn lại ở gốc
+## Năm khuôn còn lại ở gốc
 
 `CAMPAIGN_TEMPLATE.xlsx` · `EMAIL_NEWSLETTER_TEMPLATE.md` · `IMAGE_GUIDELINES.md` ·
-`RECYCLING_PLAN_TEMPLATE.md` — chúng không thuộc cây trạm, là biểu mẫu dùng riêng từng lúc.
+`RECYCLING_PLAN_TEMPLATE.md` · `YOUTUBE_CHANNEL_STRATEGY_TEMPLATE.md` — chúng không thuộc cây trạm,
+là biểu mẫu dùng riêng từng lúc (khuôn cuối chép vào trạm của kênh YouTube rồi điền).

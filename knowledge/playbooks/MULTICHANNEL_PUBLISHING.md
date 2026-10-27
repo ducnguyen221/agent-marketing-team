@@ -88,3 +88,66 @@ Theo hợp đồng Khâu ⑥ ([`workflows/06_publish.md`](../../workflows/06_pub
    - File Slide Carousel hoặc Video Short nhúng kèm.
    - Bình luận đầu tiên (`--comment-id`) dẫn đường link quay ngược về bài viết dài.
 3. **Phân phối vòng 2 (Community & Newsletter):** Gửi bản tin Newsletter tóm lược đến danh sách người đăng ký và chia sẻ thảo luận vào Group chuyên môn liên quan.
+
+---
+
+## 6. Vai của từng kênh
+
+Không kênh nào làm hết mọi việc. Gán vai trước khi lên lịch, rồi chọn định dạng theo vai:
+
+| Vai | Mục tiêu | Định dạng mạnh | Ví dụ kênh |
+|---|---|---|---|
+| Khám phá | kéo người chưa biết mình | video có hook mạnh, bài tối ưu tìm kiếm | YouTube, tìm kiếm tự nhiên, video ngắn |
+| Uy tín | đào sâu, chứng minh năng lực | bài dài, hướng dẫn dài, video dài | blog trên tên miền riêng, bài dài trên mạng nghề nghiệp |
+| Cộng đồng | nuôi quan hệ bằng câu chuyện | post kể chuyện, clip ngắn | Facebook, nhóm |
+| Giữ chân và chuyển đổi | giữ người đã quen và dẫn tới hành động | bản tin có chọn lọc, nhận định riêng, một CTA | email |
+
+Khi kênh chọn YouTube làm trục: video dài là trục của trụ nội dung, Short kéo khám phá, các kênh còn lại phát lại và nuôi cộng đồng. Bảng «Vai từng kênh» trong `templates/station/_channel/_campaign/campaign.md` là chỗ điền vai cụ thể của chiến dịch.
+
+## 7. Lưới nhịp tuần và giờ đăng
+
+**Nhịp tuần mẫu** (chỉnh theo năng lực sản xuất; lịch cố định tốt hơn «nhớ thì đăng»):
+
+| Thứ | Hai | Ba | Tư | Năm | Sáu | Bảy | CN |
+|---|---|---|---|---|---|---|---|
+| Việc | bài uy tín | khám phá (vài mẩu ngắn) | uy tín + cộng đồng | khám phá | bài uy tín | nghỉ hoặc trả lời | câu chuyện cộng đồng |
+
+- Trục dài (blog/video): 1–2 lần mỗi tuần hoặc hai tuần một lần, giờ cố định. Bản tin: hàng tuần hoặc hai tuần một lần, giờ cố định.
+- Mẩu ngắn rải đều, mỗi ngày ít nhất một điểm chạm ở kênh khám phá.
+- Mỗi nội dung xuất hiện ít nhất ở hai kênh để không phụ thuộc một nơi. Nhịp thực tế của chiến dịch lấy từ `cadence` của kênh.
+
+**Giờ vàng** — *điểm khởi đầu, chưa đo* (người xem ở Việt Nam; thay bằng giờ có CTR/retention thật cao nhất sau 4–6 tuần dữ liệu của chính kênh):
+
+| Kênh | Khung thử đầu tiên |
+|---|---|
+| Mạng nghề nghiệp | giờ đi làm và giờ tan làm |
+| Facebook | quanh giờ nghỉ trưa và buổi tối |
+| YouTube | trước khung xem buổi tối, để thuật toán có vài giờ «chín» |
+
+Kênh X chưa bật trong pipeline hiện tại nên không có khung giờ ở đây. Vị trí link và hashtag theo kênh nằm ở `output_styles/multichannel-style.md`; thứ tự đăng lấy ở mục 5 của file này.
+
+## 8. Cửa sổ phản hồi sau khi đăng
+
+Đăng xong chưa phải xong phân phối:
+
+| Mốc | Việc |
+|---|---|
+| T+0 đến T+2 giờ | trả lời mọi comment ngay |
+| T+2 đến T+24 giờ | trả lời tin nhắn, quay lại với người đã bình luận |
+| T+1 ngày | rà để chia sẻ lại hoặc ghim comment hay nhất |
+| T+3 ngày | chốt tương tác, ghi hook thắng cho bài sau |
+
+## 9. Năm nguyên tắc tái chế
+
+1. **Không dán lại nguyên bản.** Mỗi lát phải đổi góc nhìn, độ sâu hoặc định dạng; tái chế không đồng nghĩa với repost.
+2. **Lát nào cũng trỏ về trục.** Bài ngắn, Short, post dẫn về nội dung dài.
+3. **Giãn nhịp.** Rải đều trong 30 ngày, không phát cùng lúc; mỗi nền tảng có nhịp tiếp cận riêng.
+4. **Giữ continuity.** Dùng đúng thuật ngữ đã chốt ở nguồn để các lát không mâu thuẫn nhau.
+5. **Đo rồi học.** Ghi lát nào ra tương tác hay lead để lần sau ưu tiên định dạng đó.
+
+### 9.1 Lịch 30 ngày và bốn mốc kiểm
+Hai thứ này khác nhau, đừng nhầm:
+- **Lịch 30 ngày** là khuôn mẫu: `templates/RECYCLING_PLAN_TEMPLATE.md` (Day 0 đến Day 30, mỗi lát một định dạng; cần ít nhất 5 định dạng khác nhau từ một nguồn).
+- **D+3 / D+14 / D+21 / D+30** là bốn mốc kiểm cho nội dung đã chạy tốt, để quyết định có tiếp tục tái chế hay không (xem `.agents/roles/content-strategist.md`).
+
+Lát nào có số liệu thì ghi vào bảng theo dõi của template; mục tái chế chưa đo thì ghi «chưa đo», không đoán.

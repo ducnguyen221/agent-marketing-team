@@ -25,13 +25,13 @@ Mỗi ý tưởng = **một dòng Content**, chưa gắn kênh (kênh là việc
 `creative_direction`, `constraints`, `content_relationship`, 3 cờ `audio`/`video`/`short`,
 `schedule_date`, `folder_path`. Đặt `status = proposed` rồi **dừng, chờ cổng 1**.
 
-- **Lịch theo pillar**: nếu hồ sơ `.md` Mục 4 hoặc brief đã duyệt có tỷ trọng, đối chiếu với tỷ trọng đó. Nếu thiếu, nêu phân bổ đề xuất và căn cứ thay vì coi tỷ lệ đang ghi ở đây là mặc định chung.
+- **Lịch theo pillar**: nếu hồ sơ `.md` Mục 4 hoặc brief đã duyệt có tỷ trọng, đối chiếu với tỷ trọng đó. Nếu thiếu, nêu phân bổ đề xuất và căn cứ thay vì coi tỷ lệ đang ghi ở đây là mặc định chung. Cuối kỳ điền cột «Thực tế» để so với mục tiêu (`knowledge/playbooks/CONTENT_STRATEGY.md` mục 3.4); tỷ trọng chỉ là hướng tham chiếu.
 - **Chốt bộ `content_pillar` chi tiết với người TRƯỚC khi sinh hàng loạt** — sinh 15 dòng rồi
   mới phát hiện sai nhóm thì phải sửa cả 15.
 - `schedule_date` nằm trong `schedule_start`–`schedule_end`, rải theo `cadence`, không dồn cụm.
 - **Atomization**: từ một nghiên cứu, chia thành hero + các asset bổ trợ, mỗi asset một
   vai trò khác nhau. Format theo kênh ở `output_styles/multichannel-style.md`.
-- **Tái chế 30 ngày**: lên lịch D+3 / D+14 / D+21 / D+30 cho nội dung đã chạy tốt.
+- **Tái chế 30 ngày**: lịch 30 ngày là khuôn `templates/RECYCLING_PLAN_TEMPLATE.md`; D+3 / D+14 / D+21 / D+30 là bốn mốc kiểm «có tiếp tục tái chế không» cho nội dung đã chạy tốt (xem `knowledge/playbooks/MULTICHANNEL_PUBLISHING.md` mục 9).
 - **Audit backlog**: nhóm 10% trên → nhân rộng · nhóm 10% dưới → dừng, đừng cố cứu.
 
 ## Ràng buộc cứng
