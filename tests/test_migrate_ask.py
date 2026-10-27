@@ -604,19 +604,9 @@ def test_env_restore_exdev_retains_copy_and_never_falls_back_to_copy2(repo_git, 
     assert target.is_dir() and not (repo_git / SP.WORKSPACE).exists()
 
 
-def test_posix_env_rollback_guard_never_calls_overwriting_rename(repo_git, tmp_path, monkeypatch):
-    home = tmp_path / "fake-home"
-    home.mkdir()
-    monkeypatch.setenv("HOME", str(home))
-    monkeypatch.setenv("USERPROFILE", str(home))
-    env = repo_git / ".env"
-    env.write_text("ORIGINAL=not-a-secret\n", encoding="utf-8")
-    secret_env = tmp_path / "fake-secret" / ".env"
-    target = tmp_path / "trạm-env-posix"
-    _, moved, injected = _inject_config_write_error(monkeypatch, repo_git)
-    real_os = ST.os
-    rename_calls = []
-
+def _posix_os(real_os, secret_env, env, rename_calls, before_link=None):
+    """`os` giả POSIX: ghi lại mọi `rename` trả `.env` về repo (POSIX `rename` đè im lặng nên
+    không được gọi), và cho chèn một cuộc đua ngay trước `link`."""
     class PosixOS:
         name = "posix"
 
@@ -628,14 +618,63 @@ def test_posix_env_rollback_guard_never_calls_overwriting_rename(repo_git, tmp_p
                 rename_calls.append((Path(src), Path(dst)))
             return real_os.rename(src, dst)
 
-    monkeypatch.setattr(ST, "os", PosixOS())
+        def link(self, src, dst):
+            if before_link and Path(src) == secret_env and Path(dst) == env:
+                before_link()
+            return real_os.link(src, dst)
+
+    return PosixOS()
+
+
+def test_posix_env_rollback_restores_by_link_never_overwriting_rename(repo_git, tmp_path, monkeypatch):
+    home = tmp_path / "fake-home"
+    home.mkdir()
+    monkeypatch.setenv("HOME", str(home))
+    monkeypatch.setenv("USERPROFILE", str(home))
+    env = repo_git / ".env"
+    env.write_text("ORIGINAL=not-a-secret\n", encoding="utf-8")
+    original_env = env.read_bytes()
+    secret_env = tmp_path / "fake-secret" / ".env"
+    target = tmp_path / "trạm-env-posix"
+    source_before = _tree_snapshot(repo_git / SP.WORKSPACE)
+    _, moved, injected = _inject_config_write_error(monkeypatch, repo_git)
+    rename_calls = []
+    monkeypatch.setattr(ST, "os", _posix_os(ST.os, secret_env, env, rename_calls))
+    with pytest.raises(OSError, match="injected local config write failure"):
+        ST.migrate_sang_separate(station=str(target), kho_secret=str(secret_env.parent))
+
+    assert moved["done"] and injected["count"] == 1
+    assert not rename_calls, "POSIX rollback must not invoke overwrite-capable rename"
+    assert env.read_bytes() == original_env and not secret_env.exists()
+    assert not secret_env.parent.exists() and not target.exists()
+    assert _tree_snapshot(repo_git / SP.WORKSPACE) == source_before
+
+
+def test_posix_env_rollback_never_clobbers_env_that_appears_at_link(repo_git, tmp_path, monkeypatch):
+    home = tmp_path / "fake-home"
+    home.mkdir()
+    monkeypatch.setenv("HOME", str(home))
+    monkeypatch.setenv("USERPROFILE", str(home))
+    env = repo_git / ".env"
+    env.write_text("ORIGINAL=not-a-secret\n", encoding="utf-8")
+    original_env = env.read_bytes()
+    secret_env = tmp_path / "fake-secret" / ".env"
+    target = tmp_path / "trạm-env-posix-race"
+    _, moved, injected = _inject_config_write_error(monkeypatch, repo_git)
+    rename_calls = []
+
+    def foreign_env_appears():
+        env.write_bytes(b"FOREIGN-SOURCE")
+
+    monkeypatch.setattr(ST, "os", _posix_os(ST.os, secret_env, env, rename_calls, foreign_env_appears))
     with pytest.raises(SC.ContractError, match="rollback incomplete") as error:
         ST.migrate_sang_separate(station=str(target), kho_secret=str(secret_env.parent))
 
-    assert "no-clobber .env restore is unavailable" in str(error.value)
+    assert ".env:" in str(error.value)
     assert moved["done"] and injected["count"] == 1
-    assert not rename_calls, "POSIX rollback must not invoke overwrite-capable rename"
-    assert not env.exists() and secret_env.is_file() and target.is_dir()
+    assert not rename_calls
+    assert env.read_bytes() == b"FOREIGN-SOURCE", "a path that appeared at the boundary stays untouched"
+    assert secret_env.read_bytes() == original_env and target.is_dir()
     assert not (repo_git / SP.WORKSPACE).exists()
 
 

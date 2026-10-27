@@ -273,6 +273,21 @@ def _doi_file(nguon: Path, dich: Path):
         nguon.unlink()
 
 
+def _tra_file_khong_de(nguon: Path, dich: Path):
+    """Trả file về chỗ cũ mà KHÔNG BAO GIỜ đè một `dich` vừa xuất hiện.
+
+    Windows: `os.rename` đã từ chối khi đích tồn tại. POSIX: `rename` đè im lặng, nên tạo
+    hard link (`link` hỏng với EEXIST nếu đích có — kiểm và tạo là một bước) rồi mới gỡ tên ở
+    nguồn; inode giữ nguyên nên phép kiểm danh tính sau đó vẫn đúng. Khác ổ (EXDEV) hay hệ
+    tệp không có hard link thì hỏng và để nguyên — không bao giờ rơi về chép.
+    """
+    if os.name == "nt":
+        os.rename(nguon, dich)
+        return
+    os.link(nguon, dich)
+    os.unlink(nguon)
+
+
 def _link_or_reparse(st):
     return stat.S_ISLNK(st.st_mode) or bool(getattr(st, "st_file_attributes", 0) & 0x400)
 
@@ -669,9 +684,7 @@ def migrate_sang_separate(station=None, kho_secret=None, ask=None, non_interacti
                 if (unsupported_entry(moved_stat) or not stat.S_ISREG(moved_stat.st_mode) or
                         identity(moved_stat) != env_target_id or read_bytes(env_dich) != env_before["bytes"]):
                     raise OSError("moved .env is no longer operation-owned; retained for recovery")
-                if os.name != "nt":
-                    raise OSError("no-clobber .env restore is unavailable on this platform; retained")
-                os.rename(env_dich, f_env)
+                _tra_file_khong_de(env_dich, f_env)
                 restored_stat = os.lstat(f_env)
                 if (unsupported_entry(restored_stat) or not stat.S_ISREG(restored_stat.st_mode) or
                         identity(restored_stat) != env_target_id or read_bytes(f_env) != env_before["bytes"] or
