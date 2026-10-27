@@ -9,46 +9,54 @@ Bổ sung cho `SEO_PLAYBOOK.md` (on-page, E-E-A-T, AI search, cluster). File nà
 
 ---
 
-## 1. Nguyên tắc
-1. **Sửa chặn kỹ thuật trước khi tối ưu nội dung.** Trang không bò vào được hoặc bị gắn noindex thì viết hay mấy cũng vô nghĩa.
-2. **Một trang một ý định tìm kiếm chính.** Hai trang trả lời cùng một câu hỏi sẽ cạnh tranh nhau.
-3. Chọn tín hiệu chất lượng dài hạn, không chọn mẹo ngắn hạn.
-4. Chỉ mục ưu tiên bản di động: kiểm trên màn hình nhỏ trước.
-5. Khuyến nghị phải chỉ đúng trang và làm được ngay, không chung chung kiểu «cải thiện SEO».
+## 1. Thứ tự làm việc
+Gặp một site chưa rõ vấn đề, đi theo thứ tự này; mỗi tầng chặn thì dừng và sửa rồi mới sang tầng sau:
+1. **Vào được không?** (crawl, mục 2)
+2. **Được lưu đúng bản không?** (index, mục 3)
+3. **Tải có nhanh không?** (mục 4)
+4. **Máy hiểu loại trang không?** (dữ liệu có cấu trúc, mục 5)
+5. **Mỗi trang có đúng một việc không?** (từ khoá ↔ URL, mục 7)
 
-## 2. Crawl (máy tìm kiếm vào được không)
-- `robots.txt` cho phép trang quan trọng, chặn bề mặt giá trị thấp (trang lọc, kết quả tìm nội bộ).
-- Không trang quan trọng nào mang `noindex` ngoài ý muốn: kiểm trước mỗi lần xuất bản hàng loạt.
-- Trang quan trọng nằm nông, vài cú nhấp từ trang chủ (ngưỡng khởi điểm: ≤ 3 cú nhấp, chưa đo).
-- Chuỗi chuyển hướng không dài quá hai bước; mỗi bước thừa là một lần mất tốc độ và tín hiệu.
-- Thẻ canonical nhất quán với nhau, không tự trỏ vòng.
+Hai lưu ý đi kèm: kiểm bản di động trước vì chỉ mục ưu tiên di động; và mọi khuyến nghị phải nêu đúng trang cần sửa, không viết kiểu «nên cải thiện SEO».
 
-## 3. Index (trang có được lưu đúng bản không)
-- Chọn một dạng URL chuẩn (có hay không có dấu gạch cuối, http hay https) và giữ nhất quán.
-- Site đa ngôn ngữ cần `hreflang` đúng; nếu chỉ một ngôn ngữ thì không thêm cho có.
-- Sitemap phản ánh đúng phần công khai muốn lên chỉ mục, không chứa trang đã chặn.
-- URL trùng nội dung phải có canonical kiểm soát, nếu không chúng tự cạnh tranh.
+## 2. Crawl
+Câu hỏi: máy tìm kiếm có đến được những trang ta muốn không, và có bị dẫn đi lạc không?
+- Rà `robots.txt` hai chiều: có chặn nhầm trang quan trọng không, có để lọt bề mặt vô giá trị (trang lọc, kết quả tìm nội bộ) không.
+- Rà thẻ `noindex` trước mỗi đợt xuất bản hàng loạt; lỗi quên gỡ thẻ này là kiểu hỏng im lặng phổ biến.
+- Trang quan trọng nên cách trang chủ ít bước nhấp (ngưỡng khởi điểm: ≤ 3, chưa đo).
+- Mỗi URL nên đến đích sau tối đa hai lần chuyển hướng; dài hơn thì rút gọn.
+- Canonical các trang phải khớp nhau, không trỏ vòng.
 
-Ghi chú nối repo: `scripts/pipeline/build_blog_html.py` đã sinh `<link rel="canonical">`; luật ở trên làm rõ vì sao phải giữ, không thêm việc mới.
+## 3. Index
+Câu hỏi: trang được lưu dưới đúng một địa chỉ mà ta chọn không?
+- Chốt một dạng URL (giao thức, có hay không dấu gạch cuối) và dùng thống nhất.
+- Có nhiều ngôn ngữ mới cần `hreflang`; một ngôn ngữ thì bỏ.
+- Sitemap chỉ liệt kê phần công khai muốn lên chỉ mục.
+- Hai URL cùng nội dung mà không có canonical thì tự tranh nhau.
+
+Nối repo: `scripts/pipeline/build_blog_html.py` đã sinh `<link rel="canonical">`; các luật trên giải thích vì sao phải giữ thẻ đó.
 
 ## 4. Core Web Vitals
-Ngưỡng «tốt» do Google công bố công khai trong tài liệu web.dev về Core Web Vitals (kiểm lại bản hiện hành trước khi trích):
+Ngưỡng «tốt» theo tài liệu công khai web.dev về Core Web Vitals (kiểm lại bản hiện hành trước khi trích):
 
 | Chỉ số | Đo gì | Ngưỡng tốt |
 |---|---|---|
-| LCP | thời gian hiện phần nội dung lớn nhất | dưới 2,5 giây |
-| INP | độ trễ phản hồi khi tương tác | dưới 200 ms |
-| CLS | mức xê dịch bố cục bất ngờ | dưới 0,1 |
+| LCP | thời gian hiện phần nội dung lớn nhất | ≤ 2,5 giây |
+| INP | độ trễ phản hồi khi tương tác | ≤ 200 ms |
+| CLS | mức xê dịch bố cục bất ngờ | ≤ 0,1 |
 
 Cách sửa thường gặp: tải trước ảnh đầu trang; giảm phần chặn hiển thị; chừa sẵn chỗ cho ảnh và quảng cáo để bố cục không nhảy; cắt bớt JavaScript nặng. Chưa đo trên site của kênh này thì ghi «chưa đo», đừng báo đã đạt.
 
 ## 5. Dữ liệu có cấu trúc (JSON-LD)
-Chọn loại theo loại trang:
-- Trang chủ: Organization (hoặc loại doanh nghiệp phù hợp).
-- Bài viết, blog: `Article` hoặc `BlogPosting`.
-- Trang sản phẩm: `Product` kèm `Offer`.
-- Trang con có đường dẫn phân cấp: `BreadcrumbList`.
-- Mục hỏi–đáp: `FAQPage`, **chỉ khi** nội dung thật sự là hỏi–đáp.
+Gắn loại theo vai trò của trang:
+
+| Trang | Loại gợi ý | Điều kiện |
+|---|---|---|
+| Trang chủ | Organization (hoặc loại doanh nghiệp hợp hơn) | khi có thực thể rõ |
+| Bài blog | `Article` hoặc `BlogPosting` | luôn hợp |
+| Sản phẩm | `Product` + `Offer` | có giá, tình trạng |
+| Trang có đường dẫn phân cấp | `BreadcrumbList` | khi có phân cấp thật |
+| Mục hỏi–đáp | `FAQPage` | chỉ khi nội dung đúng là hỏi–đáp |
 
 Ví dụ bịa, chỉ minh hoạ khung (đổi mọi giá trị khi dùng):
 
@@ -71,21 +79,18 @@ Số cụ thể (≤ 60 ký tự cho title, 150–160 cho meta) lấy từ `SEO_
 - Công thức gợi ý — title: *Chủ đề chính – Điểm riêng của bài*; meta: *động từ hành động + chủ đề + lợi ích + một chi tiết hỗ trợ*.
 
 ## 7. Ánh xạ từ khoá ↔ URL, tránh cannibalization
-1. Xác định ý định tìm kiếm (thông tin, so sánh, mua).
-2. Liệt kê các biến thể từ khoá thực tế.
-3. Xếp theo độ khớp ý định, giá trị khả dĩ, mức cạnh tranh.
-4. Gán **một** từ khoá hoặc chủ đề chính cho **một** URL.
-5. Rà các trang đang cùng nhắm một chủ đề: gộp, hoặc phân lại ý định, hoặc canonical về trang mạnh nhất.
-
-Tín hiệu cannibalization: hai URL của site luân phiên xuất hiện cho cùng một truy vấn, thứ hạng dao động.
+Lập bảng hai cột «từ khoá hoặc chủ đề chính» ↔ «URL» và giữ quan hệ một–một:
+- Mỗi hàng ghi ý định tìm kiếm (tìm hiểu, so sánh, mua), vài biến thể thực tế, và lý do chọn (độ khớp ý định, giá trị khả dĩ, mức cạnh tranh).
+- Một chủ đề mà bảng có hai URL: chọn trang mạnh hơn làm trang chính, rồi gộp nội dung, hoặc đổi ý định của trang kia, hoặc đặt canonical về trang chính.
+- Dấu hiệu tranh nhau: hai URL của site luân phiên hiện ra cho cùng truy vấn và thứ hạng dao động.
 
 ## 8. Liên kết nội bộ
-- Từ trang mạnh trỏ sang trang cần đẩy.
-- Văn bản neo mô tả đúng đích đến; tránh «xem thêm», «tại đây» khi có thể nói cụ thể.
-- Bài mới thì nhớ trỏ ngược tới bài cũ liên quan.
+- Bài mới phải có đường dẫn vào từ bài cũ liên quan, và dẫn ra bài cũ ngược lại.
+- Dồn liên kết từ trang mạnh về trang muốn đẩy.
+- Văn bản neo nói đúng đích đến; tránh «tại đây», «xem thêm» khi nói cụ thể được.
 
 ## 9. Dạng báo cáo kiểm
-Mỗi phát hiện: mức (Cao/Vừa/Thấp) · vị trí · vấn đề · cách sửa. Khuôn A–D của `qa-reviewer` dùng khi rà nội dung bài; mức Cao/Vừa/Thấp ở đây dùng khi rà kỹ thuật cả site. Ví dụ bịa: *[Cao] Nhiều trang bài dùng chung một title mặc định — vị trí: mẫu trang bài — sửa: sinh title riêng từ tên bài.*
+Mỗi phát hiện: mức (Cao/Vừa/Thấp) · vị trí · vấn đề · cách sửa. Khuôn A–D của `qa-reviewer` dùng khi rà nội dung bài; mức Cao/Vừa/Thấp ở đây dùng khi rà kỹ thuật cả site. Ví dụ bịa: *[Vừa] Trang danh mục đi qua 3 lần chuyển hướng mới tới đích — vị trí: đường dẫn cũ của mục «công cụ» — sửa: trỏ thẳng đường cũ về địa chỉ cuối, cập nhật liên kết nội bộ.*
 
 ## Liên kết
 - On-page, E-E-A-T, AI search, cluster: `SEO_PLAYBOOK.md` · YouTube SEO: `YOUTUBE_PLAYBOOK.md`
