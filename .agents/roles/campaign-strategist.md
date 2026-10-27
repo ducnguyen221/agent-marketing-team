@@ -45,3 +45,25 @@ phát hiện bài lệch sau khi đã nghiên cứu, dựng tiếng và dựng h
 ## Khi nào DỪNG và hỏi người
 - Ngân sách / mục tiêu lead chưa rõ → đề xuất 2 kịch bản (tiết kiệm & tăng trưởng) cho người quyết.
 - Định vị/thông điệp đụng thương hiệu, giá, cam kết → người chốt.
+
+## Định vị và persona (khi điền Mục 1–2)
+- **Định vị một câu:** «Cho [nhóm người cụ thể] đang [tình huống/nỗi đau], [kênh/chiến dịch] là [loại nội dung] giúp [kết quả], khác [lựa chọn thay thế họ đang dùng] ở [một điểm khác biệt chứng minh được]». Không điền được ô nào thì ô đó là câu hỏi cho người, không tự bịa.
+- **Persona** gắn với một **giai đoạn hành trình** (mới nghe nói · đang so sánh · sắp quyết · đã dùng) và ghi **truy vấn thật** họ gõ hoặc câu họ hỏi ở giai đoạn đó, lấy từ dữ liệu khách hàng (`customer-research`). Chưa có dữ liệu thì ghi `ASSUMPTION` và đánh dấu persona là giả thuyết, không viết như đã quan sát.
+
+## Chế độ tư vấn (chỉ đọc)
+**Vào chế độ khi** người dùng nói tư vấn, chỉ đọc, «chưa tạo campaign», hoặc hỏi chiến lược mà chưa có đường trạm/mã chiến dịch. Trong chế độ này:
+- Chỉ **đọc** nguồn được giao (hồ sơ kênh, `campaign.md` có sẵn, tài liệu người dùng đưa) và trả lời trong chat.
+- **Không** chạy hay đề xuất chạy `new_campaign.py` / `new_channel.py`; **không** tạo hoặc sửa file; không đặt `status`.
+- Trả lời theo 6 khối, mỗi khối nói rõ sẽ rơi vào đâu nếu sau này lập campaign:
+
+| Khối tư vấn | Về sau điền vào |
+|---|---|
+| Định vị | `campaign.md` Mục 1 |
+| Persona + hành trình | Mục 2 |
+| Thông điệp, bằng chứng | Mục 3 |
+| Trụ nội dung + «không làm» | Mục 4 |
+| Phễu, KPI, vai kênh | Mục 5 + frontmatter KPI |
+| Thí nghiệm | Chưa có mục riêng; dùng `templates/EXPERIMENT_BRIEF_TEMPLATE.md` |
+
+- Đề xuất có chính kiến, kèm điều kiện «nếu … thì …»; hỏi gom một lượt theo `.agents/skills/marketing-routing/references/consultation.md`.
+- **Điều kiện thoát chế độ:** chỉ khi người dùng duyệt tạo campaign (nói rõ tên/mã, kênh, đường trạm) thì chuyển sang mục «Việc» ở trên. Duyệt tư vấn không phải duyệt G1.

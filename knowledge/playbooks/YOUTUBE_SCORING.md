@@ -127,6 +127,8 @@ Mỗi series có một hồ sơ gồm các trường sau (tên trường giữ n
 
 Trường để `unknown` hoặc bỏ trống được tính là chưa xác minh, không được hiểu là `yes`.
 
+**Trường điều kiện** (dùng ở mục 5.2) gồm đúng bốn trường của nhóm «Điều kiện cho phép»: `commercial_use_allowed`, `youtube_distribution_allowed`, `territory`, `duration`. Với `territory` và `duration`, `yes` nghĩa là chứng từ phủ đúng vùng phát hành thực tế và còn hạn suốt thời gian series công khai; `no` nghĩa là chứng từ không phủ hoặc đã hết hạn.
+
 **Mốc chấm `Rc`** (ngưỡng khởi điểm, chưa đo): 5 = có giấy phép hoặc hợp đồng bằng văn bản, đã lưu trong `proof_documents`; 4 = có xác nhận bằng văn bản nhưng phạm vi (lãnh thổ, thời hạn) còn cần rà; 3 trở xuống = còn bất kỳ trường điều kiện `unknown`, thiếu chứng từ, hoặc chỉ dựa vào lời kể.
 
 ### 5.2 Ba trạng thái
@@ -137,7 +139,7 @@ Trường để `unknown` hoặc bỏ trống được tính là chưa xác minh
 | `blocked` | dừng hẳn: chưa dựng, chưa dùng lại |
 
 Điều kiện xếp trạng thái:
-- `approved` chỉ khi đủ cả ba: `youtube_distribution_allowed = yes`, có `proof_documents`, và `Rc ≥ 4`. Kênh bật kiếm tiền thêm điều kiện `commercial_use_allowed = yes`.
+- `approved` chỉ khi đủ cả năm: `youtube_distribution_allowed = yes`, `territory = yes` (phủ vùng phát hành), `duration = yes` (còn hạn), có `proof_documents`, và `Rc ≥ 4`. Kênh bật kiếm tiền thêm điều kiện `commercial_use_allowed = yes`.
 - Bất kỳ trường điều kiện nào `unknown` (hoặc thiếu chứng từ) thì `Rc ≤ 3` và `rights_status = rights_pending`.
 - Bất kỳ trường điều kiện nào `no` thì `blocked`.
 - `Rc < 4` luôn kéo `rights_status` về tối đa `rights_pending`.

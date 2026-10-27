@@ -67,6 +67,11 @@ Cổng đỏ → `quality_check = failed` + ghi `review_feedback`. **Không** t�
 - [ ] `chk_no_pii` — không có thông tin định danh cá nhân, không credential, không token
 - [ ] Ảnh/nhạc/tư liệu đều rõ quyền sử dụng
 
+### Rights Gate series
+Áp khi sắp công khai một series hoặc tái dùng nội dung của bên thứ ba (theo `knowledge/playbooks/YOUTUBE_SCORING.md` mục 5):
+- [ ] Hồ sơ quyền của series có `rights_status = approved`, tức đủ: `youtube_distribution_allowed = yes`, `territory = yes`, `duration = yes`, có `proof_documents`, `Rc ≥ 4` (kênh bật kiếm tiền thêm `commercial_use_allowed = yes`).
+- [ ] Trường điều kiện `unknown`/bỏ trống ⇒ `rights_pending`; trường nào `no` ⇒ `blocked`. `rights_pending` hoặc `blocked` ⇒ **không công khai**; ghi vào báo QA đúng trường đang chặn.
+
 ## Giọng
 
 - [ ] Đúng giọng tác giả của kênh: đối chiếu với hồ sơ giọng (`brand.md`) của chính kênh;

@@ -28,7 +28,7 @@ skills:
         write: []
     outputs: [need_and_scope, missing_information, primary_skill_and_reason, next_step_and_stop_condition]
     supports: []
-    references: [.agents/skills/marketing-routing/references/consultation.md]
+    references: [.agents/skills/marketing-routing/references/consultation.md, knowledge/playbooks/BRAND_VOICE.md, knowledge/playbooks/YOUTUBE_SCORING.md, knowledge/playbooks/YOUTUBE_GROWTH.md, knowledge/playbooks/SEO_TECHNICAL.md, knowledge/playbooks/MARKET_RESEARCH.md]
     maturity: candidate
     evidence: []
 
@@ -80,7 +80,7 @@ skills:
         write: []
     outputs: [channel_formatted_content, claims_needing_sources, qa_ready_post_entries, edited_draft_with_change_notes]
     supports: [hook-writer, thread-writer]
-    references: [knowledge/playbooks/COPY_FRAMEWORKS.md, knowledge/playbooks/COPY_EDITING.md, .agents/checklists/QA_ASSET.md]
+    references: [knowledge/playbooks/COPY_FRAMEWORKS.md, knowledge/playbooks/COPY_EDITING.md, knowledge/playbooks/BRAND_VOICE.md, .agents/checklists/QA_ASSET.md]
     maturity: candidate
     evidence: []
 
@@ -149,6 +149,31 @@ skills:
     outputs: [customer_insights_by_segment, voice_of_customer_matrix, research_gaps]
     supports: []
     references: [knowledge/playbooks/CUSTOMER_RESEARCH.md, templates/CUSTOMER_RESEARCH_TEMPLATE.md, .agents/skills/marketing-routing/references/consultation.md]
+    maturity: candidate
+    evidence: []
+
+  - id: market-research
+    path: .agents/skills/market-research/SKILL.md
+    summary: Research a market, competitors, or channel landscape with cited sources, treat fetched content as data, and end with implications for the campaign.
+    use_when:
+      - The user wants a competitor, channel, or market scan before a campaign or content decision.
+      - A market size estimate or a market assumption needs checking with sources.
+    do_not_use_when:
+      - Customer reviews, transcripts, or survey responses must be analyzed (use customer-research).
+      - The request is investor, fundraising, or vendor due diligence.
+      - Research results already exist and only strategy or drafting is needed.
+    stages: [plan, standalone]
+    modes: [consult, prepare]
+    requires:
+      consult:
+        read: [decision_question, scope, supplied_sources_or_missing_source]
+        write: []
+      prepare:
+        read: [decision_question, scope, supplied_sources_or_missing_source]
+        write: []
+    outputs: [cited_market_or_competitor_findings, facts_inference_recommendation_split, implications_for_campaign]
+    supports: []
+    references: [knowledge/playbooks/MARKET_RESEARCH.md, .agents/skills/marketing-routing/references/consultation.md]
     maturity: candidate
     evidence: []
 
@@ -274,7 +299,7 @@ skills:
         write: [measurement_snapshots_appended_to_campaign]
     outputs: [tracking_plan, experiment_brief, measurement_snapshot_report]
     supports: []
-    references: [knowledge/playbooks/MEASUREMENT_PLAYBOOK.md, templates/TRACKING_PLAN_TEMPLATE.md, templates/EXPERIMENT_BRIEF_TEMPLATE.md, workflows/07_measure.md, .agents/skills/marketing-routing/references/consultation.md]
+    references: [knowledge/playbooks/MEASUREMENT_PLAYBOOK.md, knowledge/playbooks/YOUTUBE_GROWTH.md, templates/TRACKING_PLAN_TEMPLATE.md, templates/EXPERIMENT_BRIEF_TEMPLATE.md, workflows/07_measure.md, .agents/skills/marketing-routing/references/consultation.md]
     maturity: candidate
     evidence: []
 
