@@ -124,7 +124,7 @@ Khi kênh chọn YouTube làm trục: video dài là trục của trụ nội du
 | Facebook | quanh giờ nghỉ trưa và buổi tối |
 | YouTube | trước khung xem buổi tối, để thuật toán có vài giờ «chín» |
 
-Kênh X chưa bật trong pipeline hiện tại nên không có khung giờ ở đây. Giờ, vị trí link và hashtag theo kênh nằm ở `output_styles/multichannel-style.md`; thứ tự đăng lấy ở mục 5 của file này.
+Kênh X chưa bật trong pipeline hiện tại nên không có khung giờ ở đây. Vị trí link và hashtag theo kênh nằm ở `output_styles/multichannel-style.md`; thứ tự đăng lấy ở mục 5 của file này.
 
 ## 8. Cửa sổ phản hồi sau khi đăng
 

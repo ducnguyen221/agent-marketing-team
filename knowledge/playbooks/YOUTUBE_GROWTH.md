@@ -49,7 +49,7 @@ Mỗi khuôn kèm ví dụ bịa:
 | chủ thể + bài toán + kết quả | "Dùng app XYZ gộp 40 file Excel: mất 6 phút" |
 | tôi đã thử + điều bất ngờ | "Thử tắt hết thông báo 7 ngày: điều tôi không ngờ" |
 | niềm tin sai phổ biến + luận điểm | "Vì sao càng nhiều dashboard càng ít quyết định" |
-| biến cố/hook, rồi tên series + số tập | "Bí mật căn phòng khoá | Chuyện nhà trọ, tập 4" |
+| biến cố/hook, rồi tên series + số tập | "Bí mật căn phòng khoá – Chuyện nhà trọ, tập 4" |
 
 Nên: dẫn bằng tác động, kết quả hoặc khoảng trống tò mò có thật; thêm tên công cụ khi người xem hay tìm theo tên; với series đặt **số tập ở cuối**. Không nên: đặt chữ "ngày/giờ/tin nóng" lên đầu; nhồi cả nội dung vào tiêu đề; dùng từ gây sốc khi chưa có bằng chứng; hứa kết quả tuyệt đối; để tiêu đề chỉ gồm tên truyện và số chương; lộ luôn kết quả chính.
 

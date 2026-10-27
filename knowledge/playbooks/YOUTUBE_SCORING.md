@@ -11,7 +11,7 @@ version: "1.1.10"
 
 Mọi trọng số và ngưỡng trong file này là **ngưỡng khởi điểm, chưa đo**. Kênh chạy vài chu kỳ rồi chỉnh theo dữ liệu của chính mình; không trích chúng như chuẩn ngành.
 
-> **Cổng tài liệu, chưa có cổng máy.** Chưa có script nào tự chặn khi `Rights < 4` hay `Risk >= 3`. Người/agent điền hồ sơ phải tự dừng; QA (`roles/qa-reviewer.md`) kiểm lại ở khâu duyệt.
+> **Cổng tài liệu, chưa có cổng máy.** Chưa có script nào tự chặn khi `Rights < 4` hay `Risk >= 3`. Người/agent lập kế hoạch phải tự dừng. QA kiểm hồ sơ quyền của series qua `.agents/checklists/QA_ASSET.md` mục Rights Gate series; ngoài mục đó, QA chỉ kiểm quyền ở mức tài sản (ảnh, nhạc, tư liệu).
 
 ---
 
@@ -74,7 +74,7 @@ Biến thể có quyền: bất kể điểm, `Rc < 4` chỉ được nghiên c�
 
 ## 3. Risk Score — làm thì dính bẫy gì
 
-Chấm 0–5, **không nhân trọng số**; dùng như đèn cảnh báo. Mỗi tín hiệu dưới đây cộng vào mức rủi ro:
+Chấm 0–5 (tối đa 5, dù có nhiều tín hiệu cộng dồn), **không nhân trọng số**; dùng như đèn cảnh báo. Mỗi tín hiệu dưới đây cộng vào mức rủi ro:
 - nguồn gián tiếp, không truy ra gốc;
 - khẳng định lớn hơn bằng chứng đang có;
 - chưa ai tự chạy thử, chỉ có lời kể;
@@ -125,7 +125,9 @@ Mỗi series có một hồ sơ gồm các trường sau (tên trường giữ n
 | Chứng từ | `proof_documents`, `restrictions`, `review_date` |
 | Kết luận | `rights_status` (tách khỏi trạng thái bài đăng) |
 
-Trường để `unknown` được tính là chưa xác minh, không được hiểu là `yes`.
+Trường để `unknown` hoặc bỏ trống được tính là chưa xác minh, không được hiểu là `yes`.
+
+**Mốc chấm `Rc`** (ngưỡng khởi điểm, chưa đo): 5 = có giấy phép hoặc hợp đồng bằng văn bản, đã lưu trong `proof_documents`; 4 = có xác nhận bằng văn bản nhưng phạm vi (lãnh thổ, thời hạn) còn cần rà; 3 trở xuống = còn bất kỳ trường điều kiện `unknown`, thiếu chứng từ, hoặc chỉ dựa vào lời kể.
 
 ### 5.2 Ba trạng thái
 | `rights_status` | Được làm gì |
@@ -134,7 +136,11 @@ Trường để `unknown` được tính là chưa xác minh, không được hi
 | `rights_pending` | chỉ nghiên cứu và chuẩn bị metadata, **chưa công khai** |
 | `blocked` | dừng hẳn: chưa dựng, chưa dùng lại |
 
-Nối với điểm: `Rc < 4` kéo `rights_status` về tối đa `rights_pending`.
+Điều kiện xếp trạng thái:
+- `approved` chỉ khi đủ cả ba: `youtube_distribution_allowed = yes`, có `proof_documents`, và `Rc ≥ 4`. Kênh bật kiếm tiền thêm điều kiện `commercial_use_allowed = yes`.
+- Bất kỳ trường điều kiện nào `unknown` (hoặc thiếu chứng từ) thì `Rc ≤ 3` và `rights_status = rights_pending`.
+- Bất kỳ trường điều kiện nào `no` thì `blocked`.
+- `Rc < 4` luôn kéo `rights_status` về tối đa `rights_pending`.
 
 ### 5.3 Có giấy phép chưa chắc được kiếm tiền
 Giấy phép chỉ nói mình được dùng; nền tảng vẫn xét kênh có giá trị bổ sung riêng hay không. Nội dung chỉ đọc lại theo khuôn mà không thêm gì dễ bị loại khỏi kiếm tiền. Mỗi tập cần ít nhất **3 lớp giá trị riêng** (ngưỡng khởi điểm, chưa đo), ví dụ lời dẫn biên tập, recap, phân tích, tư liệu bổ sung, âm thanh có quyền. Về dài hạn nên tăng tỷ trọng nội dung có giấy phép rõ, nội dung gốc, hoặc hợp tác có hợp đồng, thay vì dựa vào tên tuổi của bên khác.
@@ -160,6 +166,7 @@ candidate:
   opportunity_score:     # 0-5
   opportunity_variant:   # core | news | rights
   rights_clarity:        # chỉ biến thể rights; < 4 = chưa công khai
+  rights_status:         # approved | rights_pending | blocked (chỉ kênh đăng lại)
   risk_score:            # 0-5
   decision:              # full_campaign | short_or_post | backlog | reject
   hook_candidates:       # đoạn + hook_score
