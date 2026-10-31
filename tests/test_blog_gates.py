@@ -64,7 +64,7 @@ def test_theo_nguon_viet_thuong_va_lien_tu():
     dem = G._dem_theo_nguon
     assert dem("Theo tài liệu Folder connector, X.") == 1
     assert dem("Theo Microsoft Learn, X.") == 1
-    assert dem("Theo Đức, số liệu như vậy.") == 1
+    assert dem("Theo Lan, số liệu như vậy.") == 1
     assert dem("Theo báo cáo nào đó, X.") == 1
     # liên từ sau «Theo» không phải nguồn
     assert dem("Theo đó, kết quả khác.") == 0
@@ -100,7 +100,7 @@ def test_dem_tu_theo_khoang_trang_unicode():
     Đã đo 6 / 4 / 0 trước khi viết, không có bước đỏ (hàm không đổi, chỉ ghim lại). `wc -w`
     ở locale C đếm dư với chữ có dấu nên không dùng làm thước (RQ-007, F5).
     """
-    assert G._tu("Theo Đức, số liệu như vậy.") == 6
+    assert G._tu("Theo Lan, số liệu như vậy.") == 6
     assert G._tu("a\u00a0b\tc\n d") == 4
     assert G._tu("") == 0
 

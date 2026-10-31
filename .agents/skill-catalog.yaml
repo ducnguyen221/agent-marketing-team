@@ -73,11 +73,12 @@ skills:
       - Content must be produced from campaign items that passed Gate 1.
       - Channel-specific assets are needed from an established brief, voice, and sources.
       - An independent draft must be edited, polished, or revised without changing facts or voice.
+      - A standalone blog draft must be scored against the 24 blog gates without a campaign folder.
     do_not_use_when:
       - The campaign has not passed Gate 1 or required campaign, brand, or research inputs are missing.
       - Strategy consultation, offer changes, or edits that bypass campaign gates are requested.
     stages: [produce, standalone]
-    modes: [execute, standalone-edit]
+    modes: [execute, standalone-edit, standalone-blog]
     requires:
       execute:
         read: [approved_campaign_content_with_g1, channel_brand, post_research, COPY_FRAMEWORKS.md]
@@ -85,9 +86,12 @@ skills:
       standalone-edit:
         read: [independent_draft, edit_goal, channel_voice, supplied_sources, COPY_EDITING.md]
         write: []
+      standalone-blog:
+        read: [independent_blog_markdown, optional_research_md, home_domain_or_brand_file, QA_ASSET.md]
+        write: [temp_post_folder_under_tmp_removed_unless_keep, gates_json_in_temp_folder]
     outputs: [channel_formatted_content, claims_needing_sources, qa_ready_post_entries, edited_draft_with_change_notes]
     supports: [hook-writer, thread-writer]
-    references: [knowledge/playbooks/COPY_FRAMEWORKS.md, knowledge/playbooks/COPY_EDITING.md, knowledge/playbooks/BRAND_VOICE.md, .agents/checklists/QA_ASSET.md]
+    references: [knowledge/playbooks/COPY_FRAMEWORKS.md, knowledge/playbooks/COPY_EDITING.md, knowledge/playbooks/BRAND_VOICE.md, .agents/checklists/QA_ASSET.md, .agents/skills/content-production/references/source-depth.md]
     maturity: candidate
     evidence: []
 

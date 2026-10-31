@@ -368,3 +368,25 @@ def test_malformed_unhashable_modes_report_validation_error(tmp_path):
     catalog["skills"][0]["modes"] = [["consult"]]
     issues = validate_catalog(root, catalog)
     assert any("invalid modes" in issue for issue in issues)
+
+
+# --- SPR-04 TK4 (RQ-007, RQ-009): chế độ standalone-blog và trần SKILL content-production ---
+
+_ROOT = Path(__file__).resolve().parents[1]
+
+
+def test_content_production_co_che_do_standalone_blog():
+    catalog = load_catalog(_ROOT)
+    skill = next(s for s in catalog["skills"] if s["id"] == "content-production")
+    assert "standalone-blog" in skill["modes"]
+    ghi = skill["requires"]["standalone-blog"]["write"]
+    assert any("temp_post_folder" in w for w in ghi)
+    assert validate_catalog(_ROOT, catalog) == []
+
+
+def test_content_production_duoi_tran_co_du_cho():
+    """Trần của check_skill_catalog là 8192 B; chừa >= 392 B cho lần sửa sau (FR4.1)."""
+    raw = (_ROOT / ".agents" / "skills" / "content-production" / "SKILL.md").read_bytes()
+    assert b"\r\n" not in raw
+    assert len(raw) <= 7800
+    assert len(raw.splitlines()) <= 120
