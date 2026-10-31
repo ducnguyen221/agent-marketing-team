@@ -3,6 +3,31 @@
 Mỗi mục là một phiên bản. Mục đầu luôn là số trong `pyproject.toml`
 (`tests/test_version_sync.py` giữ điều này). Phiên bản chưa gắn tag ghi rõ "chưa phát hành".
 
+## 3.3.0 — chưa phát hành
+
+Trả sáu món nợ của đợt `P6` (sprint `SPR-04` sổ repo; nguồn sổ OpcOS `RQ-221`…`RQ-225`, `RQ-229`). Mức MINOR vì thêm
+chế độ `standalone-blog` và subagent. Chưa gắn tag, chưa cài cache.
+
+### Người dùng thấy gì
+
+- Chấm 24 cổng cho blog ngoài chiến dịch bằng một lệnh: `python scripts/pipeline/standalone_blog.py --blog <bài.md> --home-domain <miền>`
+  (dựng thư mục tạm dưới `.tmp/standalone-blog/`, tự xoá trừ khi `--keep`; thiếu `--home-domain` và `--brand` thì thoát 2).
+- `G07` nhận «Theo tài liệu …» (kể cả khi bọc đậm, liên kết hay ngoặc kép) và chữ hoa thật, không còn nhận «Theo đó», «Theo đúng quy trình»
+  (bài cũ từng xanh nhờ lỗi có thể nhận một cảnh báo `G07`, không bị chặn); quy ước đếm từ `G01` ghi rõ = `str.split()`.
+- Trang atlas có JSON-LD `Article`; canonical và `og:url` chỉ in khi có `slug` (thiếu slug thì `G18` đỏ ở bước đăng, đúng ý).
+- Subagent `marketing-strategist` chỉ-đọc, tự kích hoạt khi bàn chiến lược — **mất hành vi ghi ở mục 3.2.0 (subagent tự
+  kích hoạt) đã trả**; không có quyền ghi, thân có rào chống đưa dữ liệu kênh vào truy vấn web.
+- QA Rights Gate khớp playbook (ngoại lệ `commercial_use_allowed` ở kênh không bật kiếm tiền; khai «nguyên bản 100 %»
+  phải kèm căn cứ); catalog `market-research` khai ghi vào `campaign.md` mục 1 chỉ khi người dùng đồng ý.
+
+### Bên trong
+
+- SKILL `content-production` thành ba chế độ, ví dụ dẫn nguồn và «Chiều sâu và liên tục» chuyển sang
+  `references/source-depth.md` (8086 B → 7793 B), `MAP.md` sinh lại.
+- `upstream.json`: SHA ECC 40 hex đã kiểm GitHub API; test chặn SHA rút gọn.
+- Test mới: `tests/test_standalone_blog.py`, `tests/test_plugin_agents.py`; thêm ca vào `test_blog_gates.py`,
+  `test_build_blog_html.py`, `test_skill_catalog.py`, `test_upstream_provenance.py`.
+
 ## 3.2.0 — 2026-10-27
 
 Gộp hai đợt: P5 (sprint `SPR-42`, chỉ đường giọng/video) và P6 (sprint `SPR-43`, năng lực nghiên cứu, giọng thương
