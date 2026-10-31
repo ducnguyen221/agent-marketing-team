@@ -37,7 +37,7 @@ Kết quả ghi vào `05_Approval` (11 cột `chk_*`) khi người duyệt xác 
 - [ ] `chk_hashtag_ok` — đúng giới hạn: YouTube ≤3 · Shorts 3–5 · Reel ≤6 · Facebook 6–13
 - [ ] Định dạng đúng kênh (FB dùng Unicode bold + `———` chứ không dùng markdown)
 - [ ] Link đặt đúng chỗ theo kênh (Facebook: link ở **COMMENT đầu tiên**; thân bài **không có URL ngoài**)
-- [ ] Độ dài trong khoảng của kênh (xem bảng nhịp điệu & độ dài ở `knowledge/playbooks/MULTICHANNEL_PUBLISHING.md`)
+- [ ] Độ dài trong khoảng của kênh (xem bảng nhịp điệu & độ dài ở `knowledge/playbooks/MULTICHANNEL_PUBLISHING.md`); số từ blog lấy theo `G01`
 
 ## Cổng đếm được — chạy máy, không chấm bằng cảm giác
 

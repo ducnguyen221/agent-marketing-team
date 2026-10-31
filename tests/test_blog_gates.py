@@ -94,6 +94,17 @@ def test_fixture_do_G07_dem_nguon_viet_thuong(do):
     assert do["G07"]["status"] == "fail"
 
 
+def test_dem_tu_theo_khoang_trang_unicode():
+    """Ghim hợp đồng `G01`: số từ = `str.split()`, tách theo mọi khoảng trắng Unicode kể cả NBSP.
+
+    Đã đo 6 / 4 / 0 trước khi viết, không có bước đỏ (hàm không đổi, chỉ ghim lại). `wc -w`
+    ở locale C đếm dư với chữ có dấu nên không dùng làm thước (RQ-007, F5).
+    """
+    assert G._tu("Theo Đức, số liệu như vậy.") == 6
+    assert G._tu("a\u00a0b\tc\n d") == 4
+    assert G._tu("") == 0
+
+
 def test_cong_xanh_khong_bi_do_lay(do):
     """Bài sai nhiều thứ nhưng CÓ bảng và KHÔNG lộ tên tool -> ba cổng này phải xanh."""
     assert do["G03"]["status"] == "pass"
