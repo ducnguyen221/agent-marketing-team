@@ -305,7 +305,7 @@ _HEX_NGAN = re.compile(r"\b[0-9a-f]{7,39}\b", re.I)
 
 
 def test_design_reference_upstream_ref_la_sha_day_du():
-    """`upstream_ref` ghi SHA 40 hex đã kiểm; SHA rút gọn không truy được nguồn (SPR-04 TK6, RQ-010)."""
+    """`upstream_ref` ghi SHA 40 hex đã kiểm; SHA rút gọn không truy được nguồn."""
     for repo, reference in SO.get("design_references", {}).items():
         ref = reference.get("upstream_ref")
         if not isinstance(ref, str):
@@ -609,6 +609,6 @@ def test_metadata_phai_khop_source_inventory_pinned(tmp_path: Path, field: str, 
 
 
 def test_regex_sha_khong_phan_biet_hoa_thuong():
-    """SHA rút gọn viết HOA cũng phải bị bắt (review lô B, RF5)."""
+    """SHA rút gọn viết HOA cũng phải bị bắt."""
     assert _HEX_NGAN.search("ban va D8409A4B0 chi ap")
     assert _SHA40.search("D8409A4B0813771235555E32E3D8046A73988BFA")

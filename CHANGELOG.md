@@ -17,6 +17,10 @@ chế độ `standalone-blog` và subagent. Chưa gắn tag, chưa cài cache.
 - Trang atlas có JSON-LD `Article`; canonical và `og:url` chỉ in khi có `slug` (thiếu slug thì `G18` đỏ ở bước đăng, đúng ý).
 - Subagent `marketing-strategist` chỉ-đọc, tự kích hoạt khi bàn chiến lược — **mất hành vi ghi ở mục 3.2.0 (subagent tự
   kích hoạt) đã trả**; không có quyền ghi, thân có rào chống đưa dữ liệu kênh vào truy vấn web.
+- `G05` không báo xanh khi `--home-domain` chỉ là giá trị giữ chỗ (`example.*`, `*.test`, `localhost`…): link về chính trang nhà
+  không còn bị đếm là nguồn ngoài, cổng báo «thiếu» kèm lý do; `G07` không đếm «Theo bài trước/này/trên», «Theo ở trên»,
+  «Theo đã nói» (nhắc lại chính kênh) là dẫn nguồn.
+- `content-strategy` nói rõ «phân phối» = chọn kênh và hướng tái chế (giờ đăng và nhịp thuộc `marketing-routing`).
 - QA Rights Gate khớp playbook (ngoại lệ `commercial_use_allowed` ở kênh không bật kiếm tiền; khai «nguyên bản 100 %»
   phải kèm căn cứ); catalog `market-research` khai ghi vào `campaign.md` mục 1 chỉ khi người dùng đồng ý.
 
@@ -25,6 +29,7 @@ chế độ `standalone-blog` và subagent. Chưa gắn tag, chưa cài cache.
 - SKILL `content-production` thành ba chế độ, ví dụ dẫn nguồn và «Chiều sâu và liên tục» chuyển sang
   `references/source-depth.md` (8086 B → 7793 B), `MAP.md` sinh lại.
 - `upstream.json`: SHA ECC 40 hex đã kiểm GitHub API; test chặn SHA rút gọn.
+- Test chèn mã JSON-LD chạy trong tiến trình qua mọi trường (title, angle, author, site_name, schedule_date).
 - Test mới: `tests/test_standalone_blog.py`, `tests/test_plugin_agents.py`; thêm ca vào `test_blog_gates.py`,
   `test_build_blog_html.py`, `test_skill_catalog.py`, `test_upstream_provenance.py`.
 

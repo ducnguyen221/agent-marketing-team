@@ -60,7 +60,7 @@ def test_dung_tap_cong_canh_bao(do):
 
 
 def test_theo_nguon_viet_thuong_va_lien_tu():
-    """`G07` đếm «Theo» + danh từ nguồn viết thường hoặc chữ hoa thật; bỏ liên từ (RQ-221, F4)."""
+    """`G07` đếm «Theo» + danh từ nguồn viết thường hoặc chữ hoa thật; bỏ liên từ."""
     dem = G._dem_theo_nguon
     assert dem("Theo tài liệu Folder connector, X.") == 1
     assert dem("Theo Microsoft Learn, X.") == 1
@@ -73,23 +73,23 @@ def test_theo_nguon_viet_thuong_va_lien_tu():
     assert dem("Theo mình thì khác.") == 0
     # ... nhưng «Theo mình» vẫn là ý riêng
     assert len(G._THEO_MINH.findall("Theo mình thì khác.")) == 1
-    # RF34: từ thứ hai không bị nuốt, và dấu mở đầu từ không che chữ hoa
+    # Từ thứ hai không bị nuốt, và dấu mở đầu từ không che chữ hoa
     assert dem("Theo Reuters Theo Bloomberg, X.") == 2
     assert dem("Theo **Reuters**, X.") == 1
     assert dem("Theo «Báo cáo» của Y.") == 1
-    # vòng sửa lô A, RF2: dấu đóng/ngoặc quanh danh từ nguồn viết thường không che nó
+    # Dấu đóng/ngoặc quanh danh từ nguồn viết thường không che nó
     assert dem("Theo [báo cáo](https://r.example/x) X.") == 1
     assert dem("Theo **tài liệu** của hãng X.") == 1
     assert dem("Theo «báo cáo» năm 2025.") == 1
     assert dem("Theo “nghiên cứu” mới.") == 1
     assert dem("Theo (Reuters) X.") == 1
-    # vòng sửa lô A, RF3: bộ lọc liên từ ghim cả dạng viết hoa («Theo Tôi», «Theo Đó»)
+    # Bộ lọc liên từ ghim cả dạng viết hoa («Theo Tôi», «Theo Đó»)
     assert dem("Theo Tôi, X.") == 0
     assert dem("Theo Đó, X.") == 0
 
 
 def test_theo_chu_thuong_co_dau_khong_phai_nguon():
-    """Lớp `[A-ZĐÀ-Ỹ]` cũ chứa cả `đ`, `ý`... nên «Theo đúng ...» bị đếm oan (RF15)."""
+    """Lớp `[A-ZĐÀ-Ỹ]` cũ chứa cả `đ`, `ý`... nên «Theo đúng ...» bị đếm oan."""
     dem = G._dem_theo_nguon
     assert dem("Theo đúng quy trình, X.") == 0
     assert dem("Theo điều đó, X.") == 0
@@ -107,7 +107,7 @@ def test_dem_tu_theo_khoang_trang_unicode():
     """Ghim hợp đồng `G01`: số từ = `str.split()`, tách theo mọi khoảng trắng Unicode kể cả NBSP.
 
     Đã đo 6 / 4 / 0 trước khi viết, không có bước đỏ (hàm không đổi, chỉ ghim lại). `wc -w`
-    ở locale C đếm dư với chữ có dấu nên không dùng làm thước (RQ-007, F5).
+    ở locale C đếm dư với chữ có dấu nên không dùng làm thước.
     """
     assert G._tu("Theo Lan, số liệu như vậy.") == 6
     assert G._tu("a\u00a0b\tc\n d") == 4

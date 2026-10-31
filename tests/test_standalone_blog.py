@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Test cho standalone_blog.py (SPR-04 TK3, RQ-007): dựng thư mục tạm, chấm cổng, tự dọn.
+"""Test cho standalone_blog.py: dựng thư mục tạm, chấm cổng, tự dọn.
 
 Mọi ca chạy trong `tmp_path` sau `monkeypatch.chdir`, nên `.tmp/standalone-blog` của cwd là
 thư mục của test — không ghi vào cây repo. Mười ca: bảy hành vi của kế hoạch (mỗi hành vi một ca,
@@ -145,7 +145,7 @@ def test_blog_gates_nem_loi_van_don(vung, monkeypatch):
 
 
 def test_loi_khi_chep_sau_mkdir_khong_bo_lai_thu_muc(vung, monkeypatch):
-    """Hồi quy RF1 (review lô A): bước chép lỗi SAU `mkdir` thì thư mục tạm không được sót."""
+    """Hồi quy: bước chép lỗi SAU `mkdir` thì thư mục tạm không được sót."""
     tmp, goc = vung
     (tmp / "r.md").write_text(_research_md(), encoding="utf-8", newline="\n")
     that = SB.shutil.copyfile
@@ -163,7 +163,7 @@ def test_loi_khi_chep_sau_mkdir_khong_bo_lai_thu_muc(vung, monkeypatch):
                  "--home-domain", HOME])
     assert dem["n"] == 2
     assert _con(goc) == [], "thư mục tạm bị bỏ lại khi chép lỗi"
-    assert not goc.exists(), "gốc rỗng do script tạo phải được dọn (RF6)"
+    assert not goc.exists(), "gốc rỗng do script tạo phải được dọn"
 
 
 def test_chi_don_tmp_do_script_tao(vung):

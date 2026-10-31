@@ -370,7 +370,7 @@ def test_malformed_unhashable_modes_report_validation_error(tmp_path):
     assert any("invalid modes" in issue for issue in issues)
 
 
-# --- SPR-04 TK4 (RQ-007, RQ-009): chế độ standalone-blog và trần SKILL content-production ---
+# --- Chế độ standalone-blog và trần SKILL content-production ---
 
 _ROOT = Path(__file__).resolve().parents[1]
 

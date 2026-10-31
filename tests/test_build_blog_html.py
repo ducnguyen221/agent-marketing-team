@@ -94,7 +94,7 @@ def test_brand_du_thi_van_dung_duoc(tmp_path):
     assert (tmp_path / "ra.html").is_file()
 
 
-# ══ SPR-04 TK7 (RQ-012) — JSON-LD `Article` và canonical khi thiếu slug ════════
+# ══ JSON-LD `Article` và canonical khi thiếu slug ════════
 import re as _re  # noqa: E402
 
 _LD = _re.compile(r'<script type="application/ld\+json">(.*?)</script>', _re.S)
