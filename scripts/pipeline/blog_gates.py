@@ -94,7 +94,53 @@ _GOC_NHIN_H2 = re.compile(r"^##\s+.*góc nhìn.*$", re.M | re.I)
 # Mục nguồn cuối bài — chỗ người đọc kiểm chứng được. Nhận vài cách gọi thường gặp.
 _MUC_NGUON = re.compile(r"^##\s+(?:nguồn(?:\s+tham\s+khảo)?|tham\s+khảo|tài\s+liệu)\s*$",
                         re.M | re.I)
-_THEO_NGUON = re.compile(r"\bTheo\s+(?!mình\b|tôi\b)[A-ZĐÀ-Ỹ]", re.U)
+# G07 đếm «Theo X» là dẫn nguồn khi X là chữ hoa thật (`str.isupper()`) hoặc danh từ nguồn
+# viết thường. Không dùng lớp `[A-ZĐÀ-Ỹ]`: dải `À-Ỹ` chứa cả `à`, `đ`, `ý`... nên «Theo đúng
+# quy trình» bị đếm oan. Cũng không nhận mọi chữ thường: sẽ bắt «Theo đó», «Theo như».
+_DANH_TU_NGUON = frozenset({"tài liệu", "báo cáo", "nghiên cứu", "khảo sát", "số liệu",
+                            "thống kê", "trang", "bài", "hướng dẫn"})
+_LIEN_TU_SAU_THEO = frozenset({"mình", "tôi", "đó", "như", "cách", "kiểu", "ở", "đã"})
+# «Theo bài trước», «Theo trang này», «Theo bài viết trên»: nhắc lại CHÍNH kênh mình, không phải nguồn ngoài.
+_TU_TU_NHAC = frozenset({"bài", "trang"})
+_CHI_NGU_CANH = frozenset({"trước", "này", "trên", "dưới", "sau", "kia"})
+# Từ thứ hai nằm trong lookahead để không bị nuốt: «Theo Reuters Theo Bloomberg» đếm 2.
+_THEO = re.compile(r"\bTheo\s+([^\s,.;:!?]+)(?=([^,.;:!?]*))", re.U)
+# Mỗi từ chỉ lấy đoạn CHỮ CÁI đầu tiên: bỏ dấu mở/đóng/ngoặc/markdown quanh nó
+# (`**tài`, `liệu**`, `[báo`, `cáo](url`, `«Báo`, `(Reuters)`), còn chữ số thì thành rỗng.
+_CHU_CAI = re.compile(r"[^\W\d_]+", re.U)
+
+
+def _chu(w: str) -> str:
+    m = _CHU_CAI.search(w)
+    return m.group(0) if m else ""
+
+
+def _co_ten_rieng_hoac_cua(tu: list[str]) -> bool:
+    """Trong vài từ ngay sau có «của» hoặc tên riêng (chữ hoa thật): «Theo bài trên VnExpress»."""
+    return any(t.lower() == "của" or _chu(t)[:1].isupper() for t in tu[:6])
+
+
+def _dem_theo_nguon(blog: str) -> int:
+    n = 0
+    for m in _THEO.finditer(blog):
+        w1 = _chu(m.group(1))
+        resto = m.group(2).split()          # phần còn lại của mệnh đề, đến dấu câu kế tiếp
+        w2 = _chu(resto[0]) if resto else ""
+        w3 = _chu(resto[1]) if len(resto) > 1 else ""
+        thuong = w1.lower()
+        if not w1 or thuong in _LIEN_TU_SAU_THEO:
+            continue
+        # «Theo bài trước/này/trên...» nhắc lại CHÍNH kênh mình — trừ khi có «của»/tên riêng theo sau
+        # («Theo bài viết trên VnExpress», «Theo trang này của hãng» là dẫn nguồn thật).
+        if (thuong in _TU_TU_NHAC and not _co_ten_rieng_hoac_cua(resto)
+                and (w2.lower() in _CHI_NGU_CANH
+                     or (w2.lower() == "viết" and w3.lower() in _CHI_NGU_CANH))):
+            continue
+        if w1[:1].isupper() or thuong in _DANH_TU_NGUON or f"{thuong} {w2.lower()}" in _DANH_TU_NGUON:
+            n += 1
+    return n
+
+
 _THEO_MINH = re.compile(r"\bTheo\s+(?:mình|tôi)\b|\bmình\s+(?:nghĩ|cho rằng)\b", re.I | re.U)
 # Bắt cả chữ thường và các biến thể. Bản đầu chỉ khớp đúng "[KIỂM CHỨNG]" hoa, nên
 # "[kiểm chứng]", "[CẦN KIỂM]" hay "TODO:" lọt sạch — mà chúng cùng nghĩa: còn nợ.
@@ -171,6 +217,24 @@ def _thoi_luong(p: Path) -> float | None:
         return float(ra.stdout.strip()) if ra.returncode == 0 and ra.stdout.strip() else None
     except (OSError, ValueError, subprocess.TimeoutExpired):
         return None
+
+
+_MIEN_MAU = frozenset({"example.com", "example.org", "example.net", "domain.com", "yourdomain.com",
+                       "your-domain.com", "website.com", "site.com", "localhost", "example"})
+_DUOI_MAU = (".test", ".example", ".invalid", ".localhost", ".local",
+             ".example.com", ".example.org", ".example.net")
+
+
+def _la_mien_giu_cho(home: str) -> bool:
+    """Tên miền nhà chỉ là giá trị giữ chỗ (example.*, *.test, localhost, ...).
+
+    Giữ chỗ thì G05 không tách được link nội bộ khỏi nguồn ngoài. Cố ý KHÔNG đưa tên miền ví dụ
+    của bộ test (`vidu.vn`) vào danh sách: nó là tên miền hợp lệ về mặt cú pháp.
+    """
+    h = urlsplit(home if "//" in home else "//" + home).netloc.lower().removeprefix("www.")
+    h = h.split(":")[0]
+    return (h in _MIEN_MAU or h.endswith(_DUOI_MAU)
+            or any(k in h for k in ("giu-cho", "placeholder")))
 
 
 class SoKetQua:
@@ -282,6 +346,12 @@ def run_cmd(folder: Path, home_domain: str, kind: str = "full",
                  3 <= len(ke) <= 7 and not lac,
                  note=("URL không có trong research.md: " + "; ".join(lac[:4]))
                  if lac else "; ".join(ke[:5]))
+        if _la_mien_giu_cho(home_domain) and s.rows[-1]["id"] == "G05" and s.rows[-1]["status"] == "pass":
+            # Miền giữ chỗ: link về chính trang nhà bị đếm là nguồn ngoài, xanh này là xanh giả.
+            s.rows.pop()
+            s.thieu("G05", "Nguồn ngoài (kê ở mục Nguồn tham khảo)",
+                    "tên miền nhà là giá trị giữ chỗ: không tách được link nội bộ khỏi nguồn ngoài — "
+                    "truyền tên miền thật để đo")
         # ĐỔI 12/09/2026 — trước đó chỉ nhận khối trích dẫn `> **Góc nhìn:**`.
         # Đo thật trên NEN-004: bài có mục `## Góc nhìn của mình` dài 399 từ, gấp mười lần
         # ngưỡng, mà cổng báo 0 khối. Cổng đo VỎ chứ không đo chất. Nay nhận cả hai hình
@@ -291,7 +361,7 @@ def run_cmd(folder: Path, home_domain: str, kind: str = "full",
         s.do("G06", "Khối chính kiến (H2 hoặc trích dẫn Góc nhìn)", f"{gn} khối / {tu_gn} từ",
              ">=1 khối và >=40 từ", gn >= 1 and tu_gn >= 40,
              note="" if tu_gn >= 40 else "khối chính kiến quá ngắn hoặc rỗng")
-        tn, tm = len(_THEO_NGUON.findall(blog)), len(_THEO_MINH.findall(blog))
+        tn, tm = _dem_theo_nguon(blog), len(_THEO_MINH.findall(blog))
         s.do("G07", "Dẫn nguồn / nêu ý riêng", f"{tn} / {tm}", "mỗi loại >=1",
              tn >= 1 and tm >= 1, CANH_BAO)
         kc = len(_KIEM_CHUNG.findall(blog))

@@ -117,7 +117,7 @@ Hoặc bảng ma trận so sánh đối đầu:
 
 ## 4. ĐỘ DÀI & CHIỀU SÂU CHUYÊN MÔN
 
-- **Độ dài bài Deep-dive:** **2.500–4.000 từ**. Đủ chiều sâu để chuyển thể thành kịch bản Podcast hoặc video phân tích.
+- **Độ dài bài Deep-dive:** **2.500–4.000 từ** (số của kỷ lục là cổng `G01` — tách theo khoảng trắng Unicode như `str.split()`; `wc -w` ở locale C đếm dư với chữ có dấu, muốn tự kiểm dùng `LC_ALL=C.UTF-8 wc -w`, cho cùng số). Đủ chiều sâu để chuyển thể thành kịch bản Podcast hoặc video phân tích.
 - **Lăng kính 3 góc (Bắt buộc):**
   1. *Technical:* Công nghệ, kiến trúc, code, công cụ.
   2. *Business Value:* Thời gian, chi phí, lợi ích kinh doanh thực tế.

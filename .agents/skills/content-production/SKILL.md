@@ -19,7 +19,7 @@ Sản xuất nội dung đa kênh sẵn-đăng từ brief chiến dịch đã du
 - Sản xuất asset cho chiến dịch chưa có brief hoặc chưa qua Gate 1 (cần hoàn tất ở `campaign-pipeline`). Hai việc «Ý thô → angle» và «Nâng post → blog» không vướng dòng này vì chạy trước brief hoặc ở chế độ `standalone-edit`.
 - Tư vấn định hướng chiến lược hoặc thay đổi gói dịch vụ/offer (dùng `content-strategy`).
 
-## Hai chế độ hoạt động
+## Ba chế độ hoạt động
 1. **Chế độ `campaign` (Mặc định trong chiến dịch):**
    - Đòi hỏi: Chiến dịch đã qua Gate 1 (`Content.status = in_production`).
    - Đầu vào: `campaign.md` (frontmatter + brief), hồ sơ kênh (`brand.md`), research bài viết.
@@ -29,6 +29,10 @@ Sản xuất nội dung đa kênh sẵn-đăng từ brief chiến dịch đã du
    - Đầu vào: Văn bản nháp, đối tượng độc giả, tài liệu kiểm chứng (nếu có).
    - Đầu ra: Bản nháp đã chỉnh sửa + ghi chú lý do sửa; KHÔNG tạo thư mục bài, KHÔNG ghi trạng thái.
    - **Ranh giới cứng:** Nếu bản nháp thuộc về một chiến dịch đang quản lý, bắt buộc phải tuân theo chế độ `campaign` và kiểm tra Gate 1, nghiêm cấm dùng `standalone-edit` để né cổng duyệt.
+3. **Chế độ `standalone-blog` (Blog độc lập có chấm cổng):**
+   - Đòi hỏi: một file blog markdown ngoài chiến dịch + tên miền nhà (hoặc `channel.yml`). Đầu vào: bài, `research.md` nếu có.
+   - Đầu ra: bảng 24 cổng + `gates.json` trong thư mục tạm `.tmp/standalone-blog/`, tự xoá trừ khi `--keep`; KHÔNG ghi trạng thái, KHÔNG tạo bài trong trạm.
+   - Lệnh: `python scripts/pipeline/standalone_blog.py --blog <bài.md> --home-domain <miền>`. Thiếu `--home-domain` và `--brand` thì thoát 2 (tên miền không lấy từ `channel.yml`; `G21`/`G22` vẫn đọc `channel.yml` gần nhất ở thư mục chạy): truyền giá trị giữ chỗ và nói rõ trong báo cáo.
 
 ## Quy trình sản xuất & Biên tập
 1. **Tiếp nhận & Xác định chế độ:** Nhận brief hoặc bản nháp; kiểm tra tính hợp lệ của Gate 1 nếu là campaign.
@@ -55,14 +59,14 @@ Có bài ngắn (post) cần mở thành blog:
 1. Giữ giọng và luận điểm gốc; không viết lại thành giọng khác.
 2. Mở chiều sâu: giải nghĩa key-term, thêm khung hoặc quy trình áp dụng, thêm ví dụ.
 3. Thêm nguồn cho mọi số liệu và lời gán; việc nào chưa có nguồn gắn `[KIỂM CHỨNG]`.
-4. **Dừng** trước khi viết bản đầy đủ để người dùng xem dàn ý đã mở rộng (ở chế độ `campaign` thì dừng trước khi ghi `content.md`). Ngoài chiến dịch, việc này chạy ở chế độ `standalone-edit`, không tạo thư mục bài.
+4. **Dừng** trước khi viết bản đầy đủ để người dùng xem dàn ý đã mở rộng. Ở `standalone-edit`, bỏ bước dừng khi người dùng đã nói rõ muốn bản đầy đủ ngay **và** dàn ý không có mục `inferred` nào; ở `campaign` luôn dừng (trước khi ghi `content.md`). Ngoài chiến dịch, việc này chạy ở `standalone-edit`, không tạo thư mục bài.
 
 ### Chấm cổng blog ngoài chiến dịch
-`scripts/pipeline/blog_gates.py` chỉ chạy trên một thư mục bài, nên chế độ `standalone-edit` muốn chấm cổng thì dựng thư mục bài **tạm** (trong `.tmp/`, xoá khi xong): `atlas/blog.md` (bài) và `research.md` (cho cổng nguồn G05). Thiếu `channel.yml` ở thư mục bài hoặc thư mục cha thì cổng thoát mã 2 và không chấm gì: chép `templates/station/_channel/channel.yml` vào thư mục tạm rồi điền khối `brand:`, hoặc truyền `--home-domain <giá trị giữ chỗ>` và nói rõ đó là giá trị giữ chỗ trong báo cáo.
+Dùng chế độ `standalone-blog` (lệnh ở trên). Cổng chỉ đo thứ đếm được; cổng báo «thiếu» không phải xanh.
 
 ## Đầu ra
-- Với `campaign`: File `content.md` chứa các khối `## post:<format>`, danh sách CTA và claim cần kiểm chứng.
-- Với `standalone-edit`: Bản sửa hoàn chỉnh kèm bảng giải thích thay đổi.
+- Với `campaign`: `content.md` (nguồn duy nhất của mọi kênh, `B2`) chứa các khối `## post:<format>`; bản blog tách ra nằm ở `atlas/blog.md` theo `scripts/lib/post_paths.py` `LAYOUT` — không có `blog.md` ở gốc bài.
+- Với `standalone-edit`: bản sửa + bảng giải thích. Với `standalone-blog`: bảng cổng + `gates.json`.
 
 ## Kiểm tra chất lượng & Ranh giới an toàn
 - Giữ nguyên sự thật và giọng tác giả; không tự ý thay đổi offer, cam kết hoặc chính sách giá.
@@ -74,19 +78,9 @@ Có bài ngắn (post) cần mở thành blog:
 - Tiêu đề bài báo không phải lời toà soạn; không trích tiêu đề như một phát biểu.
 - Mốc thời gian và quan hệ nhân quả cũng là dữ kiện, cần nguồn như số liệu.
 - Không có nguồn thì viết là quan điểm của tác giả, hoặc bỏ.
-- Chạy `chk_quote_attribution` ở `checklists/QA_ASSET.md` trước khi bàn giao.
+- Bài sẽ bàn giao: đọc `checklists/QA_ASSET.md` mục `chk_quote_attribution` **trước khi** viết trích dẫn; đoạn trích lẻ thì bốn luật trên là đủ.
 
-Ví dụ bịa để minh hoạ: tư liệu chỉ có báo cáo nội bộ của «Công ty Mẫu A» nói doanh thu quý tăng.
-- ❌ «Ban lãnh đạo Công ty Mẫu A cho biết họ sẽ mở thêm 10 chi nhánh.» (không có trong tư liệu)
-- ✅ «Theo báo cáo nội bộ của Công ty Mẫu A (phát hành 01/01/2030, giả định), doanh thu quý tăng.» Tư liệu không nói gì về kế hoạch mở rộng, nên bài không nhắc.
-
-Bản đầy đủ: xem `agent-writing-studio` `skills/02-cowriter/references/05-source-attribution.md` nếu đã cài.
-
-### Chiều sâu và liên tục
-- Giải nghĩa key-term ở lần đầu; mở sang khung/quy trình và khái niệm lân cận, không xoáy một khái niệm.
-- Nối mạch với bài trước khi hợp; khái niệm đã giải thích sâu thì chỉ tóm 1–2 câu rồi trỏ lại.
-- Chủ đề nền tảng phải có lập luận và dẫn chứng cụ thể, không nói khơi khơi.
-- Chi tiết: `.agents/prompts/content-write-prompt.txt:38-52`.
+Ví dụ minh hoạ và luật chiều sâu/liên tục: `references/source-depth.md`.
 
 ## Tài liệu tham khảo
 - Sổ tay biên tập 7 lượt: `knowledge/playbooks/COPY_EDITING.md`

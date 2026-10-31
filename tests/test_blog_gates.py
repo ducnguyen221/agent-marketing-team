@@ -59,6 +59,61 @@ def test_dung_tap_cong_canh_bao(do):
     assert cb == {"G04", "G07", "G10", "G15"}, "cảnh báo không được leo thành chặn"
 
 
+def test_theo_nguon_viet_thuong_va_lien_tu():
+    """`G07` đếm «Theo» + danh từ nguồn viết thường hoặc chữ hoa thật; bỏ liên từ."""
+    dem = G._dem_theo_nguon
+    assert dem("Theo tài liệu Folder connector, X.") == 1
+    assert dem("Theo Microsoft Learn, X.") == 1
+    assert dem("Theo Lan, số liệu như vậy.") == 1
+    assert dem("Theo báo cáo nào đó, X.") == 1
+    # liên từ sau «Theo» không phải nguồn
+    assert dem("Theo đó, kết quả khác.") == 0
+    assert dem("Theo cách này, X.") == 0
+    assert dem("Theo như vậy, X.") == 0
+    assert dem("Theo mình thì khác.") == 0
+    # ... nhưng «Theo mình» vẫn là ý riêng
+    assert len(G._THEO_MINH.findall("Theo mình thì khác.")) == 1
+    # Từ thứ hai không bị nuốt, và dấu mở đầu từ không che chữ hoa
+    assert dem("Theo Reuters Theo Bloomberg, X.") == 2
+    assert dem("Theo **Reuters**, X.") == 1
+    assert dem("Theo «Báo cáo» của Y.") == 1
+    # Dấu đóng/ngoặc quanh danh từ nguồn viết thường không che nó
+    assert dem("Theo [báo cáo](https://r.example/x) X.") == 1
+    assert dem("Theo **tài liệu** của hãng X.") == 1
+    assert dem("Theo «báo cáo» năm 2025.") == 1
+    assert dem("Theo “nghiên cứu” mới.") == 1
+    assert dem("Theo (Reuters) X.") == 1
+    # Bộ lọc liên từ ghim cả dạng viết hoa («Theo Tôi», «Theo Đó»)
+    assert dem("Theo Tôi, X.") == 0
+    assert dem("Theo Đó, X.") == 0
+
+
+def test_theo_chu_thuong_co_dau_khong_phai_nguon():
+    """Lớp `[A-ZĐÀ-Ỹ]` cũ chứa cả `đ`, `ý`... nên «Theo đúng ...» bị đếm oan."""
+    dem = G._dem_theo_nguon
+    assert dem("Theo đúng quy trình, X.") == 0
+    assert dem("Theo điều đó, X.") == 0
+    assert dem("Theo ý kiến chung, X.") == 0
+    assert dem("Nói theo báo cáo thì khác.") == 0
+
+
+def test_fixture_do_G07_dem_nguon_viet_thuong(do):
+    """`fixtures/bai_do` có «Theo báo cáo nào đó» (chữ thường): nay đếm 1 nguồn / 0 ý riêng, vẫn cảnh báo."""
+    assert do["G07"]["measured"] == "1 / 0"
+    assert do["G07"]["status"] == "fail"
+
+
+def test_dem_tu_theo_khoang_trang_unicode():
+    """Ghim hợp đồng `G01`: số từ = `str.split()`, tách theo mọi khoảng trắng Unicode kể cả NBSP.
+
+    Đã đo 6 / 4 / 0 trước khi viết, không có bước đỏ (hàm không đổi, chỉ ghim lại). `wc -w`
+    ở locale C đếm dư với chữ có dấu nên không dùng làm thước.
+    """
+    assert G._tu("Theo Lan, số liệu như vậy.") == 6
+    assert G._tu("a\u00a0b\tc\n d") == 4
+    assert G._tu("") == 0
+
+
 def test_cong_xanh_khong_bi_do_lay(do):
     """Bài sai nhiều thứ nhưng CÓ bảng và KHÔNG lộ tên tool -> ba cổng này phải xanh."""
     assert do["G03"]["status"] == "pass"
@@ -499,3 +554,53 @@ def test_tom_tat_KHONG_giau_cong_chua_do_duoc(capsys):
     ra = capsys.readouterr().out
     assert "G22" in ra and "CH\u01afA \u0110O \u0110\u01af\u1ee2C" in ra
     assert "G20" not in ra.split("CH\u01afA \u0110O")[-1], "cong HOAN khong duoc dem hai lan"
+
+
+# ------------------------------------------------------------------ 5. miền giữ chỗ không làm G05 xanh giả
+
+def _bai_nguon_noi_bo(tmp_path):
+    d = tmp_path / "post"
+    d.mkdir()
+    PP.make_dirs(d)
+    PP.p(d, "blog").write_text(
+        "# Bài\n\n## Nguồn tham khảo\n\n"
+        + "\n".join(f"- Bài {i}: https://congty.vn/bai-{i}" for i in range(1, 4)) + "\n",
+        encoding="utf-8")
+    return d
+
+
+def test_mien_giu_cho_khong_lam_G05_xanh_gia(tmp_path):
+    """3 link trỏ về CHÍNH trang nhà không phải 3 nguồn ngoài; nếu `--home-domain` là giá trị
+    giữ chỗ thì cổng không tách được nội bộ khỏi ngoài, nên không được báo xanh."""
+    d = _bai_nguon_noi_bo(tmp_path)
+    # miền thật: link nội bộ bị loại -> 0 nguồn ngoài -> đỏ
+    thuc = _theo_ma(G.run_cmd(d, "congty.vn", stage="write"))["G05"]
+    assert thuc["status"] == "fail" and thuc["measured"] == 0
+    # miền giữ chỗ: cũ thì đếm 3 nguồn ngoài và xanh; nay phải là 'missing' kèm lý do
+    for gia in ("example.com", "www.example.org", "nha.test", "localhost", "mien-giu-cho.vn"):
+        g05 = _theo_ma(G.run_cmd(d, gia, stage="write"))["G05"]
+        assert g05["status"] == "missing", (gia, g05)
+        assert "giữ chỗ" in g05["note"] and "tên miền thật" in g05["note"], gia
+
+
+def test_mien_that_dang_vidu_van_do_binh_thuong(bai_xanh):
+    """`vidu.vn` là tên miền ví dụ của bộ test, không thuộc danh sách giữ chỗ: G05 vẫn xanh."""
+    assert _theo_ma(G.run_cmd(bai_xanh, HOME, stage="write"))["G05"]["status"] == "pass"
+
+
+def test_theo_ngu_canh_noi_bo_khong_phai_nguon():
+    """«Theo bài trước», «Theo ở trên», «Theo đã nói» nhắc lại CHÍNH kênh mình, không dẫn nguồn ngoài."""
+    dem = G._dem_theo_nguon
+    for cau in ("Theo bài trước mình đã nói, X.", "Theo bài này, X.", "Theo trang trên, X.",
+                "Theo ở trên, X.", "Theo đã nói, X.", "Theo bài viết trước, X."):
+        assert dem(cau) == 0, cau
+    # ... còn dẫn nguồn thật có danh từ «bài», «trang» thì vẫn đếm
+    for cau in ("Theo bài viết của Reuters, X.", "Theo trang web của hãng, X.", "Theo bài báo, X.",
+                "Theo báo cáo này, X."):
+        assert dem(cau) == 1, cau
+    # ... và «trên/này/sau» đi cùng tên riêng hoặc «của» là DẪN NGUỒN thật, không phải nhắc lại kênh mình
+    for cau in ("Theo bài viết trên VnExpress, X.", "Theo bài trên Reuters, X.",
+                "Theo trang này của Microsoft, X.", "Theo bài viết sau đây của hãng, X."):
+        assert dem(cau) == 1, cau
+    # bộ liên từ ghim cả dạng viết hoa
+    assert dem("Theo Đã nói, X.") == 0 and dem("Theo Ở trên, X.") == 0

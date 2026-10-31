@@ -82,7 +82,7 @@
       "url": "https://github.com/affaan-m/ECC",
       "license": "MIT",
       "copyright": "Copyright (c) 2026 Affaan Mustafa",
-      "upstream_ref": "d8409a4b0 (SHA rút gọn, chưa kiểm bản đầy đủ); bản vá c70874f (SHA rút gọn, chưa kiểm) chỉ áp cho market-research",
+      "upstream_ref": "d8409a4b0813771235555e32e3d8046a73988bfa (2026-08-19, nguồn chung); bản vá c70874fae9eb0e5ad0365beb7e2955899fd1d30f (2026-09-30, v2.2.2) chỉ áp cho market-research",
       "used_in": [
         "knowledge/playbooks/BRAND_VOICE.md",
         "knowledge/playbooks/SEO_TECHNICAL.md",

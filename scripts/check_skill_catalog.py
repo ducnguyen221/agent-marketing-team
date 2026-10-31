@@ -20,7 +20,7 @@ SKILL_FIELDS = {
 }
 PILOT_FIELDS = {"id", "handler", "playbook", "modes", "use_when", "outputs", "limits"}
 STAGES = {"new", "plan", "produce", "selfqa", "render", "publish", "measure", "cross-cutting", "standalone"}
-MODES = {"consult", "prepare", "execute", "standalone-edit"}
+MODES = {"consult", "prepare", "execute", "standalone-edit", "standalone-blog"}
 MATURITIES = {"candidate", "pilot", "verified"}
 REFERENCE_MAX_LINES = 250
 REFERENCE_MAX_BYTES = 20480

@@ -39,7 +39,7 @@ QUY TẮC LIÊN KẾT (BẮT BUỘC):
 - **Tạo mạch:** nếu hợp, nhắc lại bài trước ("ở bài trước mình đã nói về…") để các bài nối nhau, hoặc nói về chủ đề liên quan.
 - **TRÁNH LẶP SÂU:** thuật ngữ / quy trình / framework ĐÃ giải thích sâu ở bài trước → ở bài này CHỈ tóm tắt 1-2 câu + TRỎ người đọc xem lại bài trước, KHÔNG giải thích lại y hệt từ đầu. Dành chỗ cho cái MỚI.
 - **Key-term/khái niệm:** ưu tiên cái KẾT NỐI với mạch campaign; TRÁNH khái niệm rời rạc không liên quan, và TRÁNH key-term đã bị lặp quá nhiều lần trong các bài trước (xem danh sách trên).
-- Nếu cần đọc sâu nội dung bài trước (không chỉ tóm tắt), đường dẫn content.md/blog.md có trong danh sách "Đọc chi tiết".
+- Nếu cần đọc sâu nội dung bài trước (không chỉ tóm tắt), đường dẫn content.md (hoặc atlas/blog.md của bài đã tách) có trong danh sách "Đọc chi tiết".
 
 === CHIỀU SÂU CHUYÊN MÔN (BẮT BUỘC — đây là điểm phân biệt bài của kênh này với content hời hợt) ===
 Bài phải SÂU và CHUẨN CHUYÊN NGÀNH, không dừng ở định nghĩa bề mặt:

@@ -300,6 +300,20 @@ def test_tham_khao_thiet_ke_noi_ro_khong_chep_van_ban():
             assert (ROOT / rel).is_file(), rel
 
 
+_SHA40 = re.compile(r"\b[0-9a-f]{40}\b", re.I)
+_HEX_NGAN = re.compile(r"\b[0-9a-f]{7,39}\b", re.I)
+
+
+def test_design_reference_upstream_ref_la_sha_day_du():
+    """`upstream_ref` ghi SHA 40 hex đã kiểm; SHA rút gọn không truy được nguồn."""
+    for repo, reference in SO.get("design_references", {}).items():
+        ref = reference.get("upstream_ref")
+        if not isinstance(ref, str):
+            continue
+        assert _SHA40.search(ref), (repo, "thiếu SHA 40 hex", ref)
+        assert not _HEX_NGAN.search(_SHA40.sub("", ref)), (repo, "còn SHA rút gọn", ref)
+
+
 def _fixture_repo(tmp_path: Path) -> tuple[Path, dict]:
     root = tmp_path / "fixture-repo"
     root.mkdir()
@@ -592,3 +606,9 @@ def test_metadata_phai_khop_source_inventory_pinned(tmp_path: Path, field: str, 
     provenance[field] = value
     (root / "upstream.json").write_text(json.dumps({"sources": sources}), encoding="utf-8")
     assert any(message in error for error in _provenance_errors(root, PUBLIC_INVENTORY))
+
+
+def test_regex_sha_khong_phan_biet_hoa_thuong():
+    """SHA rút gọn viết HOA cũng phải bị bắt."""
+    assert _HEX_NGAN.search("ban va D8409A4B0 chi ap")
+    assert _SHA40.search("D8409A4B0813771235555E32E3D8046A73988BFA")

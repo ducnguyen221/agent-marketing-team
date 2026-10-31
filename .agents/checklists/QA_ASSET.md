@@ -37,7 +37,7 @@ Kết quả ghi vào `05_Approval` (11 cột `chk_*`) khi người duyệt xác 
 - [ ] `chk_hashtag_ok` — đúng giới hạn: YouTube ≤3 · Shorts 3–5 · Reel ≤6 · Facebook 6–13
 - [ ] Định dạng đúng kênh (FB dùng Unicode bold + `———` chứ không dùng markdown)
 - [ ] Link đặt đúng chỗ theo kênh (Facebook: link ở **COMMENT đầu tiên**; thân bài **không có URL ngoài**)
-- [ ] Độ dài trong khoảng của kênh (xem bảng nhịp điệu & độ dài ở `knowledge/playbooks/MULTICHANNEL_PUBLISHING.md`)
+- [ ] Độ dài trong khoảng của kênh (xem bảng nhịp điệu & độ dài ở `knowledge/playbooks/MULTICHANNEL_PUBLISHING.md`); số từ blog lấy theo `G01`
 
 ## Cổng đếm được — chạy máy, không chấm bằng cảm giác
 
@@ -68,9 +68,9 @@ Cổng đỏ → `quality_check = failed` + ghi `review_feedback`. **Không** t�
 - [ ] Ảnh/nhạc/tư liệu đều rõ quyền sử dụng
 
 ### Rights Gate series
-Áp khi sắp công khai một series đăng lại, lồng tiếng hay biên tập lại nội dung của bên khác (theo `knowledge/playbooks/YOUTUBE_SCORING.md` mục 5); nội dung nguyên bản 100% của chủ kênh bỏ qua:
+Áp khi sắp công khai một series đăng lại, lồng tiếng hay biên tập lại nội dung của bên khác (theo `knowledge/playbooks/YOUTUBE_SCORING.md` mục 5); nội dung nguyên bản 100% của chủ kênh bỏ qua, **ghi căn cứ** («nguyên bản — ai làm, ngày, tư liệu gốc ở đâu») vào báo QA; không có căn cứ thì áp Rights Gate:
 - [ ] Hồ sơ quyền của series có `rights_status = approved`, tức đủ: `youtube_distribution_allowed = yes`, `territory = yes`, `duration = yes`, có `proof_documents`, `Rc ≥ 4` (kênh bật kiếm tiền thêm `commercial_use_allowed = yes`).
-- [ ] Trường điều kiện `unknown`/bỏ trống ⇒ `rights_pending`; trường nào `no` ⇒ `blocked`. `rights_pending` hoặc `blocked` ⇒ **không công khai**; ghi vào báo QA đúng trường đang chặn.
+- [ ] Trường điều kiện (không xét `commercial_use_allowed` ở kênh không bật kiếm tiền — `YOUTUBE_SCORING.md` mục 5.1): `unknown`/bỏ trống ⇒ `rights_pending`; trường nào `no` ⇒ `blocked`. `rights_pending` hoặc `blocked` ⇒ **không công khai**; ghi vào báo QA đúng trường đang chặn.
 
 ## Giọng
 
