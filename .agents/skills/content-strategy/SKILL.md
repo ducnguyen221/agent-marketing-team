@@ -5,7 +5,7 @@ description: Turn business goals and customer insights into prioritized content 
 
 # Chiến lược nội dung (Content Strategy)
 
-Thiết kế danh mục đề tài, cụm chủ đề (Pillar & Spoke) và kế hoạch phân phối dựa trên mục tiêu kinh doanh và insight khách hàng.
+Thiết kế danh mục đề tài, cụm chủ đề (Pillar & Spoke) và hướng chọn kênh, tái chế cho từng đề tài dựa trên mục tiêu kinh doanh và insight khách hàng.
 
 ## Khi nào dùng
 - Người dùng hỏi "tháng này nên viết gì", "lên kế hoạch đề tài", "làm cụm bài SEO".
@@ -33,12 +33,12 @@ Thiết kế danh mục đề tài, cụm chủ đề (Pillar & Spoke) và kế 
 2. **Xây dựng cụm chủ đề (Pillar & Spoke):** Chọn chủ đề trụ cột và các nhánh bài vệ tinh giải quyết từng thắc mắc cụ thể.
 3. **Chấm điểm ưu tiên đề tài:** Đánh giá Tác động kinh doanh, Nhu cầu độc giả, Tính độc bản theo thang 1-5.
 4. **Xác định giá trị mới (Information Gain):** Mỗi đề tài phải nêu rõ góc nhìn mới, số liệu hoặc bằng chứng độc quyền.
-5. **Lập ma trận ưu tiên & phân phối:** Điền thông tin vào `templates/CONTENT_PRIORITY_TEMPLATE.md`.
+5. **Lập ma trận ưu tiên & chọn kênh:** Điền thông tin vào `templates/CONTENT_PRIORITY_TEMPLATE.md`.
 
 ## Đầu ra
 - Ma trận danh mục đề tài kèm điểm ưu tiên và giai đoạn phễu.
 - Sơ đồ cụm nội dung (Pillar & Spoke) và liên kết nội bộ.
-- Kế hoạch phân phối đa kênh và hướng tái chế nội dung.
+- Hướng chọn kênh và tái chế cho từng đề tài (phân phối ở đây = chọn kênh và hướng tái chế; giờ đăng và nhịp xem `marketing-routing`).
 
 ## Kiểm tra chất lượng & Dừng
 - Mỗi đề tài đều có phân khúc, giá trị mới và CTA rõ ràng.
