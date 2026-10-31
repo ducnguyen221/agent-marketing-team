@@ -32,7 +32,7 @@ Sản xuất nội dung đa kênh sẵn-đăng từ brief chiến dịch đã du
 3. **Chế độ `standalone-blog` (Blog độc lập có chấm cổng):**
    - Đòi hỏi: một file blog markdown ngoài chiến dịch + tên miền nhà (hoặc `channel.yml`). Đầu vào: bài, `research.md` nếu có.
    - Đầu ra: bảng 24 cổng + `gates.json` trong thư mục tạm `.tmp/standalone-blog/`, tự xoá trừ khi `--keep`; KHÔNG ghi trạng thái, KHÔNG tạo bài trong trạm.
-   - Lệnh: `python scripts/pipeline/standalone_blog.py --blog <bài.md> --home-domain <miền>`. Thiếu `--home-domain` và `--brand` thì thoát 2 (script không tự tìm `channel.yml`): truyền giá trị giữ chỗ và nói rõ trong báo cáo.
+   - Lệnh: `python scripts/pipeline/standalone_blog.py --blog <bài.md> --home-domain <miền>`. Thiếu `--home-domain` và `--brand` thì thoát 2 (tên miền không lấy từ `channel.yml`; `G21`/`G22` vẫn đọc `channel.yml` gần nhất ở thư mục chạy): truyền giá trị giữ chỗ và nói rõ trong báo cáo.
 
 ## Quy trình sản xuất & Biên tập
 1. **Tiếp nhận & Xác định chế độ:** Nhận brief hoặc bản nháp; kiểm tra tính hợp lệ của Gate 1 nếu là campaign.

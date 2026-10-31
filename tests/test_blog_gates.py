@@ -77,6 +77,15 @@ def test_theo_nguon_viet_thuong_va_lien_tu():
     assert dem("Theo Reuters Theo Bloomberg, X.") == 2
     assert dem("Theo **Reuters**, X.") == 1
     assert dem("Theo «Báo cáo» của Y.") == 1
+    # vòng sửa lô A, RF2: dấu đóng/ngoặc quanh danh từ nguồn viết thường không che nó
+    assert dem("Theo [báo cáo](https://r.example/x) X.") == 1
+    assert dem("Theo **tài liệu** của hãng X.") == 1
+    assert dem("Theo «báo cáo» năm 2025.") == 1
+    assert dem("Theo “nghiên cứu” mới.") == 1
+    assert dem("Theo (Reuters) X.") == 1
+    # vòng sửa lô A, RF3: bộ lọc liên từ ghim cả dạng viết hoa («Theo Tôi», «Theo Đó»)
+    assert dem("Theo Tôi, X.") == 0
+    assert dem("Theo Đó, X.") == 0
 
 
 def test_theo_chu_thuong_co_dau_khong_phai_nguon():

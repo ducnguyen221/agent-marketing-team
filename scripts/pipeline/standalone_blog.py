@@ -41,11 +41,25 @@ def dung_thu_muc(blog: Path, research: Path | None) -> Path:
             break
         except FileExistsError:
             n += 1
-    PP.make_dirs(d)
-    shutil.copyfile(blog, PP.p(d, "blog"))
-    if research is not None:
-        shutil.copyfile(research, PP.p(d, "research"))
+    try:
+        PP.make_dirs(d)
+        shutil.copyfile(blog, PP.p(d, "blog"))
+        if research is not None:
+            shutil.copyfile(research, PP.p(d, "research"))
+    except BaseException:
+        shutil.rmtree(d, ignore_errors=True)    # d do CHÍNH hàm này vừa mkdir: chép lỗi thì gỡ
+        raise
     return d
+
+
+def _don_goc_neu_script_tao(tao_goc: bool, tao_tmp: bool) -> None:
+    """Xoá `.tmp/standalone-blog/` (và `.tmp/`) chỉ khi script tạo ra chúng và còn rỗng."""
+    for thu_muc, do_tao in ((OUT_ROOT, tao_goc), (OUT_ROOT.parent, tao_tmp)):
+        if do_tao:
+            try:
+                thu_muc.rmdir()
+            except OSError:
+                pass
 
 
 def main(argv=None) -> int:
@@ -69,8 +83,10 @@ def main(argv=None) -> int:
             sys.stderr.write(f"standalone_blog: không thấy file bài: {f}\n")
             return 2
 
-    d = dung_thu_muc(a.blog, a.research)
+    tao_tmp, tao_goc = not OUT_ROOT.parent.exists(), not OUT_ROOT.exists()
+    d = None
     try:
+        d = dung_thu_muc(a.blog, a.research)
         args = [str(d), "--stage", a.stage]
         if a.home_domain:
             args += ["--home-domain", a.home_domain]
@@ -80,11 +96,14 @@ def main(argv=None) -> int:
             args.append("--json-only")
         rc = G.main(args)
     finally:
-        if a.keep:
+        if d is not None and a.keep:
             out = sys.stderr if a.json_only else sys.stdout
             out.write(f"GIỮ {d.resolve()}\n")
-        elif d.resolve().is_relative_to(OUT_ROOT.resolve()) and d.resolve() != OUT_ROOT.resolve():
+        elif d is not None and d.resolve().is_relative_to(OUT_ROOT.resolve()) \
+                and d.resolve() != OUT_ROOT.resolve():
             shutil.rmtree(d)
+        if not a.keep:
+            _don_goc_neu_script_tao(tao_goc, tao_tmp)
     return rc
 
 

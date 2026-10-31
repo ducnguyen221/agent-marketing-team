@@ -64,6 +64,8 @@ def test_bai_xanh_in_bang_va_don_sach(vung, capsys):
     assert rc == 0
     assert "G01" in out and "G24" in out, "phải in bảng 24 cổng"
     assert _con(goc) == [], "không --keep thì thư mục tạm phải được xoá"
+    assert not goc.exists() and not (tmp / ".tmp").exists(), \
+        "gốc/.tmp do script tạo và đã rỗng thì phải dọn luôn (RF6)"
 
 
 def test_keep_json_only_giu_thu_muc_va_stdout_la_json(vung, capsys):
@@ -137,3 +139,25 @@ def test_blog_gates_nem_loi_van_don(vung, monkeypatch):
     with pytest.raises(RuntimeError):
         SB.main(["--blog", str(tmp / "bai-moi.md"), "--home-domain", HOME])
     assert _con(goc) == [], "lỗi lan ra ngoài nhưng thư mục tạm phải đã dọn"
+
+
+def test_loi_khi_chep_sau_mkdir_khong_bo_lai_thu_muc(vung, monkeypatch):
+    """Hồi quy RF1 (review lô A): bước chép lỗi SAU `mkdir` thì thư mục tạm không được sót."""
+    tmp, goc = vung
+    (tmp / "r.md").write_text(_research_md(), encoding="utf-8", newline="\n")
+    that = SB.shutil.copyfile
+    dem = {"n": 0}
+
+    def hong_o_lan_hai(src, dst, *a, **k):
+        dem["n"] += 1
+        if dem["n"] == 2:
+            raise PermissionError("tệp đang bị khoá")
+        return that(src, dst, *a, **k)
+
+    monkeypatch.setattr(SB.shutil, "copyfile", hong_o_lan_hai)
+    with pytest.raises(PermissionError):
+        SB.main(["--blog", str(tmp / "bai-moi.md"), "--research", str(tmp / "r.md"),
+                 "--home-domain", HOME])
+    assert dem["n"] == 2
+    assert _con(goc) == [], "thư mục tạm bị bỏ lại khi chép lỗi"
+    assert not goc.exists(), "gốc rỗng do script tạo phải được dọn (RF6)"

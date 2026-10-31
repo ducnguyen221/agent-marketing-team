@@ -101,15 +101,22 @@ _DANH_TU_NGUON = frozenset({"tài liệu", "báo cáo", "nghiên cứu", "khảo
                             "thống kê", "trang", "bài", "hướng dẫn"})
 _LIEN_TU_SAU_THEO = frozenset({"mình", "tôi", "đó", "như", "cách", "kiểu"})
 # Từ thứ hai nằm trong lookahead để không bị nuốt: «Theo Reuters Theo Bloomberg» đếm 2.
-_THEO = re.compile(r"\bTheo\s+([^\s,.;:!?()]+)(?=(?:\s+([^\s,.;:!?()]+))?)", re.U)
-_DAU_MO_TU = "*_«“\"'[‘"
+_THEO = re.compile(r"\bTheo\s+([^\s,.;:!?]+)(?=(?:\s+([^\s,.;:!?]+))?)", re.U)
+# Mỗi từ chỉ lấy đoạn CHỮ CÁI đầu tiên: bỏ dấu mở/đóng/ngoặc/markdown quanh nó
+# (`**tài`, `liệu**`, `[báo`, `cáo](url`, `«Báo`, `(Reuters)`), còn chữ số thì thành rỗng.
+_CHU_CAI = re.compile(r"[^\W\d_]+", re.U)
+
+
+def _chu(w: str) -> str:
+    m = _CHU_CAI.search(w)
+    return m.group(0) if m else ""
 
 
 def _dem_theo_nguon(blog: str) -> int:
     n = 0
     for m in _THEO.finditer(blog):
-        w1 = m.group(1).lstrip(_DAU_MO_TU)
-        w2 = (m.group(2) or "").lstrip(_DAU_MO_TU)
+        w1 = _chu(m.group(1))
+        w2 = _chu(m.group(2) or "")
         thuong = w1.lower()
         if not w1 or thuong in _LIEN_TU_SAU_THEO:
             continue
