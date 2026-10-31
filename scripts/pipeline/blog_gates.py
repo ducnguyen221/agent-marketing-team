@@ -99,9 +99,12 @@ _MUC_NGUON = re.compile(r"^##\s+(?:nguồn(?:\s+tham\s+khảo)?|tham\s+khảo|t�
 # quy trình» bị đếm oan. Cũng không nhận mọi chữ thường: sẽ bắt «Theo đó», «Theo như».
 _DANH_TU_NGUON = frozenset({"tài liệu", "báo cáo", "nghiên cứu", "khảo sát", "số liệu",
                             "thống kê", "trang", "bài", "hướng dẫn"})
-_LIEN_TU_SAU_THEO = frozenset({"mình", "tôi", "đó", "như", "cách", "kiểu"})
+_LIEN_TU_SAU_THEO = frozenset({"mình", "tôi", "đó", "như", "cách", "kiểu", "ở", "đã"})
+# «Theo bài trước», «Theo trang này», «Theo bài viết trên»: nhắc lại CHÍNH kênh mình, không phải nguồn ngoài.
+_TU_TU_NHAC = frozenset({"bài", "trang"})
+_CHI_NGU_CANH = frozenset({"trước", "này", "trên", "dưới", "sau", "kia"})
 # Từ thứ hai nằm trong lookahead để không bị nuốt: «Theo Reuters Theo Bloomberg» đếm 2.
-_THEO = re.compile(r"\bTheo\s+([^\s,.;:!?]+)(?=(?:\s+([^\s,.;:!?]+))?)", re.U)
+_THEO = re.compile(r"\bTheo\s+([^\s,.;:!?]+)(?=(?:\s+([^\s,.;:!?]+))?(?:\s+([^\s,.;:!?]+))?)", re.U)
 # Mỗi từ chỉ lấy đoạn CHỮ CÁI đầu tiên: bỏ dấu mở/đóng/ngoặc/markdown quanh nó
 # (`**tài`, `liệu**`, `[báo`, `cáo](url`, `«Báo`, `(Reuters)`), còn chữ số thì thành rỗng.
 _CHU_CAI = re.compile(r"[^\W\d_]+", re.U)
@@ -117,8 +120,12 @@ def _dem_theo_nguon(blog: str) -> int:
     for m in _THEO.finditer(blog):
         w1 = _chu(m.group(1))
         w2 = _chu(m.group(2) or "")
+        w3 = _chu(m.group(3) or "")
         thuong = w1.lower()
         if not w1 or thuong in _LIEN_TU_SAU_THEO:
+            continue
+        if thuong in _TU_TU_NHAC and (w2.lower() in _CHI_NGU_CANH
+                                      or (w2.lower() == "viết" and w3.lower() in _CHI_NGU_CANH)):
             continue
         if w1[:1].isupper() or thuong in _DANH_TU_NGUON or f"{thuong} {w2.lower()}" in _DANH_TU_NGUON:
             n += 1

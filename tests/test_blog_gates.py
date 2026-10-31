@@ -586,3 +586,15 @@ def test_mien_giu_cho_khong_lam_G05_xanh_gia(tmp_path):
 def test_mien_that_dang_vidu_van_do_binh_thuong(bai_xanh):
     """`vidu.vn` là tên miền ví dụ của bộ test, không thuộc danh sách giữ chỗ: G05 vẫn xanh."""
     assert _theo_ma(G.run_cmd(bai_xanh, HOME, stage="write"))["G05"]["status"] == "pass"
+
+
+def test_theo_ngu_canh_noi_bo_khong_phai_nguon():
+    """«Theo bài trước», «Theo ở trên», «Theo đã nói» nhắc lại CHÍNH kênh mình, không dẫn nguồn ngoài."""
+    dem = G._dem_theo_nguon
+    for cau in ("Theo bài trước mình đã nói, X.", "Theo bài này, X.", "Theo trang trên, X.",
+                "Theo ở trên, X.", "Theo đã nói, X.", "Theo bài viết trước, X."):
+        assert dem(cau) == 0, cau
+    # ... còn dẫn nguồn thật có danh từ «bài», «trang» thì vẫn đếm
+    for cau in ("Theo bài viết của Reuters, X.", "Theo trang web của hãng, X.", "Theo bài báo, X.",
+                "Theo báo cáo này, X."):
+        assert dem(cau) == 1, cau
