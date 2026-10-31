@@ -203,6 +203,24 @@ def _thoi_luong(p: Path) -> float | None:
         return None
 
 
+_MIEN_MAU = frozenset({"example.com", "example.org", "example.net", "domain.com", "yourdomain.com",
+                       "your-domain.com", "website.com", "site.com", "localhost", "example"})
+_DUOI_MAU = (".test", ".example", ".invalid", ".localhost", ".local",
+             ".example.com", ".example.org", ".example.net")
+
+
+def _la_mien_giu_cho(home: str) -> bool:
+    """Tên miền nhà chỉ là giá trị giữ chỗ (example.*, *.test, localhost, ...).
+
+    Giữ chỗ thì G05 không tách được link nội bộ khỏi nguồn ngoài. Cố ý KHÔNG đưa tên miền ví dụ
+    của bộ test (`vidu.vn`) vào danh sách: nó là tên miền hợp lệ về mặt cú pháp.
+    """
+    h = urlsplit(home if "//" in home else "//" + home).netloc.lower().removeprefix("www.")
+    h = h.split(":")[0]
+    return (h in _MIEN_MAU or h.endswith(_DUOI_MAU)
+            or any(k in h for k in ("giu-cho", "placeholder")))
+
+
 class SoKetQua:
     """Sổ ghi kết quả. Mỗi dòng tự mang đủ: đo được gì, luật là gì, đạt hay không."""
 
@@ -312,6 +330,12 @@ def run_cmd(folder: Path, home_domain: str, kind: str = "full",
                  3 <= len(ke) <= 7 and not lac,
                  note=("URL không có trong research.md: " + "; ".join(lac[:4]))
                  if lac else "; ".join(ke[:5]))
+        if _la_mien_giu_cho(home_domain) and s.rows[-1]["id"] == "G05" and s.rows[-1]["status"] == "pass":
+            # Miền giữ chỗ: link về chính trang nhà bị đếm là nguồn ngoài, xanh này là xanh giả.
+            s.rows.pop()
+            s.thieu("G05", "Nguồn ngoài (kê ở mục Nguồn tham khảo)",
+                    "tên miền nhà là giá trị giữ chỗ: không tách được link nội bộ khỏi nguồn ngoài — "
+                    "truyền tên miền thật để đo")
         # ĐỔI 12/09/2026 — trước đó chỉ nhận khối trích dẫn `> **Góc nhìn:**`.
         # Đo thật trên NEN-004: bài có mục `## Góc nhìn của mình` dài 399 từ, gấp mười lần
         # ngưỡng, mà cổng báo 0 khối. Cổng đo VỎ chứ không đo chất. Nay nhận cả hai hình

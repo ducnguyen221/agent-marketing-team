@@ -554,3 +554,35 @@ def test_tom_tat_KHONG_giau_cong_chua_do_duoc(capsys):
     ra = capsys.readouterr().out
     assert "G22" in ra and "CH\u01afA \u0110O \u0110\u01af\u1ee2C" in ra
     assert "G20" not in ra.split("CH\u01afA \u0110O")[-1], "cong HOAN khong duoc dem hai lan"
+
+
+# ------------------------------------------------------------------ 5. miền giữ chỗ không làm G05 xanh giả
+
+def _bai_nguon_noi_bo(tmp_path):
+    d = tmp_path / "post"
+    d.mkdir()
+    PP.make_dirs(d)
+    PP.p(d, "blog").write_text(
+        "# Bài\n\n## Nguồn tham khảo\n\n"
+        + "\n".join(f"- Bài {i}: https://congty.vn/bai-{i}" for i in range(1, 4)) + "\n",
+        encoding="utf-8")
+    return d
+
+
+def test_mien_giu_cho_khong_lam_G05_xanh_gia(tmp_path):
+    """3 link trỏ về CHÍNH trang nhà không phải 3 nguồn ngoài; nếu `--home-domain` là giá trị
+    giữ chỗ thì cổng không tách được nội bộ khỏi ngoài, nên không được báo xanh (CO3)."""
+    d = _bai_nguon_noi_bo(tmp_path)
+    # miền thật: link nội bộ bị loại -> 0 nguồn ngoài -> đỏ
+    thuc = _theo_ma(G.run_cmd(d, "congty.vn", stage="write"))["G05"]
+    assert thuc["status"] == "fail" and thuc["measured"] == 0
+    # miền giữ chỗ: cũ thì đếm 3 nguồn ngoài và xanh; nay phải là 'missing' kèm lý do
+    for gia in ("example.com", "www.example.org", "nha.test", "localhost", "mien-giu-cho.vn"):
+        g05 = _theo_ma(G.run_cmd(d, gia, stage="write"))["G05"]
+        assert g05["status"] == "missing", (gia, g05)
+        assert "giữ chỗ" in g05["note"] and "tên miền thật" in g05["note"], gia
+
+
+def test_mien_that_dang_vidu_van_do_binh_thuong(bai_xanh):
+    """`vidu.vn` là tên miền ví dụ của bộ test, không thuộc danh sách giữ chỗ: G05 vẫn xanh."""
+    assert _theo_ma(G.run_cmd(bai_xanh, HOME, stage="write"))["G05"]["status"] == "pass"
