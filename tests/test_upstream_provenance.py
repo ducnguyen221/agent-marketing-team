@@ -300,8 +300,8 @@ def test_tham_khao_thiet_ke_noi_ro_khong_chep_van_ban():
             assert (ROOT / rel).is_file(), rel
 
 
-_SHA40 = re.compile(r"\b[0-9a-f]{40}\b")
-_HEX_NGAN = re.compile(r"\b[0-9a-f]{7,39}\b")
+_SHA40 = re.compile(r"\b[0-9a-f]{40}\b", re.I)
+_HEX_NGAN = re.compile(r"\b[0-9a-f]{7,39}\b", re.I)
 
 
 def test_design_reference_upstream_ref_la_sha_day_du():
@@ -606,3 +606,9 @@ def test_metadata_phai_khop_source_inventory_pinned(tmp_path: Path, field: str, 
     provenance[field] = value
     (root / "upstream.json").write_text(json.dumps({"sources": sources}), encoding="utf-8")
     assert any(message in error for error in _provenance_errors(root, PUBLIC_INVENTORY))
+
+
+def test_regex_sha_khong_phan_biet_hoa_thuong():
+    """SHA rút gọn viết HOA cũng phải bị bắt (review lô B, RF5)."""
+    assert _HEX_NGAN.search("ban va D8409A4B0 chi ap")
+    assert _SHA40.search("D8409A4B0813771235555E32E3D8046A73988BFA")
