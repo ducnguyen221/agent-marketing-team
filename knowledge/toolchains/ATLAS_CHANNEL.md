@@ -75,7 +75,10 @@ trọng hơn hẳn trước: comment chỉ có đúng một dòng link, mất pr
 ```
 og:type · og:title · og:description · og:url · og:image · og:site_name
 + article:published_time · twitter:card · <link rel="canonical">
++ JSON-LD Article (script type="application/ld+json")
 ```
+
+Thiếu `slug` thì trang **không** có canonical/og:url (không trỏ về trang chủ) và `G18` sẽ đỏ (thiếu loại `url`) — đặt slug trước khi dựng.
 
 Hai điều bắt buộc:
 

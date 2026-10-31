@@ -186,6 +186,30 @@ def _img_data_uri(png_path):
     return f"data:image/png;base64,{b64}"
 
 
+def _article_jsonld(title, desc, author, site_name, page_url, og_image, published):
+    """Khối `<script type="application/ld+json">` kiểu `Article`.
+
+    Mọi tham số là chuỗi THÔ (chưa qua `_esc`): trong JSON, `&amp;` sẽ thành dữ liệu sai.
+    Thay `<` `>` `&` bằng dạng thoát JSON để trong thẻ không bao giờ có `</script>` hay `<!--`
+    — `json.loads` vẫn trả đúng chuỗi gốc. Bỏ khoá nào không có dữ liệu thay vì ghi rỗng.
+    """
+    obj = {"@context": "https://schema.org", "@type": "Article",
+           "headline": title, "description": desc}
+    if page_url:
+        obj["mainEntityOfPage"] = {"@type": "WebPage", "@id": page_url}
+        obj["url"] = page_url
+    if og_image:
+        obj["image"] = [og_image]
+    obj["author"] = {"@type": "Person", "name": author}
+    obj["publisher"] = {"@type": "Organization", "name": site_name}
+    if published:
+        obj["datePublished"] = published
+    obj["inLanguage"] = "vi"
+    s = json.dumps(obj, ensure_ascii=False)
+    s = s.replace("<", "\\u003c").replace(">", "\\u003e").replace("&", "\\u0026")
+    return '<script type="application/ld+json">' + s + "</script>"
+
+
 # ---------------------------------------------------------------- template (atlas dark)
 _TEMPLATE = """<!DOCTYPE html>
 <html lang="vi">
@@ -194,14 +218,14 @@ _TEMPLATE = """<!DOCTYPE html>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>{title} · {site_name}</title>
 <meta name="description" content="{desc}">
-<link rel="canonical" href="{page_url}">
+{canonical}
 <meta name="author" content="{author}">
 <!-- Open Graph — BAT BUOC. Thieu la Facebook/Zalo scrape ra bai TRAN TRUI, mat phan lon suc hut.
      Ca VC-001/002/003 deu thieu (do 04/09: 0/3 bai co the og:) => bo sung tan goc tai day. -->
 <meta property="og:type" content="article">
 <meta property="og:title" content="{title}">
 <meta property="og:description" content="{desc}">
-<meta property="og:url" content="{page_url}">
+{og_url}
 <meta property="og:image" content="{og_image}">
 <meta property="og:image:width" content="1280">
 <meta property="og:image:height" content="720">
@@ -211,6 +235,7 @@ _TEMPLATE = """<!DOCTYPE html>
 <meta name="twitter:title" content="{title}">
 <meta name="twitter:description" content="{desc}">
 <meta name="twitter:image" content="{og_image}">
+{jsonld}
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700;800;900&family=Outfit:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -471,17 +496,27 @@ def build_html_full(md_text, meta, infographic_png, youtube_url="", audio_src=""
     site = BR.site_base(b)
     cat  = (meta.get("category") or PILLAR_CAT.get(pillar, "ai")).strip()
     slug = (meta.get("slug") or "").strip()
-    page_url = f"{site}/content/{cat}/{slug}.html" if slug else site
+    # Thiếu slug thì KHÔNG biết URL thật của trang: bỏ canonical/og:url thay vì trỏ về trang
+    # chủ (công cụ tìm kiếm sẽ coi bài là bản sao trang chủ). G18 đòi og:url nên sẽ đỏ ở bước
+    # đăng — cố ý (fail-closed), xem ATLAS_CHANNEL.md.
+    page_url = f"{site}/content/{cat}/{slug}.html" if slug else ""
     og_image = f"{site}/content/{cat}/{slug}.jpg" if slug else str(b.get("og_image") or "")
+    canonical = f'<link rel="canonical" href="{_esc(page_url)}">' if page_url else ""
+    og_url = f'<meta property="og:url" content="{_esc(page_url)}">' if page_url else ""
+    if not slug:
+        sys.stderr.write("build_blog_html: cảnh báo: meta thiếu slug — không ghi canonical/og:url\n")
+    published = str(meta.get("schedule_date") or meta.get("published_date") or "")
+    jsonld = _article_jsonld(title, angle, str(b["author"]), site_name, page_url, og_image,
+                             published)
     return _TEMPLATE.format(
         title=_esc(title), desc=_esc(angle), badge=_esc(badge), angle=_esc(angle),
         hero_cls="", hero_img="", media=media, body=body,
-        page_url=_esc(page_url), og_image=_esc(og_image),
+        canonical=canonical, og_url=og_url, jsonld=jsonld, og_image=_esc(og_image),
         author=_esc(b["author"]), site_name=_esc(site_name),
         site_home=_esc(str(b.get("site_home") or (site + "/"))),
         icon_brand=BR.ICON["brand"], brand_text=_brand_text(b, site_name),
         author_card=_author_card(b),
-        published=_esc(meta.get("schedule_date") or meta.get("published_date") or ""))
+        published=_esc(published))
 
 
 def main(argv=None):

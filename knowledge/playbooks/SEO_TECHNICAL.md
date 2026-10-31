@@ -34,7 +34,7 @@ Câu hỏi: trang được lưu dưới đúng một địa chỉ mà ta chọn 
 - Sitemap chỉ liệt kê phần công khai muốn lên chỉ mục.
 - Hai URL cùng nội dung mà không có canonical thì tự tranh nhau.
 
-Nối repo: `scripts/pipeline/build_blog_html.py` đã sinh `<link rel="canonical">`; các luật trên giải thích vì sao phải giữ thẻ đó.
+Nối repo: `scripts/pipeline/build_blog_html.py` đã sinh `<link rel="canonical">` (chỉ khi có `slug`); các luật trên giải thích vì sao phải giữ thẻ đó.
 
 ## 4. Core Web Vitals
 Ngưỡng «tốt» theo tài liệu công khai web.dev về Core Web Vitals (kiểm lại bản hiện hành trước khi trích):
@@ -70,7 +70,7 @@ Ví dụ bịa, chỉ minh hoạ khung (đổi mọi giá trị khi dùng):
 }
 ```
 
-**Nợ ghi nhận (không làm đợt này):** `build_blog_html.py` chưa sinh JSON-LD `Article`; baseline đo 0/3 bài có (`fixtures/baseline/blog_baseline.md`). Thêm khi có sprint riêng cho script đó.
+**Đã làm (SPR-04 sổ repo):** `build_blog_html.py` sinh JSON-LD `Article`; canonical chỉ in khi có `slug`. (Baseline cũ đo 0/3 bài có JSON-LD: `fixtures/baseline/blog_baseline.md`.)
 
 ## 6. Title và meta
 Số cụ thể (≤ 60 ký tự cho title, 150–160 cho meta) lấy từ `SEO_PLAYBOOK.md` mục 1; không đặt số thứ hai ở đây.
