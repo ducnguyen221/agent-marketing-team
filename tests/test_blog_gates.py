@@ -571,7 +571,7 @@ def _bai_nguon_noi_bo(tmp_path):
 
 def test_mien_giu_cho_khong_lam_G05_xanh_gia(tmp_path):
     """3 link trỏ về CHÍNH trang nhà không phải 3 nguồn ngoài; nếu `--home-domain` là giá trị
-    giữ chỗ thì cổng không tách được nội bộ khỏi ngoài, nên không được báo xanh (CO3)."""
+    giữ chỗ thì cổng không tách được nội bộ khỏi ngoài, nên không được báo xanh."""
     d = _bai_nguon_noi_bo(tmp_path)
     # miền thật: link nội bộ bị loại -> 0 nguồn ngoài -> đỏ
     thuc = _theo_ma(G.run_cmd(d, "congty.vn", stage="write"))["G05"]
@@ -598,3 +598,9 @@ def test_theo_ngu_canh_noi_bo_khong_phai_nguon():
     for cau in ("Theo bài viết của Reuters, X.", "Theo trang web của hãng, X.", "Theo bài báo, X.",
                 "Theo báo cáo này, X."):
         assert dem(cau) == 1, cau
+    # ... và «trên/này/sau» đi cùng tên riêng hoặc «của» là DẪN NGUỒN thật, không phải nhắc lại kênh mình
+    for cau in ("Theo bài viết trên VnExpress, X.", "Theo bài trên Reuters, X.",
+                "Theo trang này của Microsoft, X.", "Theo bài viết sau đây của hãng, X."):
+        assert dem(cau) == 1, cau
+    # bộ liên từ ghim cả dạng viết hoa
+    assert dem("Theo Đã nói, X.") == 0 and dem("Theo Ở trên, X.") == 0

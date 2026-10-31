@@ -104,7 +104,7 @@ _LIEN_TU_SAU_THEO = frozenset({"mình", "tôi", "đó", "như", "cách", "kiểu
 _TU_TU_NHAC = frozenset({"bài", "trang"})
 _CHI_NGU_CANH = frozenset({"trước", "này", "trên", "dưới", "sau", "kia"})
 # Từ thứ hai nằm trong lookahead để không bị nuốt: «Theo Reuters Theo Bloomberg» đếm 2.
-_THEO = re.compile(r"\bTheo\s+([^\s,.;:!?]+)(?=(?:\s+([^\s,.;:!?]+))?(?:\s+([^\s,.;:!?]+))?)", re.U)
+_THEO = re.compile(r"\bTheo\s+([^\s,.;:!?]+)(?=([^,.;:!?]*))", re.U)
 # Mỗi từ chỉ lấy đoạn CHỮ CÁI đầu tiên: bỏ dấu mở/đóng/ngoặc/markdown quanh nó
 # (`**tài`, `liệu**`, `[báo`, `cáo](url`, `«Báo`, `(Reuters)`), còn chữ số thì thành rỗng.
 _CHU_CAI = re.compile(r"[^\W\d_]+", re.U)
@@ -115,17 +115,26 @@ def _chu(w: str) -> str:
     return m.group(0) if m else ""
 
 
+def _co_ten_rieng_hoac_cua(tu: list[str]) -> bool:
+    """Trong vài từ ngay sau có «của» hoặc tên riêng (chữ hoa thật): «Theo bài trên VnExpress»."""
+    return any(t.lower() == "của" or _chu(t)[:1].isupper() for t in tu[:6])
+
+
 def _dem_theo_nguon(blog: str) -> int:
     n = 0
     for m in _THEO.finditer(blog):
         w1 = _chu(m.group(1))
-        w2 = _chu(m.group(2) or "")
-        w3 = _chu(m.group(3) or "")
+        resto = m.group(2).split()          # phần còn lại của mệnh đề, đến dấu câu kế tiếp
+        w2 = _chu(resto[0]) if resto else ""
+        w3 = _chu(resto[1]) if len(resto) > 1 else ""
         thuong = w1.lower()
         if not w1 or thuong in _LIEN_TU_SAU_THEO:
             continue
-        if thuong in _TU_TU_NHAC and (w2.lower() in _CHI_NGU_CANH
-                                      or (w2.lower() == "viết" and w3.lower() in _CHI_NGU_CANH)):
+        # «Theo bài trước/này/trên...» nhắc lại CHÍNH kênh mình — trừ khi có «của»/tên riêng theo sau
+        # («Theo bài viết trên VnExpress», «Theo trang này của hãng» là dẫn nguồn thật).
+        if (thuong in _TU_TU_NHAC and not _co_ten_rieng_hoac_cua(resto)
+                and (w2.lower() in _CHI_NGU_CANH
+                     or (w2.lower() == "viết" and w3.lower() in _CHI_NGU_CANH))):
             continue
         if w1[:1].isupper() or thuong in _DANH_TU_NGUON or f"{thuong} {w2.lower()}" in _DANH_TU_NGUON:
             n += 1

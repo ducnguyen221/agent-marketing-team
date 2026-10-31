@@ -385,7 +385,7 @@ def test_content_production_co_che_do_standalone_blog():
 
 
 def test_content_production_duoi_tran_co_du_cho():
-    """Trần của check_skill_catalog là 8192 B; chừa >= 392 B cho lần sửa sau (FR4.1)."""
+    """Trần của check_skill_catalog là 8192 B; chừa >= 392 B cho lần sửa sau."""
     raw = (_ROOT / ".agents" / "skills" / "content-production" / "SKILL.md").read_bytes()
     assert b"\r\n" not in raw
     assert len(raw) <= 7800
