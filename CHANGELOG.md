@@ -5,7 +5,7 @@ Mỗi mục là một phiên bản. Mục đầu luôn là số trong `pyproject
 
 ## 3.3.0 — chưa phát hành
 
-Trả sáu món nợ của đợt `P6` (sprint `SPR-04` sổ repo; nguồn sổ OpcOS `RQ-221`…`RQ-225`, `RQ-229`). Mức MINOR vì thêm
+Trả sáu món nợ của đợt `P6`. Mức MINOR vì thêm
 chế độ `standalone-blog` và subagent. Chưa gắn tag, chưa cài cache.
 
 ### Người dùng thấy gì

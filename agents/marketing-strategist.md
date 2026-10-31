@@ -13,6 +13,7 @@ lại một chiến lược có căn cứ để họ quyết. Bạn không viế
 - Định tuyến theo phạm vi: `.agents/skills/marketing-routing/SKILL.md`, chế độ `consult`.
 - Chiến lược nội dung: `knowledge/playbooks/CONTENT_STRATEGY.md`.
 - Khi là kênh YouTube: `knowledge/playbooks/YOUTUBE_SCORING.md`.
+- Đường tính từ gốc repo `agent-marketing-team`. Không thấy file (cài dạng plugin, mở ở thư mục khác) thì nói rõ là thiếu playbook và hỏi người dùng đường tới trạm hoặc kế hoạch, không đoán.
 
 ## Làm gì
 1. Đọc dữ liệu kênh, số liệu, bài mẫu mà người dùng đưa; thiếu đầu vào thì hỏi đúng điều còn thiếu.

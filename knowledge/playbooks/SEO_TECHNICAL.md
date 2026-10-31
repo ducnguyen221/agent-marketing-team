@@ -70,7 +70,7 @@ Ví dụ bịa, chỉ minh hoạ khung (đổi mọi giá trị khi dùng):
 }
 ```
 
-**Đã làm (SPR-04 sổ repo):** `build_blog_html.py` sinh JSON-LD `Article`; canonical chỉ in khi có `slug`. (Baseline cũ đo 0/3 bài có JSON-LD: `fixtures/baseline/blog_baseline.md`.)
+**Đã làm (bản 3.3.0):** `build_blog_html.py` sinh JSON-LD `Article`; canonical chỉ in khi có `slug`. (Baseline cũ đo 0/3 bài có JSON-LD: `fixtures/baseline/blog_baseline.md`.)
 
 ## 6. Title và meta
 Số cụ thể (≤ 60 ký tự cho title, 150–160 cho meta) lấy từ `SEO_PLAYBOOK.md` mục 1; không đặt số thứ hai ở đây.

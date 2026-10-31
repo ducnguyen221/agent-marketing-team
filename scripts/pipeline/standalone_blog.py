@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """standalone_blog.py — chấm 24 cổng cho một bài blog NGOÀI chiến dịch, một lệnh, tự dọn.
 
-Vì sao có: ca blog thật (F1/F2, RF-BUS-4) buộc người viết tự dựng thư mục bài đúng bố cục
+Vì sao có: ca blog thật buộc người viết tự dựng thư mục bài đúng bố cục
 (`atlas/blog.md`...) rồi đoán cờ `--home-domain` mới chấm được. Script này làm hộ phần đó.
 
 Sơ đồ: kiểm đầu vào -> tạo thư mục tạm -> chép -> blog_gates.main -> in -> (finally) dọn/giữ.
@@ -16,6 +16,8 @@ thư mục do chính script vừa tạo mới bị xoá. Mã thoát = mã của 
 from __future__ import annotations
 
 import argparse
+import contextlib
+import io
 import shutil
 import sys
 import time
@@ -84,7 +86,7 @@ def main(argv=None) -> int:
             return 2
 
     tao_tmp, tao_goc = not OUT_ROOT.parent.exists(), not OUT_ROOT.exists()
-    d = None
+    d, buf = None, io.StringIO()
     try:
         d = dung_thu_muc(a.blog, a.research)
         args = [str(d), "--stage", a.stage]
@@ -94,15 +96,20 @@ def main(argv=None) -> int:
             args += ["--brand", a.brand]
         if a.json_only:
             args.append("--json-only")
-        rc = G.main(args)
+        # Thư mục tạm sắp bị xoá thì bảng không được chỉ người dùng tới gates.json: gom bảng, sửa dòng cuối.
+        with contextlib.redirect_stdout(buf if not (a.keep or a.json_only) else sys.stdout):
+            rc = G.main(args)
     finally:
+        sys.stdout.write(buf.getvalue().replace(
+            "\n  -> gates.json\n",
+            "\n  (thư mục tạm đã xoá; thêm --keep để giữ gates.json)\n"))
         if d is not None and a.keep:
             out = sys.stderr if a.json_only else sys.stdout
             out.write(f"GIỮ {d.resolve()}\n")
         elif d is not None and d.resolve().is_relative_to(OUT_ROOT.resolve()) \
                 and d.resolve() != OUT_ROOT.resolve():
             shutil.rmtree(d)
-        if not a.keep:
+        if not a.keep or d is None:
             _don_goc_neu_script_tao(tao_goc, tao_tmp)
     return rc
 

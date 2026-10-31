@@ -89,7 +89,7 @@ skills:
       standalone-blog:
         read: [independent_blog_markdown, optional_research_md, home_domain_or_brand_file, QA_ASSET.md]
         write: [temp_post_folder_under_tmp_removed_unless_keep, gates_json_in_temp_folder]
-    outputs: [channel_formatted_content, claims_needing_sources, qa_ready_post_entries, edited_draft_with_change_notes]
+    outputs: [channel_formatted_content, claims_needing_sources, qa_ready_post_entries, edited_draft_with_change_notes, blog_gate_table_and_gates_json]
     supports: [hook-writer, thread-writer]
     references: [knowledge/playbooks/COPY_FRAMEWORKS.md, knowledge/playbooks/COPY_EDITING.md, knowledge/playbooks/BRAND_VOICE.md, .agents/checklists/QA_ASSET.md, .agents/skills/content-production/references/source-depth.md]
     maturity: candidate

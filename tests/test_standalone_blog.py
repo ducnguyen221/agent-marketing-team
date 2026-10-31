@@ -2,8 +2,9 @@
 """Test cho standalone_blog.py (SPR-04 TK3, RQ-007): dựng thư mục tạm, chấm cổng, tự dọn.
 
 Mọi ca chạy trong `tmp_path` sau `monkeypatch.chdir`, nên `.tmp/standalone-blog` của cwd là
-thư mục của test — không ghi vào cây repo. Bảy ca, mỗi hành vi của PLAN một ca (PLAN viết
-«6 test» cho 7 hành vi; ở đây viết đủ 7, không ghép).
+thư mục của test — không ghi vào cây repo. Mười ca: bảy hành vi của kế hoạch (mỗi hành vi một ca,
+không ghép), một ca hồi quy chép lỗi sau `mkdir`, một ca giữ `.tmp/` có sẵn của người dùng, một ca
+`--keep` mà chép lỗi.
 """
 import json
 import sys
@@ -65,7 +66,9 @@ def test_bai_xanh_in_bang_va_don_sach(vung, capsys):
     assert "G01" in out and "G24" in out, "phải in bảng 24 cổng"
     assert _con(goc) == [], "không --keep thì thư mục tạm phải được xoá"
     assert not goc.exists() and not (tmp / ".tmp").exists(), \
-        "gốc/.tmp do script tạo và đã rỗng thì phải dọn luôn (RF6)"
+        "gốc/.tmp do script tạo và đã rỗng thì phải dọn luôn"
+    assert "-> gates.json" not in out, "thư mục tạm đã xoá thì không chỉ người dùng tới gates.json"
+    assert "--keep" in out, "phải nói cách giữ gates.json"
 
 
 def test_keep_json_only_giu_thu_muc_va_stdout_la_json(vung, capsys):
@@ -161,3 +164,26 @@ def test_loi_khi_chep_sau_mkdir_khong_bo_lai_thu_muc(vung, monkeypatch):
     assert dem["n"] == 2
     assert _con(goc) == [], "thư mục tạm bị bỏ lại khi chép lỗi"
     assert not goc.exists(), "gốc rỗng do script tạo phải được dọn (RF6)"
+
+
+def test_chi_don_tmp_do_script_tao(vung):
+    """`.tmp/` rỗng có sẵn của người dùng không bị xoá; chỉ dọn gốc `standalone-blog` do script tạo."""
+    tmp, goc = vung
+    (tmp / ".tmp").mkdir()
+    rc = SB.main(["--blog", str(tmp / "bai-moi.md"), "--home-domain", HOME, "--json-only"])
+    assert rc == 0
+    assert (tmp / ".tmp").is_dir(), ".tmp/ có sẵn bị xoá"
+    assert not goc.exists()
+
+
+def test_keep_chep_loi_khong_bo_lai_goc_rong(vung, monkeypatch):
+    """`--keep` mà chép lỗi: không có gì để giữ, nên gốc rỗng do script tạo cũng phải được dọn."""
+    tmp, goc = vung
+
+    def hong(src, dst, *a, **k):
+        raise PermissionError("tệp đang bị khoá")
+
+    monkeypatch.setattr(SB.shutil, "copyfile", hong)
+    with pytest.raises(PermissionError):
+        SB.main(["--blog", str(tmp / "bai-moi.md"), "--home-domain", HOME, "--keep"])
+    assert not goc.exists() and not (tmp / ".tmp").exists()
