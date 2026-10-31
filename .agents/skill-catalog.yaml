@@ -183,7 +183,7 @@ skills:
         write: []
       prepare:
         read: [decision_question, scope, supplied_sources_or_missing_source]
-        write: []
+        write: [campaign_md_section_1_competitor_moves_only_with_user_consent]
     outputs: [cited_market_or_competitor_findings, facts_inference_recommendation_split, implications_for_campaign]
     supports: []
     references: [knowledge/playbooks/MARKET_RESEARCH.md, .agents/skills/marketing-routing/references/consultation.md]

@@ -112,7 +112,7 @@ Khung hook 30 giây cho video dài nằm ở `YOUTUBE_PLAYBOOK.md` mục 1 và `
 
 ## 5. Rights Gate — cổng quyền khai thác
 
-Áp cho kênh nào đăng lại, lồng tiếng, tổng hợp hay biên tập lại nội dung của bên khác. Cổng này đứng **trước** nghiên cứu và sản xuất tốn công. Nội dung nguyên bản 100% của chủ kênh bỏ qua.
+Áp cho kênh nào đăng lại, lồng tiếng, tổng hợp hay biên tập lại nội dung của bên khác. Cổng này đứng **trước** nghiên cứu và sản xuất tốn công. Nội dung nguyên bản 100% của chủ kênh bỏ qua. Khai «nguyên bản 100 %» phải kèm căn cứ (người làm, ngày, tư liệu gốc) trong hồ sơ series; không có căn cứ thì coi như chưa xác minh.
 
 ### 5.1 Hồ sơ quyền mỗi series
 Mỗi series có một hồ sơ gồm các trường sau (tên trường giữ nguyên để dễ đối chiếu):
