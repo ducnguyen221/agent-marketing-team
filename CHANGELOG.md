@@ -3,7 +3,7 @@
 Mỗi mục là một phiên bản. Mục đầu luôn là số trong `pyproject.toml`
 (`tests/test_version_sync.py` giữ điều này). Phiên bản chưa gắn tag ghi rõ "chưa phát hành".
 
-## 3.3.0 — chưa phát hành
+## 3.3.0 — 2026-10-31
 
 Trả sáu món nợ của đợt `P6`. Mức MINOR vì thêm
 chế độ `standalone-blog` và subagent. Chưa gắn tag, chưa cài cache.
