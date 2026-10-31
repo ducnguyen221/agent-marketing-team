@@ -59,6 +59,41 @@ def test_dung_tap_cong_canh_bao(do):
     assert cb == {"G04", "G07", "G10", "G15"}, "cảnh báo không được leo thành chặn"
 
 
+def test_theo_nguon_viet_thuong_va_lien_tu():
+    """`G07` đếm «Theo» + danh từ nguồn viết thường hoặc chữ hoa thật; bỏ liên từ (RQ-221, F4)."""
+    dem = G._dem_theo_nguon
+    assert dem("Theo tài liệu Folder connector, X.") == 1
+    assert dem("Theo Microsoft Learn, X.") == 1
+    assert dem("Theo Đức, số liệu như vậy.") == 1
+    assert dem("Theo báo cáo nào đó, X.") == 1
+    # liên từ sau «Theo» không phải nguồn
+    assert dem("Theo đó, kết quả khác.") == 0
+    assert dem("Theo cách này, X.") == 0
+    assert dem("Theo như vậy, X.") == 0
+    assert dem("Theo mình thì khác.") == 0
+    # ... nhưng «Theo mình» vẫn là ý riêng
+    assert len(G._THEO_MINH.findall("Theo mình thì khác.")) == 1
+    # RF34: từ thứ hai không bị nuốt, và dấu mở đầu từ không che chữ hoa
+    assert dem("Theo Reuters Theo Bloomberg, X.") == 2
+    assert dem("Theo **Reuters**, X.") == 1
+    assert dem("Theo «Báo cáo» của Y.") == 1
+
+
+def test_theo_chu_thuong_co_dau_khong_phai_nguon():
+    """Lớp `[A-ZĐÀ-Ỹ]` cũ chứa cả `đ`, `ý`... nên «Theo đúng ...» bị đếm oan (RF15)."""
+    dem = G._dem_theo_nguon
+    assert dem("Theo đúng quy trình, X.") == 0
+    assert dem("Theo điều đó, X.") == 0
+    assert dem("Theo ý kiến chung, X.") == 0
+    assert dem("Nói theo báo cáo thì khác.") == 0
+
+
+def test_fixture_do_G07_dem_nguon_viet_thuong(do):
+    """`fixtures/bai_do` có «Theo báo cáo nào đó» (chữ thường): nay đếm 1 nguồn / 0 ý riêng, vẫn cảnh báo."""
+    assert do["G07"]["measured"] == "1 / 0"
+    assert do["G07"]["status"] == "fail"
+
+
 def test_cong_xanh_khong_bi_do_lay(do):
     """Bài sai nhiều thứ nhưng CÓ bảng và KHÔNG lộ tên tool -> ba cổng này phải xanh."""
     assert do["G03"]["status"] == "pass"

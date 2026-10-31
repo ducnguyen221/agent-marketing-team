@@ -94,7 +94,30 @@ _GOC_NHIN_H2 = re.compile(r"^##\s+.*góc nhìn.*$", re.M | re.I)
 # Mục nguồn cuối bài — chỗ người đọc kiểm chứng được. Nhận vài cách gọi thường gặp.
 _MUC_NGUON = re.compile(r"^##\s+(?:nguồn(?:\s+tham\s+khảo)?|tham\s+khảo|tài\s+liệu)\s*$",
                         re.M | re.I)
-_THEO_NGUON = re.compile(r"\bTheo\s+(?!mình\b|tôi\b)[A-ZĐÀ-Ỹ]", re.U)
+# G07 đếm «Theo X» là dẫn nguồn khi X là chữ hoa thật (`str.isupper()`) hoặc danh từ nguồn
+# viết thường. Không dùng lớp `[A-ZĐÀ-Ỹ]`: dải `À-Ỹ` chứa cả `à`, `đ`, `ý`... nên «Theo đúng
+# quy trình» bị đếm oan. Cũng không nhận mọi chữ thường: sẽ bắt «Theo đó», «Theo như».
+_DANH_TU_NGUON = frozenset({"tài liệu", "báo cáo", "nghiên cứu", "khảo sát", "số liệu",
+                            "thống kê", "trang", "bài", "hướng dẫn"})
+_LIEN_TU_SAU_THEO = frozenset({"mình", "tôi", "đó", "như", "cách", "kiểu"})
+# Từ thứ hai nằm trong lookahead để không bị nuốt: «Theo Reuters Theo Bloomberg» đếm 2.
+_THEO = re.compile(r"\bTheo\s+([^\s,.;:!?()]+)(?=(?:\s+([^\s,.;:!?()]+))?)", re.U)
+_DAU_MO_TU = "*_«“\"'[‘"
+
+
+def _dem_theo_nguon(blog: str) -> int:
+    n = 0
+    for m in _THEO.finditer(blog):
+        w1 = m.group(1).lstrip(_DAU_MO_TU)
+        w2 = (m.group(2) or "").lstrip(_DAU_MO_TU)
+        thuong = w1.lower()
+        if not w1 or thuong in _LIEN_TU_SAU_THEO:
+            continue
+        if w1[:1].isupper() or thuong in _DANH_TU_NGUON or f"{thuong} {w2.lower()}" in _DANH_TU_NGUON:
+            n += 1
+    return n
+
+
 _THEO_MINH = re.compile(r"\bTheo\s+(?:mình|tôi)\b|\bmình\s+(?:nghĩ|cho rằng)\b", re.I | re.U)
 # Bắt cả chữ thường và các biến thể. Bản đầu chỉ khớp đúng "[KIỂM CHỨNG]" hoa, nên
 # "[kiểm chứng]", "[CẦN KIỂM]" hay "TODO:" lọt sạch — mà chúng cùng nghĩa: còn nợ.
@@ -291,7 +314,7 @@ def run_cmd(folder: Path, home_domain: str, kind: str = "full",
         s.do("G06", "Khối chính kiến (H2 hoặc trích dẫn Góc nhìn)", f"{gn} khối / {tu_gn} từ",
              ">=1 khối và >=40 từ", gn >= 1 and tu_gn >= 40,
              note="" if tu_gn >= 40 else "khối chính kiến quá ngắn hoặc rỗng")
-        tn, tm = len(_THEO_NGUON.findall(blog)), len(_THEO_MINH.findall(blog))
+        tn, tm = _dem_theo_nguon(blog), len(_THEO_MINH.findall(blog))
         s.do("G07", "Dẫn nguồn / nêu ý riêng", f"{tn} / {tm}", "mỗi loại >=1",
              tn >= 1 and tm >= 1, CANH_BAO)
         kc = len(_KIEM_CHUNG.findall(blog))
