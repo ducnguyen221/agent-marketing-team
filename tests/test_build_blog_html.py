@@ -158,3 +158,74 @@ def test_jsonld_giu_nguyen_chuoi_goc(tmp_path):
     assert "&" not in khoi
     assert _json.loads(khoi)["headline"] == xau
     assert "A &amp; B" in html, "<title> vẫn phải được _esc"
+
+
+# ══ Chèn mã qua MỌI trường đi vào JSON-LD, gọi hàm trực tiếp (đo coverage được) ═══════════
+import html.parser as _hp  # noqa: E402
+from build_blog_html import _article_jsonld, build_html_full  # noqa: E402
+
+_PAYLOAD = [
+    "X </script><script>alert(1)</script>",
+    "<!--<script>x",
+    'A & B "C" \'D\'',
+    "</SCRIPT >",
+    "]]> <![CDATA[",
+    "&amp; pre",
+    "dòng một\u2028dòng hai",
+]
+
+
+class _DemScript(_hp.HTMLParser):
+    def __init__(self):
+        super().__init__()
+        self.n = 0
+
+    def handle_starttag(self, tag, attrs):
+        if tag == "script":
+            self.n += 1
+
+
+def _gia_tri_goc(ld, truong):
+    return {"headline": ld["headline"], "description": ld["description"],
+            "author": ld["author"]["name"], "site_name": ld["publisher"]["name"],
+            "schedule_date": ld.get("datePublished")}[truong]
+
+
+@_pt.mark.parametrize("truong", ["headline", "description", "author", "site_name", "schedule_date"])
+@_pt.mark.parametrize("xau", _PAYLOAD)
+def test_jsonld_chong_chen_ma_qua_moi_truong(truong, xau):
+    """Payload nằm ở từng trường (title, angle, author, site_name, schedule_date): khối JSON-LD
+    không có `<` `>` `&` thô, trang chỉ có đúng một thẻ <script>, `json.loads` trả đúng chuỗi gốc."""
+    brand = {"site_name": "Trang Thu", "author": "Nguoi Viet", "site_base": "https://vi-du.test"}
+    meta = {"slug": "bai", "angle": "mo ta"}
+    md = "# Tieu de\n\nMot doan.\n"
+    if truong == "headline":
+        md = f"# {xau}\n\nMot doan.\n"
+    elif truong == "description":
+        meta["angle"] = xau
+    elif truong == "author":
+        brand["author"] = xau
+    elif truong == "site_name":
+        brand["site_name"] = xau
+    else:
+        meta["schedule_date"] = xau
+    html = build_html_full(md, meta, "", brand=brand)
+    khoi = _LD.findall(html)
+    assert len(khoi) == 1
+    assert not any(c in khoi[0] for c in "<>&"), "ký tự < > & thô trong khối JSON-LD"
+    dem = _DemScript()
+    dem.feed(html)
+    assert dem.n == 1, "payload mở thêm thẻ <script>"
+    ld = _json.loads(khoi[0])
+    goc = xau.strip() if truong == "headline" else xau
+    assert _gia_tri_goc(ld, truong) == goc
+
+
+def test_article_jsonld_bo_khoa_khong_co_du_lieu():
+    """Gọi thẳng: thiếu URL/ảnh/ngày thì bỏ khoá, không ghi rỗng."""
+    ld = _json.loads(_LD.findall(_article_jsonld("T", "D", "A", "S", "", "", ""))[0])
+    assert set(ld) == {"@context", "@type", "headline", "description", "author", "publisher", "inLanguage"}
+    day_du = _json.loads(_LD.findall(_article_jsonld("T", "D", "A", "S", "https://x.test/a.html",
+                                                     "https://x.test/a.jpg", "2026-11-01"))[0])
+    assert day_du["url"] == day_du["mainEntityOfPage"]["@id"] == "https://x.test/a.html"
+    assert day_du["image"] == ["https://x.test/a.jpg"] and day_du["datePublished"] == "2026-11-01"
