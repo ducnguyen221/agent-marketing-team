@@ -45,7 +45,7 @@ sẵn làm câu trả lời. Thứ tự, cho mọi đường:
 |---|---|
 | Trạm | đi lên từ bản chụp `-Config` tới `CHANNELS.md` → `MARKETING_STUDIO_DATA` → `studio.local.json` → `<repo>/workspaces` |
 | Trạm giọng / video | `VOICE_STATION` (`OMNIVOICE_DIR`) / `VIDEO_STATION` (`VIDEO_ROOT`) → `studio.local.json` → repo anh em |
-| Python giọng | `OMNIVOICE_PY` → `station.json: venv` → `<trạm giọng>/omnivoice/.venv` → `.venv` của repo anh em video, rồi giọng |
+| Python giọng | `OMNIVOICE_PY` → `station.json: venv` → (máy có OpcOS) `$OPCOS_RUNTIME/venvs/agent-voice-studio/omnivoice` → `<trạm giọng>/omnivoice/.venv` → `.venv` của repo anh em video, rồi giọng |
 | Repo web | `repo` của `channel.yml` (hiểu `${TÊN}`, `~`, đường tương đối theo thư mục cha) |
 | last30days | `L30_SCRIPT` → thư mục plugin của Claude |
 | Nhạc nền | `VOICE_BGM_DIR` → `<trạm video>/assets/news-bgm` |
@@ -56,7 +56,7 @@ Bảng biến đầy đủ: `knowledge/toolchains/SECRETS.md`. Cổng giữ lu�
 
 ## Phụ thuộc ngoài repo (`doctor` kiểm, không cài)
 
-- gói Python của bộ chạy trong **venv giọng**: `requirements-runners.txt`;
+- gói Python của bộ chạy trong **venv giọng**: `requirements-runners.txt`. Máy có OpcOS: venv giọng ở `$OPCOS_RUNTIME/venvs/agent-voice-studio/omnivoice`; gói runner được cài vào đó bằng `opcos-runtime ensure --repo-dir <repo marketing>` (tệp `opcos-runtime.json` khai `use`). Không có OpcOS: như trước.
 - script `last30days` (plugin Claude);
 - mp3 của từng style trong `bgm-library.json` — style thiếu mp3 thì AI không được chọn;
 - các CLI agent trong `order` (`agy`, `codex`, `claude`) đã đăng nhập (`NOT_CHECKED`: doctor

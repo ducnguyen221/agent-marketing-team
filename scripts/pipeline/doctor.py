@@ -519,6 +519,16 @@ def _kham_profile(so: So, goc_giong: Path, khai_kenh):
                     f"channel.yml, hoặc tạo profile bằng `voice-studio make-profile`.")
 
 
+# Nhãn nguồn của `voice.python_exe_source` khi in ra cho người đọc.
+NGUON_PYTHON = {
+    "OMNIVOICE_PY": "biến OMNIVOICE_PY",
+    "station.json": "station.json: venv",
+    "runtime": "runtime của OpcOS (R/venvs/agent-voice-studio/omnivoice)",
+    "trạm": "venv trong trạm (<trạm>/omnivoice/.venv)",
+    "repo anh em": ".venv của repo anh em",
+}
+
+
 def kham_nang_luc(so: So, tram: Path):
     """Phần trạm giọng / trạm video của `doctor`. Chỉ đọc, như cả phần còn lại."""
     if os.environ.get("OMNIVOICE_DIR") and not os.environ.get("VOICE_STATION"):
@@ -544,12 +554,14 @@ def kham_nang_luc(so: So, tram: Path):
         return
 
     py = None
-    for lay in ((lambda: VOICE.python_exe(giong)) if giong else None,
-                (lambda: VIDEO.python_exe(video)) if video else None):
+    for lay in ((lambda: VOICE.python_exe_source(giong)) if giong else None,
+                (lambda: (VIDEO.python_exe(video), None)) if video else None):
         if lay is None:
             continue
         try:
-            py = lay()
+            py, nguon = lay()
+            if nguon:       # python giọng: nói rõ chọn từ đâu — đổi thứ tự phân giải là chỗ hay lệch
+                so.ghi(f"python giọng: {py} (nguồn: {NGUON_PYTHON.get(nguon, nguon)})")
             break
         except SC.StudioError as e:
             so.nhac(f"giọng/video: chưa dùng được — {e}")

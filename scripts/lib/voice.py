@@ -35,6 +35,7 @@ import studio_paths as SP  # noqa: E402
 PROG = "voice-studio"
 MODULE = "voice_studio"
 STATION_FILE = "station.json"
+RUNTIME_VENV = "omnivoice"          # R/venvs/agent-voice-studio/omnivoice — chủ venv: repo agent-voice-studio
 
 HUONG_DAN = (
     "Năng lực LỒNG TIẾNG chưa bật — bước bạn vừa chạy cần nó.\n"
@@ -85,37 +86,56 @@ def python_in_venv(venv: Path) -> Path | None:
     return None
 
 
-def python_exe(goc: Path | None = None) -> str:
-    """Python của venv trạm giọng: `OMNIVOICE_PY` → `station.json: venv` → dò `omnivoice/.venv`
-    → `.venv` của repo anh em `agent-video-studio` rồi `agent-voice-studio` (cùng thư mục
-    cha với repo này — bố cục "voice cài chung venv video" của `agent-video-studio/INSTALL.md`).
+def python_exe_source(goc: Path | None = None) -> tuple[str, str]:
+    """-> `(python, nguồn)` của venv trạm giọng. Nguồn: `OMNIVOICE_PY` · `station.json` · `runtime` · `trạm` ·
+    `repo anh em`. Thứ tự là MỘT luật duy nhất (bản PowerShell: `brand-paths.ps1: Find-OmniVoicePython`):
 
-    Biến đặt tay thắng `station.json`: máy đang chạy lịch thật khai đường tường minh, và
-    một file cấu hình trong trạm không được phép đổi interpreter dưới chân nó.
+        `OMNIVOICE_PY` → `station.json: venv` (tuyệt đối dùng nguyên, tương đối tính từ gốc trạm)
+        → `R/venvs/agent-voice-studio/omnivoice` (máy có OpcOS) → `<trạm>/omnivoice/.venv`
+        → `.venv` của repo anh em `agent-video-studio` rồi `agent-voice-studio` (cùng thư mục cha với
+          repo này — bố cục "voice cài chung venv video" của `agent-video-studio/INSTALL.md`).
+
+    Biến đặt tay thắng `station.json`: máy đang chạy lịch thật khai đường tường minh, và một file cấu hình
+    trong trạm không được phép đổi interpreter dưới chân nó. `runtime` đứng sau hai nấc khai tường minh và
+    TRƯỚC `<trạm>/omnivoice/.venv`: venv do `opcos-runtime` dựng là bản được quản, bản trong trạm là di sản.
+    Máy không có OpcOS không có nấc `runtime` — thứ tự cũ nguyên vẹn.
     """
     bien = (SP.secret_env("OMNIVOICE_PY") or "").strip()
     if bien:
-        return str(Path(bien).expanduser())
+        return str(Path(bien).expanduser()), "OMNIVOICE_PY"
     goc = goc or station()
-    ung = []
+    ung: list[tuple[Path, str]] = []
     khai = str(station_config(goc).get("venv") or "").strip()
     if khai:
         q = Path(khai).expanduser()
-        ung.append(q if q.is_absolute() else goc / q)
-    ung.append(goc / "omnivoice" / ".venv")
+        ung.append((q if q.is_absolute() else goc / q, "station.json"))
+    rt = SP.runtime_resource("venvs", SP.REPO_GIONG, RUNTIME_VENV)
+    if rt is not None:
+        ung.append((rt, "runtime"))
+    ung.append((goc / "omnivoice" / ".venv", "trạm"))
     for ten in (SP.REPO_VIDEO, SP.REPO_GIONG):
         r = SP.repo_anh_em(ten)
         if r:
-            ung.append(r / ".venv")
-    for venv in ung:
+            ung.append((r / ".venv", "repo anh em"))
+    for venv, nguon in ung:
         py = python_in_venv(venv)
         if py:
-            return str(py)
+            return str(py), nguon
+    goi_y = ""
+    if rt is not None:
+        repo = SP.repo_root()
+        goi_y = (f" Máy có OpcOS: dựng venv giọng bằng `opcos-runtime ensure --repo-dir "
+                 f"<repo agent-voice-studio>` (rồi `--repo-dir {repo or '<repo marketing>'}` để cài gói runner).")
     raise SC.StationMissing(
         f"trạm giọng {goc} chưa có venv engine (đã tìm: "
-        + ", ".join(str(x) for x in ung)
+        + ", ".join(str(v) for v, _ in ung)
         + "). Tạo venv rồi `pip install -e agent-voice-studio`, hoặc đặt OMNIVOICE_PY trỏ "
-          "đúng python. Xem `doctor`.")
+          "đúng python." + goi_y + " Xem `doctor`.")
+
+
+def python_exe(goc: Path | None = None) -> str:
+    """Python của venv trạm giọng — thứ tự và lý do ở `python_exe_source` (nguồn nói rõ ở đó)."""
+    return python_exe_source(goc)[0]
 
 
 def voices_dir(goc: Path | None = None) -> Path:

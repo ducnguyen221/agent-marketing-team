@@ -66,6 +66,23 @@ def _khong_thay_tram_that(monkeypatch):
     monkeypatch.setenv("MARKETING_STUDIO_HOME", str(_REPO_THAT))
 
 
+@pytest.fixture(autouse=True)
+def _khong_thay_runtime_that(monkeypatch, tmp_path_factory):
+    """Gỡ `OPCOS_RUNTIME`/`OPCOS_ROOT` của máy đang chạy (SPR-61 TK8): máy gốc có chúng thật, và
+    `voice.python_exe` sẽ nhặt venv giọng thật ở `runtime/` trước `<trạm>/omnivoice/.venv`.
+
+    CỐ Ý không đổi HOME ở đây: nhiều test cũ (export/import đổi đường máy) cần chính nhà thật.
+    Còn nấc cuối `~/OpcOS/paths.json` thì test nào đụng thứ tự python tự dựng nhà giả (`may` của
+    `test_voice_python_runtime`, `sandbox_home`) — đó là véc-tơ VT4 «máy không OpcOS».
+
+    Gỡ thôi CHƯA đủ: `runtime_root()` còn rơi xuống `~/OpcOS/paths.json` THẬT, và khi SPR-61 dựng
+    venv giọng vào `~/OpcOS/runtime` thì test cũ nhặt python thật (review TK8, RF1). Nên trỏ
+    `OPCOS_RUNTIME` vào một thư mục tạm RỖNG: nấc runtime có mặt nhưng không có venv nào, thứ tự
+    cũ giữ nguyên. Test VT4 (`may`, `sandbox_home`) tự gỡ lại biến này."""
+    monkeypatch.delenv("OPCOS_ROOT", raising=False)
+    monkeypatch.setenv("OPCOS_RUNTIME", str(tmp_path_factory.mktemp("runtime-rong")))
+
+
 # Biến trạm/OpcOS mà `sandbox_home` gỡ (cùng danh sách với video/voice).
 _BIEN_TRAM_SANDBOX = ("VIDEO_STATION", "VIDEO_ROOT", "VOICE_STATION", "OMNIVOICE_DIR",
                       "MARKETING_STUDIO_DATA", "MARKETING_STUDIO_HOME", "VIDEO_STUDIO_REPO",
