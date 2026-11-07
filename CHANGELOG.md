@@ -3,6 +3,12 @@
 Mỗi mục là một phiên bản. Mục đầu luôn là số trong `pyproject.toml`
 (`tests/test_version_sync.py` giữ điều này). Phiên bản chưa gắn tag ghi rõ "chưa phát hành".
 
+**Chưa phát hành (sau 3.3.0, chưa đổi version):**
+
+- Dời `CLAUDE.md` ở gốc sang `.claude/CLAUDE.md` chứa dòng `@../AGENTS.md`: `claude plugin validate --strict` đỏ khi
+  plugin có `CLAUDE.md` gốc («not loaded as project context»); `@import` tính đường từ file chứa nó, nên luật
+  `AGENTS.md` nay được nạp thật khi mở phiên trong repo.
+
 ## 3.3.0 — 2026-10-31
 
 Trả sáu món nợ của đợt `P6`. Mức MINOR vì thêm
