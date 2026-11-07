@@ -122,6 +122,29 @@ if ($thieu.Trim()) {
     Say "Phu thuoc: du"
 }
 
+# ── 1b. May co OpcOS: goi y cai goi runner vao venv giong (CHI IN, khong goi) ──
+# Venv giong cua may OpcOS nam o <R>/venvs/agent-voice-studio/omnivoice; goi cua bo chay
+# (requirements-runners.txt) vao do bang `opcos-runtime ensure` (opcos-runtime.json khai `use`).
+# Bo cai KHONG tu goi lenh do: no khong duoc tu cai vao runtime cua may. R theo hop dong
+# runtime-resource-v1: OPCOS_RUNTIME -> OPCOS_ROOT/runtime -> ~/OpcOS/paths.json co thi ~/OpcOS/runtime.
+# May khong co R hoac khong co CLI: khong in gi, hanh vi cu.
+$opcosR = $null
+if ($env:OPCOS_RUNTIME -and $env:OPCOS_RUNTIME.Trim()) { $opcosR = $env:OPCOS_RUNTIME.Trim() }
+elseif ($env:OPCOS_ROOT -and $env:OPCOS_ROOT.Trim()) { $opcosR = Join-Path ($env:OPCOS_ROOT.Trim()) 'runtime' }
+elseif ($HOME -and (Test-Path -LiteralPath (Join-Path (Join-Path $HOME 'OpcOS') 'paths.json') -PathType Leaf)) {
+    $opcosR = Join-Path (Join-Path $HOME 'OpcOS') 'runtime'
+}
+if ($opcosR) {
+    $opcosCli = Join-Path (Join-Path (Join-Path (Join-Path (Split-Path -Parent $opcosR) 'system') 'operations') 'runtime') 'opcos-runtime.ps1'
+    if (Test-Path -LiteralPath $opcosCli -PathType Leaf) {
+        Say "May co OpcOS: goi cua bo chay (tin/truyen) cai vao venv giong bang:" Yellow
+        Say "  opcos-runtime ensure --repo-dir ""<repo agent-voice-studio>""   (truoc, neu venv giong chua co)" Yellow
+        Say ("  opcos-runtime ensure --repo-dir ""{0}""" -f $RepoRoot) Yellow
+        Say ("  (CLI: {0})" -f $opcosCli)
+        Say ""
+    }
+}
+
 # ── 2. Dựng trạm — mọi quyết định nằm ở init_station.py ──────────────────────
 # Vỏ này CỐ TÌNH không tự hỏi chỗ đặt trạm nữa: `install.sh` (macOS/Linux) phải hỏi y hệt,
 # và hai vỏ hỏi riêng thì sớm muộn chúng trôi khỏi nhau. Lõi Python là chỗ duy nhất biết

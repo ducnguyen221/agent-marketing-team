@@ -1,0 +1,16 @@
+{
+  "schema": "opcos-runtime-needs/1",
+  "repoKey": "agent-marketing-team",
+  "needs": [
+    {
+      "scope": "use",
+      "category": "venvs",
+      "repo": "agent-voice-studio",
+      "key": "omnivoice",
+      "install": {
+        "package": "repo:agent-video-studio",
+        "requirements": ["requirements-runners.txt"]
+      }
+    }
+  ]
+}

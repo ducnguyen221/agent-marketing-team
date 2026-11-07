@@ -149,6 +149,8 @@ của bộ chạy vào **venv giọng** — python mà `OMNIVOICE_PY` trỏ tớ
 <python của venv giọng> -m pip install -r requirements-runners.txt
 ```
 
+Máy có OpcOS: venv giọng ở `$OPCOS_RUNTIME/venvs/agent-voice-studio/omnivoice`; gói runner được cài vào đó bằng `opcos-runtime ensure --repo-dir <repo marketing>` (tệp `opcos-runtime.json` khai `use`). Không có OpcOS: như trước.
+
 Bộ chạy tin còn cần script nghiên cứu `last30days` (plugin Claude) — lớp cài máy cài plugin, repo
 này chỉ tìm (`~/.claude/plugins/…`, hoặc biến `L30_SCRIPT`) và `doctor` báo thiếu. Người chỉ viết
 bài và đăng thì bỏ qua đoạn này.

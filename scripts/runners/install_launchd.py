@@ -187,17 +187,24 @@ def _omnivoice_py(tram_giong: Path) -> str:
 
     Phân giải thật đi qua `voice.python_exe()` — chỗ DUY NHẤT trong repo biết thứ tự
     `OMNIVOICE_PY` → `station.json: venv` (đường tương đối tính từ gốc trạm) → dò
-    `omnivoice/.venv`. Viết lại thứ tự đó ở đây là tự tạo một bản thứ hai sẽ lệch.
+    `omnivoice/.venv`, và (máy có OpcOS) `R/venvs/agent-voice-studio/omnivoice`. Viết lại thứ tự đó ở
+    đây là tự tạo một bản thứ hai sẽ lệch.
 
     Lý do không nổ khi thiếu: người ta cài lịch trước khi cài xong trạm giọng là chuyện
     thường. `doctor` mới là chỗ nói "thiếu gì"; ở đây chỉ cần plist có một giá trị đọc
     được, kèm một dòng nhắc để không ai tưởng nó đã sẵn sàng.
+
+    Đường chờ: máy có OpcOS (có R) thì chờ ở đúng chỗ `opcos-runtime ensure` sẽ dựng venv giọng —
+    `R/venvs/agent-voice-studio/omnivoice` — để plist không phải sửa lại sau khi cài; máy không có R
+    thì như cũ, `<trạm>/omnivoice/.venv`.
     """
     try:
         return VOICE.python_exe(tram_giong)
     except SC.StudioError:
         con = "Scripts" if os.name == "nt" else "bin"
-        return str(tram_giong / "omnivoice" / ".venv" / con / "python")
+        rt = SP.runtime_resource("venvs", SP.REPO_GIONG, VOICE.RUNTIME_VENV)
+        venv = rt if rt is not None else tram_giong / "omnivoice" / ".venv"
+        return str(venv / con / "python")
 
 
 def cho_trong(station=None) -> tuple[dict, list[str]]:

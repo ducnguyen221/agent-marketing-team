@@ -246,6 +246,67 @@ def tram_opcos(ten: str = "marketing") -> Path | None:
     return Path(d[1]) if d and (Path(d[1]) / SO_KENH).is_file() else None
 
 
+# ── runtime/ của OpcOS (hợp đồng `runtime-resource-v1`) ────────────────────────────────
+#
+# Máy có OpcOS cất venv/engine ở `R` (runtime). Repo này không SỞ HỮU gì ở đó — chỉ `use` venv giọng của
+# `agent-voice-studio` (khai ở `opcos-runtime.json`). Hai hàm dưới là bản cục bộ của bộ phân giải chung (voice
+# giữ bản gốc); chỉ đọc `os.environ` + `<home>/OpcOS/paths.json`, KHÔNG đọc `.env` của repo: `OPCOS_*` do máy
+# cấp, không phải cấu hình của repo này. Không tạo, không ghi.
+
+RUNTIME_CATEGORIES = ("mcp", "engines", "tools", "venvs", "scripts", "bin", "maintenance", "state",
+                      "logs", "cache", "backups", "_archive")
+# slugPattern + windowsReservedPattern + slugMaxLength của runtime-layout-v2.json
+_SLUG = re.compile(r"^[a-z0-9][a-z0-9-]*$")
+_WIN_RESERVED = re.compile(r"^(con|prn|aux|nul|com[1-9]|lpt[1-9])(?:\..*)?$", re.IGNORECASE)
+_SLUG_MAX = 64
+
+
+def _khoa_sai(cai, gia_tri, ly_do) -> ValueError:
+    return ValueError(f"RT_BAD_KEY {cai} {gia_tri!r}: {ly_do}")
+
+
+def _kiem_slug(cai, gia_tri):
+    if (not isinstance(gia_tri, str) or not _SLUG.match(gia_tri) or len(gia_tri) > _SLUG_MAX
+            or _WIN_RESERVED.match(gia_tri)):
+        raise _khoa_sai(cai, gia_tri, f"phải khớp {_SLUG.pattern}, dài ≤ {_SLUG_MAX}, "
+                                      "không phải tên dành riêng của Windows")
+
+
+def runtime_root(env=None, home=None, isfile=None) -> Path | None:
+    """Gốc runtime R, hoặc None khi máy không có OpcOS (`RT_NO_OPCOS` — KHÔNG phải lỗi, dùng đường cũ).
+
+        $OPCOS_RUNTIME → $OPCOS_ROOT/runtime → (`<home>/OpcOS/paths.json` có ⇒ `<home>/OpcOS/runtime`) → None
+
+    `env`/`home`/`isfile` chỉ để test thuần. Biến rỗng hoặc toàn khoảng trắng coi như chưa đặt."""
+    moi = os.environ if env is None else env
+
+    def lay(ten):
+        return (moi.get(ten) or "").strip()
+
+    if lay("OPCOS_RUNTIME"):
+        return Path(lay("OPCOS_RUNTIME"))
+    if lay("OPCOS_ROOT"):
+        return Path(lay("OPCOS_ROOT")) / "runtime"
+    co = (isfile or os.path.isfile)
+    nha = Path(home) if home is not None else Path.home()
+    return nha / "OpcOS" / "runtime" if co(nha / "OpcOS" / "paths.json") else None
+
+
+def runtime_resource(category, repo_key, resource_key, env=None, home=None, isfile=None) -> Path | None:
+    """`R/<category>/<repo_key>/<resource_key>`; None khi máy không có R. Không kiểm tồn tại — chỗ gọi tự kiểm.
+
+    Khoá sai ⇒ `ValueError("RT_BAD_KEY …")`, kiểm TRƯỚC khi tìm R để máy không OpcOS cũng không nuốt khoá sai.
+    `shared` dành riêng cho tài nguyên dùng chung nên không làm `repo_key` của tài nguyên riêng."""
+    if category not in RUNTIME_CATEGORIES:
+        raise _khoa_sai("category", category, "không thuộc 12 category của runtime-layout-v2")
+    _kiem_slug("repoKey", repo_key)
+    if repo_key == "shared":
+        raise _khoa_sai("repoKey", repo_key, "`shared` dành riêng cho tài nguyên dùng chung")
+    _kiem_slug("resourceKey", resource_key)
+    goc = runtime_root(env=env, home=home, isfile=isfile)
+    return None if goc is None else goc / category / repo_key / resource_key
+
+
 # ── bí mật: biến môi trường → <repo>/.env (chỉ embedded) → kho secret của máy ──────────
 
 # Chốt của BỘ TEST (P1-18): `.env` của bản clone ghi trong biến này KHÔNG được đọc. Máy chạy

@@ -383,14 +383,58 @@ function Get-VenvPythonFiles {
   return $ra
 }
 
+function Get-OpcosRuntimeRoot {
+  <#
+    Gốc runtime R của OpcOS (hợp đồng `runtime-resource-v1`), hoặc $null khi máy không có OpcOS
+    (`RT_NO_OPCOS` — KHÔNG phải lỗi, người gọi dùng đường cũ). Cùng `studio_paths.runtime_root`:
+
+        $OPCOS_RUNTIME -> $OPCOS_ROOT/runtime -> (`~/OpcOS/paths.json` có => `~/OpcOS/runtime`) -> $null
+
+    CỐ Ý chỉ đọc biến của TIẾN TRÌNH, không qua `Get-EnvVar` (registry User, `<repo>/.env`): `OPCOS_*` do máy
+    cấp chứ không phải cấu hình của repo; máy có OpcOS luôn có `paths.json` nên nấc cuối bù cho tiến trình
+    khởi động trước lần `setx`. Biến rỗng/khoảng trắng coi như chưa đặt. Không tạo gì.
+  #>
+  $rt = ([Environment]::GetEnvironmentVariable('OPCOS_RUNTIME') + '').Trim()
+  if ($rt) { return $rt }
+  $goc = ([Environment]::GetEnvironmentVariable('OPCOS_ROOT') + '').Trim()
+  if ($goc) { return (Join-Path $goc 'runtime') }
+  if ($HOME) {
+    $nha = Join-Path $HOME 'OpcOS'
+    if (Test-Path -LiteralPath (Join-Path $nha 'paths.json') -PathType Leaf) { return (Join-Path $nha 'runtime') }
+  }
+  return $null
+}
+
+function Get-RuntimeResource {
+  <#
+    `R/<category>/<repoKey>/<resourceKey>` hoặc $null khi máy không có R (cùng `studio_paths.runtime_resource`).
+    Khoá sai NÉM `RT_BAD_KEY ...` — kiểm TRƯỚC khi tìm R. Không kiểm tồn tại: chỗ gọi tự `Test-Path`.
+  #>
+  param([string]$Category, [string]$RepoKey, [string]$ResourceKey)
+  $loai = @('mcp', 'engines', 'tools', 'venvs', 'scripts', 'bin', 'maintenance', 'state', 'logs', 'cache', 'backups', '_archive')
+  if ($loai -cnotcontains $Category) { throw ("RT_BAD_KEY category '$Category': khong thuoc 12 category cua runtime-layout-v2") }
+  foreach ($k in @(@('repoKey', $RepoKey), @('resourceKey', $ResourceKey))) {
+    $v = [string]$k[1]
+    if ($v -cnotmatch '^[a-z0-9][a-z0-9-]*$' -or $v.Length -gt 64 -or $v -match '^(?i:con|prn|aux|nul|com[1-9]|lpt[1-9])(\..*)?$') {
+      throw ("RT_BAD_KEY " + $k[0] + " '$v': phai khop ^[a-z0-9][a-z0-9-]*$, dai <= 64, khong phai ten danh rieng cua Windows")
+    }
+  }
+  if ($RepoKey -ceq 'shared') { throw "RT_BAD_KEY repoKey 'shared': danh rieng cho tai nguyen dung chung" }
+  $goc = Get-OpcosRuntimeRoot
+  if (-not $goc) { return $null }
+  return (Join-Path (Join-Path (Join-Path $goc $Category) $RepoKey) $ResourceKey)
+}
+
 function Find-OmniVoicePython {
   <#
     Python CỦA TRẠM GIỌNG — không phải python hệ thống. Nó là cái duy nhất có
     `voice_studio`/`video_studio`/torch và các gói của `requirements-runners.txt`.
 
-    Thứ tự (cùng `scripts/lib/voice.py: python_exe`): OMNIVOICE_PY -> `station.json: venv`
-    của trạm giọng -> `<trạm giọng>/omnivoice/.venv` -> `.venv` của repo anh em
+    Thứ tự (cùng `scripts/lib/voice.py: python_exe_source`): OMNIVOICE_PY -> `station.json: venv`
+    của trạm giọng (tuyệt đối dùng nguyên) -> `R/venvs/agent-voice-studio/omnivoice` (máy có OpcOS,
+    `Get-RuntimeResource`) -> `<trạm giọng>/omnivoice/.venv` -> `.venv` của repo anh em
     `agent-video-studio`, rồi `agent-voice-studio` (bố cục "giọng cài chung venv video").
+    Máy không có OpcOS: nấc runtime vắng, thứ tự cũ nguyên vẹn.
 
     FAIL-CLOSED: không tìm ra thì NÉM, kèm tên biến cần đặt. Đường lùi về `python` trần ở
     đây là kiểu hỏng đắt nhất — pipeline chạy tiếp 10 phút rồi chết ở `import torch`.
@@ -407,6 +451,10 @@ function Find-OmniVoicePython {
       if (-not [System.IO.Path]::IsPathRooted($v)) { $v = Join-Path $VoiceStation $v }
       $thu += @(Get-VenvPythonFiles $v)
     }
+  }
+  $rt = Get-RuntimeResource 'venvs' 'agent-voice-studio' 'omnivoice'
+  if ($rt) { $thu += @(Get-VenvPythonFiles $rt) }
+  if ($VoiceStation) {
     $thu += @(Get-VenvPythonFiles (Join-Path (Join-Path $VoiceStation 'omnivoice') '.venv'))
   }
   foreach ($ten in @('agent-video-studio', 'agent-voice-studio')) {

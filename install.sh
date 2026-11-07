@@ -73,6 +73,28 @@ else
   noi "Phu thuoc: du"
 fi
 
+# ── 2b. Máy có OpcOS: gợi ý cài gói runner vào venv giọng (CHỈ IN, không gọi) ──
+# Venv giọng của máy OpcOS ở <R>/venvs/agent-voice-studio/omnivoice; gói của bộ chạy
+# (requirements-runners.txt) vào đó bằng `opcos-runtime ensure` (opcos-runtime.json khai `use`).
+# Bộ cài KHÔNG tự gọi: nó không được tự cài vào runtime của máy. R theo hợp đồng
+# runtime-resource-v1: OPCOS_RUNTIME → OPCOS_ROOT/runtime → ~/OpcOS/paths.json có thì ~/OpcOS/runtime.
+# Máy không có R hoặc không có CLI: không in gì, hành vi cũ.
+OPCOS_R=""
+if [ -n "${OPCOS_RUNTIME:-}" ]; then OPCOS_R="$OPCOS_RUNTIME"
+elif [ -n "${OPCOS_ROOT:-}" ]; then OPCOS_R="$OPCOS_ROOT/runtime"
+elif [ -f "$HOME/OpcOS/paths.json" ]; then OPCOS_R="$HOME/OpcOS/runtime"
+fi
+if [ -n "$OPCOS_R" ]; then
+  OPCOS_CLI="$(dirname "$OPCOS_R")/system/operations/runtime/opcos-runtime.sh"
+  if [ -f "$OPCOS_CLI" ]; then
+    noi "May co OpcOS: goi cua bo chay (tin/truyen) cai vao venv giong bang:"
+    noi "  opcos-runtime ensure --repo-dir \"<repo agent-voice-studio>\"   (truoc, neu venv giong chua co)"
+    noi "  opcos-runtime ensure --repo-dir \"$REPO\""
+    noi "  (CLI: $OPCOS_CLI)"
+    noi ""
+  fi
+fi
+
 # ── 3. Dựng trạm ─────────────────────────────────────────────────────────────
 noi ""
 exec "$PY" "$REPO/scripts/pipeline/init_station.py" "$@"
