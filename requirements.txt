@@ -3,6 +3,7 @@
 pyyaml>=6.0        # đọc/ghi frontmatter của campaign.md, channel.yml, research.md
 openpyxl>=3.1      # export_excel.py — XUẤT .xlsx từ Markdown (một chiều; Excel không còn là nguồn)
 requests>=2.31     # register_publish.py verify HTTP · fb_publish.py gọi Graph API
+markdown-it-py==4.0.0  # đọc neo Markdown cho gói bàn giao; không nhận heading trong code block
 Pillow>=10.0       # gen_infographic.py fallback, sửa chữ trên ảnh
 pytest>=8.0        # bộ test
 # dữ liệu múi giờ IANA cho `zoneinfo` — `agent_call.parse_resets` đọc

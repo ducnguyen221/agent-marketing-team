@@ -25,6 +25,7 @@ import argparse
 import json
 import re
 import sys
+import uuid
 from datetime import date, datetime, timezone
 from pathlib import Path
 
@@ -35,6 +36,8 @@ import studio_paths as SP  # noqa: E402
 from approver import ten_nguoi_duyet  # noqa: E402
 
 SCHEMA = "publish/2"
+MIGRATED_REVIEW_NOTE = ("di trú từ publish/1 — bài đã đăng, duyệt qua chat trước khi "
+                        "đăng, không có mốc giờ chính xác")
 _URL = re.compile(r"https?://\S+", re.I)
 PLACEHOLDER = {"youtube": "{{YOUTUBE_URL}}", "web_blog": "{{BLOG_URL}}",
                "facebook": "{{FB_URL}}"}
@@ -167,6 +170,47 @@ def cmd_approve(post: Path, by: str, note: str, chi_post: str, feedback: str,
     return 0
 
 
+def bind_delivery_payload(post: Path, *, station_root: Path, scope: dict, payload: dict,
+                          by: str, quote: str) -> dict:
+    """Record an explicit human preview decision for this exact payload.
+
+    The caller must obtain a real person's words; this function cannot authenticate
+    who typed them in a shared OS account. It never sets an approval gate.
+    """
+    import approval_gate as AG
+
+    AG._require_witness(by, quote)
+    AG.check_delivery_local_path(Path(station_root))
+    AG.check_delivery_local_path(Path(post))
+    root = Path(station_root).resolve(strict=True)
+    post = Path(post).resolve(strict=True)
+    if not post.is_relative_to(root) or post == root:
+        raise ValueError("post is outside the selected station")
+    with AG.delivery_source_lock(root):
+        AG.read_delivery_gate_proof(post.parent, scope)
+        _, _, _, rows = AG.read_content_table(post.parent)
+        matches = [r for r in rows if r.get("content_id") == scope.get("content_id")]
+        if (len(matches) != 1 or not matches[0].get("folder")
+                or (post.parent / matches[0]["folder"]).resolve() != post):
+            raise ValueError("post is not the campaign source folder")
+        digest = AG.delivery_payload_digest(scope, payload)
+        path = PP.p(post, "publish")
+        AG.check_delivery_local_path(path, file=True)
+        data = _doc_json(path)
+        posts = [p for p in data.get("posts", []) if p.get("post_id") == scope.get("post_id")]
+        if len(posts) != 1 or posts[0].get("channel") != payload.get("platform"):
+            raise ValueError("payload platform does not match post")
+        review = posts[0]["review"]
+        old = review.get("delivery_binding")
+        if old:
+            review.setdefault("delivery_binding_history", []).append(old)
+        binding = {"schema": "delivery-binding/1", "scope": dict(scope), "payload_digest": digest,
+                   "event_id": str(uuid.uuid4()), "by": by, "quote": quote, "at": _now()}
+        review["delivery_binding"] = binding
+        md_io.write_atomic(path, json.dumps(data, ensure_ascii=False, indent=2) + "\n")
+        return binding
+
+
 def cmd_qa(post: Path) -> int:
     g = _doc_json(PP.p(post, "gates"))
     if not g:
@@ -221,8 +265,168 @@ def _thay_placeholder(post: Path, channel: str, link: str) -> list[str]:
     return doi
 
 
+def project_delivery_fixture(ledger, intent_id: str, publish_doc: dict) -> dict:
+    """Build an in-memory target projection from a synthetic ledger receipt.
+
+    This helper does not write files, complete a campaign, authenticate a person,
+    or establish that the provider receipt is real. Production projection remains
+    unavailable until station/source authority and provider evidence are verified.
+    """
+    import copy
+    from delivery_ledger import DeliveryLedger, KEY_FIELDS
+    from delivery_contract import canonical_snapshot
+    from publish_dispatch import _exact_fixture_type
+
+    # This distinguishes supported import names for the same module file;
+    # it is not an authorization boundary against code in the same process.
+    if (not _exact_fixture_type(ledger, DeliveryLedger, "scripts.lib.delivery_ledger")
+            or ledger._memory_uri is None or ledger._keeper is None):
+        raise ValueError("fixture projection requires a synthetic memory ledger")
+    if not isinstance(publish_doc, dict):
+        raise ValueError("invalid publish document")
+    record = ledger.get(intent_id)
+    fixture = ledger.fixture_snapshot(intent_id)
+    snapshot = fixture["snapshot"]
+    if (record.get("state") != "published" or record.get("occurrence_key") != "initial"
+            or record.get("evidence_kind") not in {"provider_confirmed", "platform_readback"}
+            or fixture["payload_digest"] != record.get("payload_digest")
+            or not isinstance(snapshot, dict)
+            or canonical_snapshot(snapshot)[1] != record.get("payload_digest")
+            or any(snapshot.get(name) != record.get(name) for name in KEY_FIELDS)):
+        raise ValueError("fixture receipt is not a matching published primary")
+    for record_name, doc_name in (("channel_id", "channel_id"), ("campaign_id", "campaign_id"),
+                                  ("content_id", "post_id")):
+        if publish_doc.get(doc_name) != record.get(record_name):
+            raise ValueError("fixture source does not match intent")
+    posts = publish_doc.get("posts")
+    if not isinstance(posts, list):
+        raise ValueError("invalid publish posts")
+    matches = [item for item in posts if isinstance(item, dict) and item.get("post_id") == record.get("post_id")]
+    if len(matches) != 1 or matches[0].get("channel") != record.get("platform"):
+        raise ValueError("fixture target does not match post")
+    platform_id, link = record.get("platform_post_id"), record.get("platform_url")
+    if not platform_id or not link or not record.get("published_at"):
+        raise ValueError("fixture platform evidence incomplete")
+    if record.get("platform") == "facebook" and matches[0].get("post_format") == "facebook_post" and not record.get("comment_id"):
+        raise ValueError("fixture Facebook comment evidence incomplete")
+    previous = matches[0].get("publish") or {}
+    if not isinstance(previous, dict):
+        raise ValueError("invalid existing projection")
+    if previous.get("status") == "published" and (
+            previous.get("platform_id") != platform_id or previous.get("link") != link
+            or previous.get("at") != record["published_at"]
+            or (previous.get("comment_id") or "") != (record.get("comment_id") or "")):
+        raise ValueError("existing primary has different platform evidence")
+    projected = copy.deepcopy(publish_doc)
+    target = next(item for item in projected["posts"] if item.get("post_id") == record["post_id"])
+    target["publish"] = {"plan": previous.get("plan", ""), "status": "published", "link": link,
+                         "platform_id": platform_id, "comment_id": record.get("comment_id") or "",
+                         "at": record["published_at"], "http": None}
+    target["post_status"] = "published"
+    return projected
+
+
+def project_delivery_batch_fixture(ledger, intent_ids: list[str], publish_doc: dict) -> dict:
+    """Project synthetic receipts and calculate completion without writing files.
+
+    Required targets are supplied by fixture snapshots, not a real authorization.
+    The returned completion must never be used as production approval/evidence.
+    """
+    import copy
+    from delivery_ledger import DeliveryLedger, KEY_FIELDS
+    from delivery_contract import canonical_snapshot
+    from publish_dispatch import _exact_fixture_type
+
+    if (not _exact_fixture_type(ledger, DeliveryLedger, "scripts.lib.delivery_ledger")
+            or ledger._memory_uri is None or ledger._keeper is None):
+        raise ValueError("fixture projection requires a synthetic memory ledger")
+    if (not isinstance(intent_ids, list) or not intent_ids
+            or any(not isinstance(i, str) or not i for i in intent_ids)
+            or len(set(intent_ids)) != len(intent_ids) or not isinstance(publish_doc, dict)):
+        raise ValueError("invalid fixture batch")
+    declared = None
+    source = None
+    seen = {}
+    for intent_id in intent_ids:
+        record = ledger.get(intent_id)
+        fixture = ledger.fixture_snapshot(intent_id)
+        snapshot = fixture.get("snapshot")
+        if (not isinstance(snapshot, dict) or fixture.get("payload_digest") != record.get("payload_digest")
+                or canonical_snapshot(snapshot)[1] != record.get("payload_digest")
+                or any(snapshot.get(name) != record.get(name) for name in KEY_FIELDS)
+                or record.get("occurrence_key") != "initial"):
+            raise ValueError("fixture snapshot does not match primary intent")
+        current_source = tuple(record.get(k) for k in ("station_id", "channel_id", "campaign_id", "content_id"))
+        if source is None:
+            source = current_source
+        elif source != current_source:
+            raise ValueError("fixture batch spans different sources")
+        targets = snapshot.get("required_targets")
+        if not isinstance(targets, list) or not targets:
+            raise ValueError("fixture required targets missing")
+        normalized = []
+        for target in targets:
+            if (not isinstance(target, dict) or set(target) != {"post_id", "platform", "account_id"}
+                    or any(not isinstance(target[k], str) or not target[k].strip()
+                           or target[k] != target[k].strip() for k in ("post_id", "platform", "account_id"))):
+                raise ValueError("invalid fixture target")
+            normalized.append(tuple(target[k] for k in ("post_id", "platform", "account_id")))
+        if len(set(normalized)) != len(normalized) or len({v[0] for v in normalized}) != len(normalized):
+            raise ValueError("ambiguous fixture targets")
+        normalized = frozenset(normalized)
+        if declared is None:
+            declared = normalized
+        elif declared != normalized:
+            raise ValueError("fixture required target sets differ")
+        identity = tuple(record[k] for k in ("post_id", "platform", "account_id"))
+        if identity not in declared or identity in seen:
+            raise ValueError("unexpected or duplicate fixture target")
+        seen[identity] = (intent_id, record)
+    if (publish_doc.get("channel_id"), publish_doc.get("campaign_id"), publish_doc.get("post_id")) != source[1:]:
+        raise ValueError("fixture batch source does not match document")
+    posts = publish_doc.get("posts")
+    if not isinstance(posts, list):
+        raise ValueError("invalid publish posts")
+    projected = copy.deepcopy(publish_doc)
+    applied = set()
+    sync_pending = set()
+    for identity, (intent_id, record) in seen.items():
+        matches = [item for item in posts if isinstance(item, dict) and item.get("post_id") == identity[0]]
+        if len(matches) != 1 or matches[0].get("channel") != identity[1]:
+            raise ValueError("fixture target does not match post")
+        if record.get("state") == "published":
+            incomplete = (not record.get("platform_post_id") or not record.get("platform_url")
+                          or not record.get("published_at") or
+                          (identity[1] == "facebook" and matches[0].get("post_format") == "facebook_post"
+                           and not record.get("comment_id")))
+            if incomplete:
+                sync_pending.add(identity)
+                continue
+            projected = project_delivery_fixture(ledger, intent_id, projected)
+            applied.add(identity)
+    pending = declared - applied
+    completed_at = None
+    if not pending:
+        times = [record["published_at"] for _, record in seen.values()]
+        completed_at = max(times, key=lambda v: datetime.fromisoformat(v.replace("Z", "+00:00")))
+    return {"document": projected, "complete": not pending, "completed_at": completed_at,
+            "pending_targets": [{"post_id": post, "platform": platform, "account_id": account}
+                                for post, platform, account in sorted(pending)],
+            "sync_pending_targets": [{"post_id": post, "platform": platform, "account_id": account}
+                                     for post, platform, account in sorted(sync_pending)]}
+
+
 def cmd_set(post: Path, chi_post: str, link: str, platform_id: str, comment_id: str,
-            at: str, no_verify: bool) -> int:
+            at: str, no_verify: bool, *, projection_complete: bool | None = None) -> int:
+    # The opt-in route may mirror a successful target while other deliveries remain
+    # scheduled or unknown. Completion requires a ledger proof and is deliberately
+    # not exposed here; legacy callers retain their existing behaviour.
+    if projection_complete is not None and projection_complete is not False:
+        raise ValueError("delivery completion requires a verified ledger proof")
+    if projection_complete is False and no_verify:
+        raise ValueError("opt-in delivery projection cannot skip verify")
+    if projection_complete is False:
+        raise ValueError("opt-in delivery projection requires a ledger receipt")
     pj = _doc_json(PP.p(post, "publish"))
     if not pj:
         sys.stderr.write("chưa có publish.json — chạy `init` trước.\n")
@@ -258,11 +462,12 @@ def cmd_set(post: Path, chi_post: str, link: str, platform_id: str, comment_id: 
     p["post_status"] = "published"
     p["updated_at"] = _now()
 
-    moc = [q["publish"]["at"] for q in pj["posts"] if q["publish"].get("at")]
-    pj["published_at"] = min(moc) if moc else ""
+    if projection_complete is not False:
+        moc = [q["publish"]["at"] for q in pj["posts"] if q["publish"].get("at")]
+        pj["published_at"] = min(moc) if moc else ""
     _mirror_v1(pj)
     _ghi_json(PP.p(post, "publish"), pj)
-    _cap_nhat_nguoc(post, pj)
+    _cap_nhat_nguoc(post, pj, partial_delivery=projection_complete is False)
 
     print(f"  {p['post_id']} → published ({why})")
     if doi:
@@ -311,8 +516,7 @@ def cmd_migrate(post: Path) -> int:
         p["agent_status"] = "completed"
         p["review"] = {"status": "approved", "feedback": "", "approved_by": ten_nguoi_duyet(),
                        "approved_at": (pj.get("published_at", "") or "")[:10],
-                       "note": "di trú từ publish/1 — bài đã đăng, duyệt qua chat trước khi "
-                               "đăng, không có mốc giờ chính xác"}
+                       "note": MIGRATED_REVIEW_NOTE}
         p["post_status"] = "published"
         p["publish"] = {"plan": "", "status": "published", "link": link,
                         "platform_id": pid_nen, "comment_id": cid,
@@ -377,7 +581,7 @@ def _mirror_g2(post: Path, day: str) -> None:
     md_io.write_fm(campaign_dir / "campaign.md", fm, body)
 
 
-def _cap_nhat_nguoc(post: Path, pj: dict) -> None:
+def _cap_nhat_nguoc(post: Path, pj: dict, *, partial_delivery: bool = False) -> None:
     """campaign.md · CAMPAIGNS.md · continuity.json — ba nơi phải khớp sau khi đăng."""
     campaign_dir = SP.campaign_of(post)
     kenh_dir = SP.channel_of(post)
@@ -391,7 +595,9 @@ def _cap_nhat_nguoc(post: Path, pj: dict) -> None:
         # Duyệt theo THỨ TỰ MẪU, không theo thứ tự trong publish.json: cột sinh ra theo thứ
         # tự đăng thì mỗi kênh một kiểu bảng, đọc chéo giữa các chiến dịch là rối.
         COT_LINK = [("web_blog", "web"), ("youtube", "youtube"), ("facebook", "facebook")]
-        row = {"content_id": pj.get("post_id", ""), "status": "published", "published": day}
+        row = {"content_id": pj.get("post_id", "")}
+        if not partial_delivery:
+            row.update({"status": "published", "published": day})
         link = {p["channel"]: p["publish"].get("link") for p in da_dang}
         for kenh_p, c in COT_LINK:
             if link.get(kenh_p):

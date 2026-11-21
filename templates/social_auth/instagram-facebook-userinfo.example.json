@@ -1,0 +1,11 @@
+{
+  "schema": "instagram-facebook-userinfo/1",
+  "provider": "instagram",
+  "login_product": "facebook_login",
+  "token_kind": "facebook_user_access_token",
+  "app_id": null,
+  "expected_page_id": null,
+  "expected_instagram_id": null,
+  "api_version": null,
+  "access_token": null
+}

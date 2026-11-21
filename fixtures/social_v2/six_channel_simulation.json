@@ -1,0 +1,56 @@
+{
+  "source": "---\nschema: content/1\ncontent_id: fixture-content\ncampaign_id: fixture-campaign\n---\n## post:facebook_post\nFacebook fixture text\n## post:instagram_reel\nInstagram fixture reel\n## post:linkedin_post\nLinkedIn fixture text\n## post:threads_post\nThreads fixture text\n## post:tiktok_post\nTikTok fixture video\n## post:youtube_desc\nYouTube fixture description\n",
+  "entries": [
+    {
+      "platform": "facebook",
+      "args": {
+        "key": {"station_id":"fixture-station","channel_id":"fixture-brand","campaign_id":"fixture-campaign","content_id":"fixture-content","post_id":"fixture-fb-post","platform":"facebook","account_id":"fixture-facebook-account-123","destination_id":"fixture-facebook-page-123","occurrence_key":"fixture-slot"},
+        "publication": {"schema":"publish/2","post_id":"fixture-content","campaign_id":"fixture-campaign","channel_id":"fixture-brand","posts":[{"post_id":"fixture-fb-post","content_id":"fixture-content","channel":"facebook","post_format":"facebook_post","post_content":"post:facebook_post","asset_ref":""}]},
+        "manifest": [], "scheduled_at": "2026-11-20T03:00:00Z", "api_version": "v27.0", "page_id": "123", "media_type": "TEXT"
+      }
+    },
+    {
+      "platform": "instagram",
+      "args": {
+        "key": {"station_id":"fixture-station","channel_id":"fixture-brand","campaign_id":"fixture-campaign","content_id":"fixture-content","post_id":"fixture-ig-post","platform":"instagram","account_id":"fixture-instagram-account-456","destination_id":"fixture-instagram-456","occurrence_key":"fixture-slot"},
+        "user_id":"456", "anchor":"post:instagram_reel", "api_version":"v21.0", "media_type":"REELS", "scheduled_at":"2026-11-20T03:00:00Z", "media_url":"https://fixture.example.test/assets/fixture-video.mp4"
+      }
+    },
+    {
+      "platform": "linkedin",
+      "args": {
+        "key": {"station_id":"fixture-station","channel_id":"fixture-brand","campaign_id":"fixture-campaign","content_id":"fixture-content","post_id":"fixture-li-post","platform":"linkedin","account_id":"fixture-linkedin-account-member","destination_id":"fixture-linkedin-person-member","occurrence_key":"fixture-slot"},
+        "author":"urn:li:person:fixture-member", "anchor":"post:linkedin_post", "api_version":"202611", "scheduled_at":"2026-11-20T03:00:00Z"
+      }
+    },
+    {
+      "platform": "threads",
+      "args": {
+        "key": {"station_id":"fixture-station","channel_id":"fixture-brand","campaign_id":"fixture-campaign","content_id":"fixture-content","post_id":"fixture-threads-post","platform":"threads","account_id":"fixture-threads-account-789","destination_id":"fixture-threads-789","occurrence_key":"fixture-slot"},
+        "target":{"platform":"threads","account_id":"fixture-threads-account-789","destination_id":"fixture-threads-789","threads_user_id":"789"}, "anchor":"post:threads_post", "api_version":"v1.0", "media_type":"TEXT", "scheduled_at":"2026-11-20T03:00:00Z"
+      }
+    },
+    {
+      "platform": "tiktok",
+      "args": {
+        "key": {"station_id":"fixture-station","channel_id":"fixture-brand","campaign_id":"fixture-campaign","content_id":"fixture-content","post_id":"fixture-tiktok-post","platform":"tiktok","account_id":"fixture-tiktok-account-1","destination_id":"fixture-tiktok-profile-1","occurrence_key":"fixture-slot"},
+        "target":{"account_id":"fixture-tiktok-account-1","destination_id":"fixture-tiktok-profile-1","creator_id":"fixture-tiktok-creator-1"}, "anchor":"post:tiktok_post", "mode":"INBOX", "scheduled_at":"2026-11-20T03:00:00Z", "video_size":4194304, "chunk_size":4194304, "media_id":"fixture-video", "media_sha256_fixture":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      }
+    },
+    {
+      "platform": "youtube",
+      "args": {
+        "key": {"station_id":"fixture-station","channel_id":"fixture-brand","campaign_id":"fixture-campaign","content_id":"fixture-content","post_id":"fixture-yt-post","platform":"youtube","account_id":"fixture-youtube-account-demo","destination_id":"fixture-youtube-channel-demo","occurrence_key":"fixture-slot"},
+        "publication":{"schema":"publish/2","post_id":"fixture-content","campaign_id":"fixture-campaign","channel_id":"fixture-brand","posts":[{"post_id":"fixture-yt-post","content_id":"fixture-content","channel":"youtube","post_format":"youtube_video","post_content":"post:youtube_desc","asset_ref":""}]},
+        "manifest":[{"content_id":"fixture-content","post_id":"fixture-yt-post","relative_path":"video.mp4","kind":"video","id":"fixture-video","path":"/fixture/video.mp4"},{"content_id":"fixture-content","post_id":"fixture-yt-post","relative_path":"thumbnail.png","kind":"image","id":"fixture-image","path":"/fixture/thumbnail.png"}],
+        "scheduled_at":"2026-11-20T03:00:00Z", "title":"Fixture video", "category_id":"22", "privacy":"private", "made_for_kids":false
+      }
+    }
+  ],
+  "events": [
+    {"action":"grant","entries":[{"index":0,"version":1},{"index":1,"version":1},{"index":2,"version":1},{"index":3,"version":1},{"index":4,"version":1},{"index":5,"version":1}]},
+    {"action":"revoke","index":0,"version":1},
+    {"action":"scan","now":"2026-11-20T03:00:00Z"},
+    {"action":"claim","index":1,"version":1,"now":"2026-11-20T03:00:00Z"}
+  ]
+}

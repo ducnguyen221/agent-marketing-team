@@ -23,7 +23,7 @@
 | Tác Vụ Đặc Thù | Điểm Bắt Đầu | Tài Liệu Cần Đọc Tiếp |
 |---|---|---|
 | **Thêm kênh mạng xã hội mới** | `knowledge/toolchains/PLATFORM_SETUP.md` | `knowledge/toolchains/SECRETS.md` (nối token) · `knowledge/data_model/DATA_MODEL.md` (enum `channels`) |
-| **Nối token/mật khẩu cho kênh mới** | `knowledge/toolchains/SECRETS.md` | mục lục bí mật của trạm (`~/.secret/README.md`) |
+| **Nối token/mật khẩu cho kênh mới** | `knowledge/toolchains/SOCIAL_AUTH_TEST.md` | Chủ tài khoản tự thiết lập; agent không đọc kho bí mật. `knowledge/toolchains/SECRETS.md` mô tả cấu hình V1. |
 | **Thêm giọng văn thương hiệu mới** | `output_styles/README.md` | `output_styles/WEBSITE_BLOG_GUIDELINE.md` (file mẫu) |
 | **Sửa đổi trường dữ liệu** | `knowledge/data_model/DATA_MODEL.md` | `templates/station/_channel/_campaign/campaign.md` · `scripts/pipeline/export_excel.py` (bộ cột bản xuất) |
 | **Dựng trạm nội dung mới** | `docs/ONBOARDING.md` (mười bước, có cách kiểm từng bước) | `install.ps1` / `install.sh` · `docs/WORKSPACE.md` · `examples/README.md` (trạm mẫu đã điền) |
@@ -79,6 +79,8 @@
 | **Hàng chờ việc** (thư mục là trạng thái, `rename` là phép giành lượt) | `logs/jobs/{cho,running,xong,hong}/` · `scripts/lib/work_queue.py` |
 | **Thợ tự gọi agent sau khi duyệt** (một việc mỗi lượt, một agent một lúc) | `scripts/pipeline/worker.py` · `scripts/runners/run-worker.ps1` |
 | Đăng bài lên web (đích khai bằng cấu hình, không khoá cứng) | `scripts/pipeline/web_publish.py` |
+| Xem trước candidate lịch Postiz cho nhiều đích, không gọi mạng hoặc đăng | `knowledge/toolchains/POSTIZ_PREVIEW.md` · `scripts/pipeline/postiz_preview.py` |
+| **Chuẩn bị gói social V2 từ bài marketing** (chữ, ảnh, video; không đăng) | `knowledge/toolchains/SOCIAL_V2_PACKAGE.md` · `scripts/social/prepare_package.py` |
 | **Kiểm định dạng bài Facebook** (bold, link, hashtag) | `scripts/pipeline/fb_format.py --check` |
 | **Chấm một bài bằng 24 cổng đếm được** | `scripts/pipeline/blog_gates.py <thư mục bài>` |
 | **Số đo thật của bài đã đăng, để đặt ngưỡng** | `fixtures/baseline/blog_baseline.md` |
@@ -92,6 +94,7 @@
 <!-- SKILL_ROUTING:START -->
 | Skill | Tình huống | Đầu ra | Ranh giới |
 |---|---|---|---|
+| social-preview | Local marketing output or synthetic social content requires an offline channel preview. | preview_or_review_package; warnings | The request requires publishing or configuring live social accounts. |
 | marketing-routing | The right capability is unclear or the request has multiple steps.; A campaign brief needs clarification or its valid next step is unclear.; A technical SEO audit is requested (JSON-LD, canonical, Core Web Vitals): route to role seo-specialist and SEO_TECHNICAL.md.; YouTube topics or series must be scored, including the Rights Gate (Rights &lt; 4 means not public): YOUTUBE_SCORING.md.; The user asks for best posting times or a weekly cadence across channels: route to role distribution-manager and MULTICHANNEL_PUBLISHING.md.; The user wants read-only channel strategy advice with no campaign yet: route to role campaign-strategist in consult mode.; A campaign needs a voice/video asset produced next, such as voiceover or narration for an approved promo or ad video with one consistent voice (route, then hand off). | need_and_scope; missing_information; primary_skill_and_reason; next_step_and_stop_condition | The user directly invoked a suitable skill for a single-skill request.; The request asks to approve a gate, publish, or update actual metrics.; Standalone voice/video work with no campaign context. |
 | campaign-pipeline | The user wants to prepare or continue a specific campaign.; The current campaign stage or valid next step must be identified. | campaign_status_and_blocker; valid_next_step; prepared_campaign_artifact_or_stage_output | Only customer research or independent draft editing is requested.; Required paths or brief details are missing for campaign creation, or production gates are unmet. |
 | content-production | A brand voice profile must be built from already published posts, even with no campaign.; A blog must be written or edited, or a quote must be cited with correct source attribution, outside a campaign.; A raw idea needs angles and an outline, or a Facebook post must be turned into a blog.; Content must be produced from campaign items that passed Gate 1.; Channel-specific assets are needed from an established brief, voice, and sources.; An independent draft must be edited, polished, or revised without changing facts or voice.; A standalone blog draft must be scored against the 24 blog gates without a campaign folder. | channel_formatted_content; claims_needing_sources; qa_ready_post_entries; edited_draft_with_change_notes; blog_gate_table_and_gates_json | The campaign has not passed Gate 1 or required campaign, brand, or research inputs are missing.; Strategy consultation, offer changes, or edits that bypass campaign gates are requested. |

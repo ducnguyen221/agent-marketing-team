@@ -1,0 +1,101 @@
+{
+  "source": "---\nschema: content/1\ncontent_id: fixture-content\ncampaign_id: fixture-campaign\n---\n## post:reel\nReel giả trên Facebook\n\n## post:youtube_short\n**Hook:** Kịch bản nội bộ\n\n**Caption:** Caption Short giả\n\n## post:facebook_post\nNội dung Facebook giả\n\n### comment_1\nLink ở bình luận\n\n### image_prompt\nChỉ dẫn ảnh nội bộ\n",
+  "publication": {
+    "schema": "publish/2",
+    "post_id": "fixture-content",
+    "campaign_id": "fixture-campaign",
+    "channel_id": "fixture-brand",
+    "posts": [
+      {
+        "post_id": "fixture-fb-reel",
+        "content_id": "fixture-content",
+        "channel": "facebook",
+        "post_format": "reel",
+        "post_content": "post:reel",
+        "asset_ref": ""
+      },
+      {
+        "post_id": "fixture-yt-short",
+        "content_id": "fixture-content",
+        "channel": "youtube",
+        "post_format": "youtube_short",
+        "post_content": "post:youtube_short",
+        "asset_ref": ""
+      },
+      {
+        "post_id": "fixture-fb-post",
+        "content_id": "fixture-content",
+        "channel": "facebook",
+        "post_format": "facebook_post",
+        "post_content": "post:facebook_post",
+        "asset_ref": "clip.mp4"
+      }
+    ]
+  },
+  "entries": [
+    {
+      "platform": "x",
+      "args": {
+        "media_kind": "video",
+        "manifest": [
+          {
+            "content_id": "fixture-content",
+            "post_id": "fixture-fb-post",
+            "relative_path": "clip.mp4",
+            "kind": "video",
+            "id": "fixture-source-asset",
+            "path": "/fixture/clip.mp4"
+          }
+        ],
+        "user_id": "123",
+        "media_id": "fixture-x-media-456",
+        "adapted_text": "Bài X đã biên tập",
+        "key": {
+          "station_id": "fixture-station",
+          "channel_id": "fixture-brand",
+          "campaign_id": "fixture-campaign",
+          "content_id": "fixture-content",
+          "post_id": "fixture-fb-post",
+          "platform": "x",
+          "account_id": "fixture-x-account-123",
+          "destination_id": "fixture-x-profile-123",
+          "occurrence_key": "fixture-slot"
+        },
+        "target": {
+          "user_id": "123"
+        },
+        "scheduled_at": "2026-11-20T03:00:00Z",
+        "observation": {
+          "user_id": "123",
+          "media_id": "fixture-x-media-456",
+          "asset_id": "fixture-source-asset",
+          "media_kind": "video",
+          "state": "succeeded",
+          "observed_at": "2026-11-20T02:00:00Z",
+          "expires_at": "2026-11-20T04:00:00Z"
+        }
+      }
+    }
+  ],
+  "events": [
+    {
+      "action": "grant",
+      "entries": [
+        {
+          "index": 0,
+          "version": 1
+        }
+      ]
+    },
+    {
+      "action": "scan",
+      "now": "2026-11-20T03:00:00Z"
+    },
+    {
+      "action": "claim",
+      "index": 0,
+      "version": 1,
+      "now": "2026-11-20T03:00:00Z"
+    }
+  ]
+}

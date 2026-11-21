@@ -121,6 +121,20 @@ lồng tiếng → giao `video.mp4`.
 
 - Ảnh người dùng đưa vào phải khớp đúng cảnh cần dùng nó. Với project `repo-today`, `video-studio render --images images.json` nhận ánh xạ cảnh → ảnh (`{"schema_version": 1, "scenes": {"1": "anh/a.png"}}`, số cảnh tính từ 1, đường ảnh tương đối neo vào thư mục chứa `images.json`); project khác vẫn đối chiếu từng ảnh với cảnh bằng tay trước khi render.
 
+**Adapter Marketing:** `scripts/lib/video.py` nhận `images=` khi dùng template có spec;
+`render_project_dir(project_dir, out_dir)` chuyển project HyperFrames tự dựng sang CLI
+video-studio có hỗ trợ `--project-dir`. Kiểm `render --help` bằng đúng Python trạm trước:
+không thấy tùy chọn này thì runtime đang dùng chưa hỗ trợ; không tự đổi sang template khác.
+Khi đã xác định checkout video-studio tin cậy và đủ phụ thuộc, có thể truyền rõ
+`engine_source=<checkout>` để Python chạy module từ checkout đó thay vì bản cài mặc định.
+Việc này thực thi mã trong checkout; kiểm trạm được chọn bằng `doctor --offline` trước và
+không coi nó là sandbox. `doctor --offline` không chứng minh render hoàn toàn offline:
+engine có thể gọi `npx`, cần kiểm cache/quyền mạng trước khi dựng.
+Caller vẫn kiểm Cổng 2, quyền media và dữ liệu đầu vào; một manifest ảnh có thể chứa URL,
+không tự cho phép tải mạng. Chọn thư mục output mới cho từng lần dựng: adapter chỉ kiểm
+file đích trước khi chạy, không khóa chống hai tiến trình ghi cùng lúc. Project-dir không
+tự lồng tiếng hay chứng minh video đã qua QA.
+
 ## 5. Short — cắt có chủ đích
 
 Nguồn: khối `## post:youtube_short`. Đây là **một insight độc lập có hook riêng**, không phải

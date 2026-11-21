@@ -156,3 +156,17 @@ thì được mà lịch chạy lại "thiếu token" gần như luôn là lỗi
 nên hãy để nó điền thay vì sửa tay plist đã nạp. Bảng biến ba trạm:
 [`STATION_LAYOUT.md`](STATION_LAYOUT.md). Đổi máy:
 [`../../docs/RUNBOOK-DOI-MAY.md`](../../docs/RUNBOOK-DOI-MAY.md).
+
+## 7. Tiền kiểm máy cho Postiz
+
+Chạy `python scripts/postiz_ctl.py doctor` từ gốc repo. Lệnh chỉ báo trạng thái
+Docker CLI, Compose và engine; không khởi động dịch vụ, kết nối tài khoản hay
+đọc backup. Trên Windows nó chỉ kiểm pipe Linux mặc định của Docker Desktop;
+`unavailable` không phân biệt daemon dừng, sai pipe, thiếu quyền hoặc timeout.
+Trên macOS/Linux engine hiện là `not_checked`. Mã 3 nghĩa là tiền kiểm chưa đủ,
+không nhất thiết Docker chưa cài. `postiz: not_checked` không phải Postiz hoạt động.
+
+Tích hợp Postiz và bộ kiểm backup vẫn chưa sẵn sàng vận hành. Việc cài vendor,
+nhập credential và đăng bài phụ thuộc kết quả phân xử bảo mật, phiên bản được
+chốt và các cổng duyệt tương ứng. Mỗi kênh cần kiểm khả năng và quyền riêng;
+không suy định dạng đăng hoặc ID nền tảng từ kết quả tiền kiểm này.

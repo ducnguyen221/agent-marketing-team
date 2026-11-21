@@ -140,6 +140,107 @@ def test_prompt_anh_dung_TRUOC_comment_van_tach_dung():
     assert ra["fb_comment"].strip() == "Link."
 
 
+def test_fenced_code_in_blockquote_does_not_block_blog_output():
+    md = "## post:blog_article\n\nNoi dung.\n\n> ~~~python\n> print('gia')\n> ~~~\n"
+    assert "> ~~~" in G.split_content_strict(md)['blog']
+
+
+def test_unclosed_fenced_code_in_blockquote_is_rejected():
+    md = "## post:blog_article\n\n> ~~~python\n> print('gia')\n"
+    with pytest.raises(ValueError, match="code"):
+        G.split_content_strict(md)
+
+
+@pytest.mark.parametrize('ending', ['> ~~~', '    ~~~'])
+def test_unclosed_root_fence_with_false_closing_is_rejected(ending):
+    md = f"## post:blog_article\n\nNoi dung.\n\n~~~\nbody\n{ending}\n"
+    with pytest.raises(ValueError, match="code"):
+        G.split_content_strict(md)
+
+
+def test_fence_in_nested_list_blockquote_is_accepted():
+    md = "## post:blog_article\n\nNoi dung.\n\n- outer\n  - inner\n    > ~~~\n    > body\n    > ~~~\n"
+    assert '    > ~~~' in G.split_content_strict(md)['blog']
+
+
+def test_fence_parser_counts_only_lf_when_source_contains_unicode_separator():
+    md = "## post:blog_article\n\nNoi dung.\n\n~~~\na\u2028b\n~~~\n"
+    assert 'a\u2028b' in G.split_content_strict(md)['blog']
+
+
+def test_unclosed_fence_without_final_newline_is_rejected():
+    with pytest.raises(ValueError, match="code"):
+        G.split_content_strict("## post:blog_article\n\nNoi dung.\n\n~~~\nbody")
+
+
+@pytest.mark.parametrize('separator', ['\u2028', '\u2029'])
+def test_legacy_blog_preserves_unicode_separator_in_prose_and_code(separator):
+    md = f"## post:blog_article\n\nA{separator}B\n\n~~~\nx{separator}y\n~~~\n"
+    result = G.split_content_strict(md)['blog']
+    assert f'A{separator}B' in result
+    assert f'x{separator}y' in result
+
+
+@pytest.mark.parametrize('line', ['Text\u2028## post:group_share', '## post:facebook_post\u2029Other',
+                                  '---\u2028title: wrong'])
+def test_legacy_ambiguous_unicode_boundary_is_rejected(line):
+    with pytest.raises(ValueError):
+        G.split_content_strict(f'## post:blog_article\n\n{line}\n')
+
+
+def test_v1_cli_unicode_prose_and_ambiguous_boundary_keep_existing_output(tmp_path):
+    content = tmp_path / 'content.md'
+    meta = tmp_path / 'meta.json'
+    out = tmp_path / 'output'
+    meta.write_text('{}', encoding='utf-8')
+    content.write_text('## post:blog_article\n\nA\u2028B\n\n## post:facebook_post\n\nFB\n', encoding='utf-8')
+    args = ['--content-md', str(content), '--meta', str(meta), '--out-dir', str(out)]
+    assert G.main(args, strict=True) == 0
+    blog = out / G._OUT_FILES['blog']
+    facebook = out / G._OUT_FILES['fb_post']
+    assert 'A\u2028B' in blog.read_text(encoding='utf-8')
+    previous = blog.read_bytes()
+    previous_facebook = facebook.read_bytes()
+    content.write_text('## post:blog_article\n\nBlog\n\n## post:facebook_post\n\nFB\n##\u2028post:group_share\n', encoding='utf-8')
+    with pytest.raises(ValueError):
+        G.main(args, strict=True)
+    assert blog.read_bytes() == previous
+    assert facebook.read_bytes() == previous_facebook
+
+
+@pytest.mark.parametrize('line', ['- Text\u2028## post:group_share', '<div>Text\u2028## post:group_share</div>',
+                                   'Text\u2028> ## post:group_share', 'Text\u2028- ## post:group_share'])
+def test_unicode_boundary_in_list_or_html_is_rejected(line):
+    with pytest.raises(ValueError):
+        G.split_content_strict(f'## post:blog_article\n\n{line}\n')
+
+
+def test_unicode_in_plain_text_does_not_create_false_yaml_boundary():
+    text = 'Text\u2028---draft text'
+    assert text in G.split_content_strict(f'## post:blog_article\n\n{text}\n')['blog']
+
+
+def test_v1_unicode_with_all_private_use_characters_is_preserved():
+    text = ''.join(map(chr, range(0xE000, 0xF900))) + '\u2028end'
+    assert text in G.split_content_strict(f'## post:blog_article\n\n{text}\n')['blog']
+
+
+def test_legacy_unicode_body_keeps_bom_and_crlf_frontmatter():
+    md = '\ufeff---\r\ntitle: gia\r\n---\r\n## post:blog_article\r\n\r\nA\u2028B\r\n'
+    assert 'A\u2028B' in G.split_content_strict(md)['blog']
+
+
+def test_unicode_separator_inside_frontmatter_is_rejected():
+    with pytest.raises(ValueError):
+        G.split_content_strict('---\ntitle: A\u2028B\n---\n## post:blog_article\nBody\n')
+
+
+@pytest.mark.parametrize('line', ['##\u2028post:group_share', '###\u2029comment_1'])
+def test_unicode_separator_cannot_create_channel_marker(line):
+    with pytest.raises(ValueError):
+        G.split_content_strict(f'## post:facebook_post\n\nBody\n{line}\nOther\n')
+
+
 def test_ghi_prompt_ra_dung_file(tmp_path):
     ghi = G.write_outputs({"fb_image_prompt": "Vẽ cái cân."}, str(tmp_path))
     assert Path(ghi["fb_image_prompt"]).as_posix().endswith("facebook/infographic.prompt.txt")

@@ -1,0 +1,8 @@
+{
+  "schema": "x-userinfo/1",
+  "provider": "x",
+  "token_kind": "oauth2_user_access_token",
+  "client_id": null,
+  "expected_user_id": null,
+  "access_token": null
+}

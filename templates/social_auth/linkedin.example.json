@@ -1,0 +1,1 @@
+{"schema":"social-auth-template/1","template_only":true,"platform":"linkedin","fields":{"client_id":null,"client_secret":null,"redirect_uri":null,"access_token":null,"refresh_token_if_available":null,"author_type":null,"author_urn":null,"requested_scopes":null,"granted_scopes_verified":null}}

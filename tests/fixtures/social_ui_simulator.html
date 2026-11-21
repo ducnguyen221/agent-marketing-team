@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="vi"><meta charset="utf-8"><title>Mô phỏng social không kết nối</title>
+<style>
+body{font:16px sans-serif;max-width:740px;margin:26px auto;padding:0 14px}
+label{display:block;margin:12px 0}input,select,textarea,button{font:inherit;padding:7px}
+textarea{display:block;width:100%;height:68px;box-sizing:border-box}#result{padding:12px;background:#eee;min-height:24px}
+.notice{color:#900;font-weight:bold}button{margin:6px 6px 6px 0}
+</style>
+<h1>MÔ PHỎNG — không kết nối mạng xã hội</h1>
+<p class="notice">Chỉ dùng dữ liệu giả. Không tải tệp, không gửi và không đăng bài.</p>
+<label>Tình huống <select id="scenario">
+ <option value="group_text">Group — bài chữ giả</option><option value="group_image">Group — ảnh giả</option>
+ <option value="group_video">Group — video giả</option><option value="video_inbox">Video — chờ creator giả</option>
+ <option value="duet">Duet giả</option><option value="stitch">Stitch giả</option>
+</select></label>
+<label>Người đăng giả <input id="actor" value="fixture-facebook-account-demo"></label>
+<label>Đích giả <input id="destination" value="fixture-target"></label>
+<label>Nội dung giả<textarea id="content"></textarea></label>
+<label>Media giả <select id="media"><option value="none">Không có</option><option value="image">Ảnh fixture-image</option><option value="video">Video fixture-video</option><option value="video-other">Video fixture-video-other</option></select></label>
+<label>Video nguồn giả (Duet/Stitch) <input id="source" placeholder="fixture-source"></label>
+<label><input type="checkbox" id="reuse"> Có quyền tái sử dụng giả để mô phỏng</label>
+<label>Kết quả giả <select id="outcome"><option value="pending">Đã nhận — đang chờ</option><option value="unknown">Mất phản hồi — chưa rõ</option></select></label>
+<button id="preview" type="button">Xem trước mô phỏng</button>
+<button id="confirm" type="button" disabled>Xác nhận mô phỏng</button>
+<div id="result" role="status">Chưa xem trước.</div>
+<p>Khóa một lần thử chỉ có hiệu lực trong tab và phiên giả này; không phải sổ bền hay bảo đảm ngoài đời.</p>
+<script>
+const ids=['scenario','actor','destination','content','media','source','reuse','outcome'];
+const fields=Object.fromEntries(ids.map(id=>[id,document.getElementById(id)]));
+const preview=document.getElementById('preview'), confirm=document.getElementById('confirm'), result=document.getElementById('result');
+const storageKey='social-ui-fixture-occurrence-v2';
+let revision=0, previewRevision=null, previewSnapshot=null, savedState=sessionStorage.getItem(storageKey);
+let locked=['locked','unknown','awaiting_moderation','awaiting_creator'].includes(savedState);
+const bridged=typeof window.fixtureBridge==='function', bridgeKey='social-ui-bridge-id', pendingKey='social-ui-bridge-pending';
+let bridgeId=bridged?sessionStorage.getItem(bridgeKey):null, pending=Promise.resolve();
+function status(message){result.textContent=message}
+function invalidate(){if(locked)return;revision++;previewRevision=null;previewSnapshot=null;confirm.disabled=true;preview.disabled=false;if(bridged&&bridgeId){const old=bridgeId,marker='invalidate:'+old;sessionStorage.setItem(pendingKey,marker);bridgeId=null;sessionStorage.removeItem(bridgeKey);pending=pending.then(()=>window.fixtureBridge({operation:'invalidate',preview_id:old})).then(()=>{if(sessionStorage.getItem(pendingKey)===marker)sessionStorage.removeItem(pendingKey)}).catch(()=>{locked=true;preview.disabled=true;status('Mất kết nối fixture. Dừng.')})}if(!locked)status('Nội dung đã đổi. Cần xem trước lại.')}
+for(const field of Object.values(fields)){field.addEventListener('input',invalidate);field.addEventListener('change',invalidate)}
+function validate(){
+ const action=fields.scenario.value, media=fields.media.value==='video-other'?'video':fields.media.value;
+ if(!/^fixture-[a-z0-9-]+$/.test(fields.destination.value)||!fields.content.value.trim())return 'Cần đích và nội dung giả.';
+ const required={group_text:'none',group_image:'image',group_video:'video',video_inbox:'video',duet:'video',stitch:'video'};
+ if(media!==required[action])return 'Media giả không khớp tình huống.';
+ if((action==='duet'||action==='stitch')&&(!/^fixture-[a-z0-9-]+$/.test(fields.source.value)||!fields.reuse.checked))return 'Cần video nguồn giả và quyền tái sử dụng giả.';
+ if(action!=='duet'&&action!=='stitch'&&(fields.source.value!==''||fields.reuse.checked))return 'Nguồn và quyền chỉ dùng cho Duet/Stitch giả.';
+ return '';
+}
+function snapshot(){return JSON.stringify(ids.map(id=>id==='reuse'?fields[id].checked:fields[id].value))}
+function fixtureView(){const action=fields.scenario.value, selected=fields.media.value, media=selected==='video-other'?'video':selected;return {stage:'preview',destination:fields.destination.value,controls_present:preview.isConnected&&confirm.isConnected,snapshot:{action,text:fields.content.value,media_kind:media,media_id:media==='none'?null:'fixture-'+selected,destination_type:action.startsWith('group_')?'group':'profile',source:fields.source.value||null,reuse_permission:fields.reuse.checked}}}
+function applyLock(){if(locked){confirm.disabled=true;preview.disabled=true;status('Lần thử giả đã khóa · trạng thái: '+savedState+' · không được gửi lại trong tab này.')}}
+preview.addEventListener('click',async()=>{
+ if(locked)return;const error=validate();if(error){confirm.disabled=true;status(error);return}
+ if(bridged){const rev=revision, view=fixtureView(),actor=fields.actor.value;preview.disabled=true;await pending;if(locked||rev!==revision)return;sessionStorage.setItem(pendingKey,String(rev));try{const answer=await window.fixtureBridge({operation:'preview',revision:rev+1,view,actor});if(rev!==revision){await window.fixtureBridge({operation:'invalidate',preview_id:answer.preview_id});if(sessionStorage.getItem(pendingKey)===String(rev))sessionStorage.removeItem(pendingKey);return}bridgeId=answer.preview_id;sessionStorage.setItem(bridgeKey,bridgeId);sessionStorage.removeItem(pendingKey)}catch{if(rev===revision){locked=true;status('Không thể xem trước fixture. Dừng.')}return}finally{if(!locked&&rev===revision)preview.disabled=false}}
+ previewRevision=revision;previewSnapshot=snapshot();confirm.disabled=false;
+ if(bridged)preview.disabled=true;
+ status('Xem trước giả: '+fields.scenario.options[fields.scenario.selectedIndex].text+' · người đăng '+fields.actor.value+' · '+fields.destination.value+' · '+fields.content.value+' · media '+fields.media.value+' · nguồn '+(fields.source.value||'không')+' · quyền '+(fields.reuse.checked?'có':'không')+' · kết quả giả '+fields.outcome.value);
+});
+confirm.addEventListener('click',async()=>{
+ if(locked||previewRevision===null||previewRevision!==revision||previewSnapshot!==snapshot()||validate()){
+  confirm.disabled=true;if(!locked)status('Thông tin thay đổi hoặc không hợp lệ. Cần xem trước lại.');return
+ }
+ if(bridged){confirm.disabled=true;preview.disabled=true;locked=true;try{const answer=await window.fixtureBridge({operation:'confirm',preview_id:bridgeId,view:fixtureView(),actor:fields.actor.value});status('Đã xác nhận fixture · trạng thái: '+answer.status.intent+' · không gửi lại.')}catch{status('Chưa rõ kết quả fixture. Tải lại để đối soát.')}return}
+ const waiting=fields.scenario.value.startsWith('group_')?'awaiting_moderation':'awaiting_creator';
+ savedState=fields.outcome.value==='unknown'?'unknown':waiting;
+ locked=true;sessionStorage.setItem(storageKey,savedState);confirm.disabled=true;preview.disabled=true;
+ status('Đã xác nhận mô phỏng · trạng thái: '+savedState+' · không gửi lại.');
+});
+applyLock();
+if(sessionStorage.getItem(pendingKey)||(!bridged&&sessionStorage.getItem(bridgeKey))){locked=true;preview.disabled=true;confirm.disabled=true;status('Phiên fixture chưa rõ hoặc không khả dụng. Dừng.')}
+else if(bridged&&bridgeId){locked=true;preview.disabled=true;confirm.disabled=true;window.fixtureBridge({operation:'state',preview_id:bridgeId}).then(answer=>status('Trạng thái ledger fixture: '+answer.status.intent+' · '+answer.status.preview+' · không gửi lại.')).catch(()=>status('Phiên fixture không khả dụng. Dừng.'))}
+</script></html>

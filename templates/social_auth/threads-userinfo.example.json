@@ -1,0 +1,9 @@
+{
+  "schema": "threads-userinfo/1",
+  "provider": "threads",
+  "token_kind": "threads_user_access_token",
+  "app_id": null,
+  "expected_user_id": null,
+  "api_version": null,
+  "access_token": null
+}

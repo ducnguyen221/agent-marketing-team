@@ -18,4 +18,4 @@ license = { file = "LICENSE" }
 requires-python = ">=3.10"
 
 [project.urls]
-Repository = "https://github.com/ducnguyen221/agent-marketing-team"
+Repository = "https://github.com/OPC-VN/agent-marketing-team"

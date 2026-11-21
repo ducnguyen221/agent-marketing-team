@@ -1,0 +1,8 @@
+{
+  "schema": "linkedin-userinfo/1",
+  "provider": "linkedin",
+  "token_kind": "oauth_access_token",
+  "client_id": null,
+  "person_urn": null,
+  "access_token": null
+}

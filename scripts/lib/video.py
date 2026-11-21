@@ -89,7 +89,7 @@ def python_exe(goc: Path | None = None) -> str:
 
 
 def render(project: str, spec_path: str, out_dir: str, *, brand: str | None = None,
-           voice_profile: str | None = None, timeout=None) -> dict:
+           voice_profile: str | None = None, images: str | None = None, timeout=None) -> dict:
     """Render một spec JSON thành video -> dict kết quả (`outputs`, `timings`, `engine`).
 
     `project` là tên template của trạm video (`news`, `news-weekly`, `topstory`,
@@ -105,6 +105,8 @@ def render(project: str, spec_path: str, out_dir: str, *, brand: str | None = No
         raise SC.ContractError("render: thiếu `out_dir`")
     if brand and not Path(brand).is_file():
         raise SC.ContractError(f"render: không thấy file brand {brand!r}")
+    if images and not Path(images).is_file():
+        raise SC.ContractError(f"render: không thấy file ánh xạ ảnh {images!r}")
 
     argv = [python_exe(), "-m", MODULE, "render", "--project", str(project),
             "--input", str(spec_path), "--out", str(out_dir)]
@@ -112,8 +114,44 @@ def render(project: str, spec_path: str, out_dir: str, *, brand: str | None = No
         argv += ["--brand", str(brand)]
     if voice_profile:
         argv += ["--voice-profile", str(voice_profile)]
+    if images:
+        argv += ["--images", str(images)]
     argv.append("--json")
     return SC.call(argv, prog=f"{PROG} render", timeout=timeout)
+
+
+def render_project_dir(project_dir: str, out_dir: str, *, engine_source: str | None = None,
+                       timeout=None) -> dict:
+    """Render một project HyperFrames có sẵn qua CLI của trạm video.
+
+    Caller chịu trách nhiệm kiểm cổng và quyền dùng media. Hỗ trợ phụ thuộc vào
+    phiên bản video-studio đang cài; lỗi CLI không được tự chuyển sang template.
+    `engine_source` chỉ dùng khi caller đã chọn rõ checkout video-studio tin cậy;
+    chạy module từ checkout đó, không cài hay thay runtime mặc định.
+    """
+    if not (project_dir or "").strip() or not Path(project_dir).is_dir():
+        raise SC.ContractError("render: không thấy thư mục project HyperFrames")
+    if not (out_dir or "").strip():
+        raise SC.ContractError("render: thiếu `out_dir`")
+    # The video-studio CLI uses the source directory name as output filename.
+    # This preflight prevents an ordinary overwrite; it is not a filesystem lock.
+    project_dir = os.path.abspath(project_dir)
+    out_dir = os.path.abspath(out_dir)
+    name = os.path.basename(project_dir.rstrip(os.sep + (os.altsep or ""))) or "project"
+    target = Path(out_dir) / f"{name}.mp4"
+    if target.exists() or target.is_symlink():
+        raise SC.ContractError("render: file đích đã tồn tại; chọn thư mục output mới")
+    engine_cwd = None
+    if engine_source is not None:
+        if not isinstance(engine_source, str) or not engine_source.strip():
+            raise SC.ContractError("render: nguồn engine không hợp lệ")
+        engine_cwd = os.path.abspath(engine_source)
+        package = Path(engine_cwd) / "video_studio"
+        if not all((package / name).is_file() for name in ("__init__.py", "__main__.py")):
+            raise SC.ContractError("render: nguồn engine thiếu package video_studio đầy đủ")
+    argv = [python_exe(), "-m", MODULE, "render", "--project-dir", str(project_dir),
+            "--out", str(out_dir), "--json"]
+    return SC.call(argv, prog=f"{PROG} render --project-dir", timeout=timeout, cwd=engine_cwd)
 
 
 def hyperframes_version(goc: Path | None = None) -> str | None:

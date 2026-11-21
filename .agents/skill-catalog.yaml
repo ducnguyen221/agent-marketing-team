@@ -1,5 +1,24 @@
 schema: 1
 skills:
+  - id: social-preview
+    path: .agents/skills/social-preview/SKILL.md
+    summary: Prepare local social V2 review packages or synthetic previews without publishing.
+    use_when:
+      - Local marketing output or synthetic social content requires an offline channel preview.
+    do_not_use_when:
+      - The request requires publishing or configuring live social accounts.
+    stages: [standalone]
+    modes: [prepare]
+    requires:
+      prepare:
+        read: [content, target]
+        write: []
+    outputs: [preview_or_review_package, warnings]
+    supports: []
+    references: [templates/social_auth/README.md, knowledge/toolchains/SOCIAL_V2_PACKAGE.md, knowledge/toolchains/SOCIAL_V2_ROUTES.md, knowledge/toolchains/FACEBOOK_DIRECT_PREVIEW.md, knowledge/toolchains/INSTAGRAM_DIRECT_PREVIEW.md, knowledge/toolchains/LINKEDIN_DIRECT_PREVIEW.md, knowledge/toolchains/THREADS_DIRECT_PREVIEW.md, knowledge/toolchains/TIKTOK_DIRECT_PREVIEW.md, knowledge/toolchains/YOUTUBE_DIRECT_PREVIEW.md]
+    maturity: candidate
+    evidence: []
+
   - id: marketing-routing
     path: .agents/skills/marketing-routing/SKILL.md
     summary: Route by scope, current state, inputs, and desired output.

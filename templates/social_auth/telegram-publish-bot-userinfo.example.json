@@ -1,0 +1,7 @@
+{
+  "schema": "telegram-publish-bot-userinfo/1",
+  "provider": "telegram",
+  "purpose": "publish",
+  "expected_bot_id": null,
+  "bot_token": null
+}

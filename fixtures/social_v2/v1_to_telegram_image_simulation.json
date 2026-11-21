@@ -1,0 +1,91 @@
+{
+  "source": "---\nschema: content/1\ncontent_id: fixture-content\ncampaign_id: fixture-campaign\n---\n## post:reel\nReel giả trên Facebook\n\n## post:youtube_short\n**Hook:** Kịch bản nội bộ\n\n**Caption:** Caption Short giả\n\n## post:infographic\n**Caption:** Nội dung infographic giả\n",
+  "publication": {
+    "schema": "publish/2",
+    "post_id": "fixture-content",
+    "campaign_id": "fixture-campaign",
+    "channel_id": "fixture-brand",
+    "posts": [
+      {
+        "post_id": "fixture-fb-reel",
+        "content_id": "fixture-content",
+        "channel": "facebook",
+        "post_format": "reel",
+        "post_content": "post:reel",
+        "asset_ref": ""
+      },
+      {
+        "post_id": "fixture-yt-short",
+        "content_id": "fixture-content",
+        "channel": "youtube",
+        "post_format": "youtube_short",
+        "post_content": "post:youtube_short",
+        "asset_ref": ""
+      },
+      {
+        "post_id": "fixture-fb-infographic",
+        "content_id": "fixture-content",
+        "channel": "facebook",
+        "post_format": "infographic",
+        "post_content": "post:infographic",
+        "asset_ref": "graphic.png"
+      }
+    ]
+  },
+  "entries": [
+    {
+      "platform": "telegram",
+      "args": {
+        "key": {
+          "station_id": "fixture-station",
+          "channel_id": "fixture-brand",
+          "campaign_id": "fixture-campaign",
+          "content_id": "fixture-content",
+          "post_id": "fixture-fb-infographic",
+          "platform": "telegram",
+          "account_id": "fixture-telegram-publish-bot-demo",
+          "destination_id": "fixture-telegram-channel-123",
+          "occurrence_key": "fixture-slot"
+        },
+        "chat_id": "-100123",
+        "target": {
+          "chat_id": "-100123",
+          "purpose": "publish"
+        },
+        "scheduled_at": "2026-11-20T03:00:00Z",
+        "manifest": [
+          {
+            "content_id": "fixture-content",
+            "post_id": "fixture-fb-infographic",
+            "relative_path": "graphic.png",
+            "kind": "image",
+            "id": "fixture-media-123",
+            "path": "/fixture/graphic.png"
+          }
+        ],
+        "adapted_caption": "Nội dung riêng cho Telegram"
+      }
+    }
+  ],
+  "events": [
+    {
+      "action": "grant",
+      "entries": [
+        {
+          "index": 0,
+          "version": 1
+        }
+      ]
+    },
+    {
+      "action": "scan",
+      "now": "2026-11-20T03:00:00Z"
+    },
+    {
+      "action": "claim",
+      "index": 0,
+      "version": 1,
+      "now": "2026-11-20T03:00:00Z"
+    }
+  ]
+}

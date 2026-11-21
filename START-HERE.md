@@ -10,9 +10,9 @@ Dán khối này vào Claude Code, Codex hoặc Antigravity (luật và từng b
 
 ```text
 Hãy cài agent-marketing-team lên máy này cho chính ứng dụng AI bạn đang chạy.
-Nguồn duy nhất: https://github.com/ducnguyen221/agent-marketing-team
+Nguồn duy nhất: https://github.com/OPC-VN/agent-marketing-team
 Đọc trước hướng dẫn cho agent tại
-https://raw.githubusercontent.com/ducnguyen221/agent-marketing-team/main/INSTALL.md
+https://raw.githubusercontent.com/OPC-VN/agent-marketing-team/main/INSTALL.md
 (không mở được thì clone repo rồi đọc INSTALL.md trong đó) và làm đúng, đủ các bước:
 kiểm tra máy, hỏi tôi trước khi cài thêm phần mềm, clone về thư mục an toàn (không OneDrive),
 hỏi tôi chọn chỗ đặt trạm nội dung, chạy bộ cài, chạy doctor, kiểm bằng trạm mẫu.

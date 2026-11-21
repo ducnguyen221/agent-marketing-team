@@ -416,6 +416,81 @@ def test_DATA_MODEL_dinh_nghia_DU_moi_cot_dang_chay():
         assert f"`{k}`" in read, f"trường bắt buộc {k} không có trong DATA_MODEL"
 
 
+def _revision_la_trang_thai_v1(text):
+    """Phân biệt tên phiên bản thông thường với giá trị trạng thái V1 đã bỏ."""
+    import re
+    status = re.compile(r'(?<![\w])(?:agent_status|post_status)(?![\w])', re.I)
+    revision = re.compile(r'(?<![\w])revision(?![\w])', re.I)
+    assignment = re.compile(r'(?<![\w])(?:agent_status|post_status)[`"\']*\s*[:=]\s*'
+                            r'(?:[`"\']?revision(?![\w])|(?:[\w-]+[ \t]*,[ \t]*)+revision(?![\w])|'
+                            r'\[[^\]]*?(?<![\w])revision(?![\w])[^\]]*\])', re.I)
+    if assignment.search(text):
+        return True
+    lines = text.splitlines()
+    yaml_header = re.compile(r'^([ \t]*)(?:agent_status|post_status)[`"\']*\s*:\s*(?:#.*)?$', re.I)
+    for index, line in enumerate(lines):
+        match = yaml_header.match(line)
+        if not match:
+            continue
+        indent = len(match.group(1))
+        for child in lines[index + 1:]:
+            if not child.strip() or child.lstrip().startswith('#'):
+                continue
+            child_indent = len(child) - len(child.lstrip(' \t'))
+            if child_indent < indent or (child_indent == indent and not re.match(r'^\s*-\s+', child)):
+                break
+            if re.match(r'^\s*-\s*[`"\']?revision(?![\w])', child, re.I):
+                return True
+    header = None
+    for line in lines:
+        stripped = line.strip()
+        if '|' not in stripped:
+            header = None
+            continue
+        cells = [cell.strip() for cell in stripped.strip('|').split('|')]
+        if header is None:
+            header = cells
+            continue
+        if any(status.fullmatch(cell.strip('` ')) for cell in cells):
+            value_columns = [index for index, name in enumerate(header)
+                             if re.search(r'\b(?:value|values|enum)\b|giá trị', name, re.I)]
+            if any(index < len(cells) and revision.search(cells[index]) for index in value_columns):
+                return True
+        for index, name in enumerate(header):
+            if status.fullmatch(name.strip('` ')) and index < len(cells) and revision.search(cells[index]):
+                return True
+    return False
+
+
+@pytest.mark.parametrize('text', [
+    'agent_status: revision', '{"post_status":"revision"}', '`agent_status = revision`',
+    'agent_status:\n  - completed\n  - revision\n', 'agent_status:\n- completed\n- revision\n',
+    '"post_status": [\n "revision"\n]',
+    'agent_status: completed, revision',
+    'agent_status | note\n--- | ---\nrevision | x',
+    '| agent_status | post_status |\n| --- | --- |\n| completed | revision |',
+    '| field | values |\n| --- | --- |\n| agent_status | completed, revision |',
+    'field | value | note\n--- | --- | ---\nagent_status | revision | safe note',
+])
+def test_guard_bat_revision_la_trang_thai_v1(text):
+    check = globals().get('_revision_la_trang_thai_v1')
+    assert callable(check), 'thiếu bộ nhận diện trạng thái V1'
+    assert check(text)
+
+
+@pytest.mark.parametrize('text', [
+    'creator_revision: 2', 'revision tăng sau mỗi lần sửa preview', '{"agent_status":"completed","note":"revision"}',
+    '| revision | agent_status |\n| --- | --- |\n| 2 | completed |',
+    'agent_status | note\n--- | ---\ncompleted | revision',
+    'field | value | note\n--- | --- | ---\nagent_status | completed | revision 2',
+    'agent_status:\n- completed\nother:\n- revision\n',
+])
+def test_guard_khong_nham_revision_thuong(text):
+    check = globals().get('_revision_la_trang_thai_v1')
+    assert callable(check), 'thiếu bộ nhận diện trạng thái V1'
+    assert not check(text)
+
+
 def test_tai_lieu_KHONG_khai_trang_thai_ma_code_khong_sinh():
     """Đo 05/09: tài liệu khai 6 giá trị `agent_status` và 12 `post_status`; code chỉ sinh
     3 và 3, và **không lệnh nào** đặt được phần còn lại. Agent làm đúng theo tài liệu sẽ ghi
@@ -437,7 +512,7 @@ def test_tai_lieu_KHONG_khai_trang_thai_ma_code_khong_sinh():
             + list(ROOT.glob("knowledge/**/*.md")) + [ROOT / "AGENTS.md"]:
         t = f.read_text(encoding="utf-8")
         for g in da_bo:
-            if g in t:
+            if (_revision_la_trang_thai_v1(t) if g == 'revision' else g in t):
                 sai.append(f"{f.relative_to(ROOT)} còn nhắc {g!r}")
     assert not sai, ("tài liệu khai trạng thái code không sinh:\n  " + "\n  ".join(sai))
 

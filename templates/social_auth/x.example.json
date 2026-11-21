@@ -1,0 +1,1 @@
+{"schema":"social-auth-template/1","template_only":true,"platform":"x","fields":{"auth_scheme":null,"client_id":null,"client_secret_if_applicable":null,"redirect_uri":null,"access_token":null,"refresh_token_if_available":null,"user_id":null}}

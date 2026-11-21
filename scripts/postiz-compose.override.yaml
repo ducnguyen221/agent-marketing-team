@@ -1,0 +1,36 @@
+# Local Postiz configuration. Secrets are supplied by a protected env-file;
+# do not place values in this repository. Not a running installation.
+services:
+  postiz:
+    image: ghcr.io/gitroomhq/postiz-app@sha256:875e61ac5d0ac43c3dec78a78a7032dfb03d9a8c6d4936ebb18adb606cc207c5
+    ports: !override
+      - "127.0.0.1:4007:5000"
+    environment:
+      JWT_SECRET: ${POSTIZ_JWT_SECRET:?POSTIZ_JWT_SECRET is required}
+      DATABASE_URL: postgresql://postiz-user:${POSTIZ_DB_PASSWORD:?POSTIZ_DB_PASSWORD is required}@postiz-postgres:5432/postiz-db-local
+      FACEBOOK_APP_ID: ${FACEBOOK_APP_ID:-}
+      FACEBOOK_APP_SECRET: ${FACEBOOK_APP_SECRET:-}
+      LINKEDIN_CLIENT_ID: ${LINKEDIN_CLIENT_ID:-}
+      LINKEDIN_CLIENT_SECRET: ${LINKEDIN_CLIENT_SECRET:-}
+      YOUTUBE_CLIENT_ID: ${YOUTUBE_CLIENT_ID:-}
+      YOUTUBE_CLIENT_SECRET: ${YOUTUBE_CLIENT_SECRET:-}
+  postiz-postgres:
+    image: postgres@sha256:a77aa70e641402a21411b92b721c58d10f23b50ae5fdd2333efd22d166e1e5f7
+    environment:
+      POSTGRES_PASSWORD: ${POSTIZ_DB_PASSWORD:?POSTIZ_DB_PASSWORD is required}
+  postiz-redis:
+    image: redis@sha256:5b816bb37d9707a70f10ef5002ecf8ee431750d397010fc4314c93dca887962f
+  temporal-elasticsearch:
+    image: elasticsearch@sha256:9a6443f55243f6acbfeb4a112d15eb3b9aac74bf25e0e39fa19b3ddd3a6879d0
+  temporal-postgresql:
+    image: postgres@sha256:dd2bf3ce2dc83a81674cf7f217fcfd8a5009a4b325dda5b843bfee82a06cff6f
+    environment:
+      POSTGRES_PASSWORD: ${POSTIZ_TEMPORAL_PASSWORD:?POSTIZ_TEMPORAL_PASSWORD is required}
+  temporal:
+    image: temporalio/auto-setup@sha256:607d68caa111338d754771efb876c92dfcdae06d056e4530bb31cd0f37406e6a
+    environment:
+      POSTGRES_PWD: ${POSTIZ_TEMPORAL_PASSWORD:?POSTIZ_TEMPORAL_PASSWORD is required}
+  temporal-admin-tools:
+    image: temporalio/admin-tools@sha256:01537b62d995f27a0f0d33a01ac4caa6779622f454fb2eb36fed0dccd45c6244
+  temporal-ui:
+    image: temporalio/ui@sha256:cb17ea423d76a8a19a269d0bcd81fc12eee1f6365acd2a56b590dafb35696a95

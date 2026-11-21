@@ -52,6 +52,56 @@ REQ = ROOT / "requirements.txt"
 REQ_RUNNER = ROOT / "requirements-runners.txt"
 
 
+def test_namespace_scripts_kiem_duong_dan_that_va_goi_thieu(tmp_path):
+    """Package nội bộ chỉ được bỏ qua nếu đích tồn tại; gói ngoài vẫn phải khai."""
+    (tmp_path / 'scripts' / 'social').mkdir(parents=True)
+    (tmp_path / 'scripts' / 'social' / 'direct.py').write_text('', encoding='utf-8')
+    checker = globals().get('_module_scripts_noi_bo')
+    assert callable(checker), 'bộ nhận diện module nội bộ chưa có'
+    assert checker(tmp_path, 'scripts.social.direct')
+    assert checker(tmp_path, 'scripts')
+    assert not checker(tmp_path, 'scripts.social.missing')
+    assert not checker(tmp_path, 'third_party_missing')
+
+
+def test_guard_van_bat_goi_ngoai_chua_khai(tmp_path, monkeypatch):
+    scripts = tmp_path / 'scripts'
+    scripts.mkdir()
+    (scripts / 'demo.py').write_text('import definitely_undeclared_example\n', encoding='utf-8')
+    monkeypatch.setattr(sys.modules[__name__], 'ROOT', tmp_path)
+    monkeypatch.setattr(sys.modules[__name__], '_khai_requirements', lambda *args: {})
+    with pytest.raises(AssertionError, match='definitely_undeclared_example'):
+        test_moi_goi_ngoai_ma_scripts_import_deu_duoc_khai()
+
+
+def test_guard_bat_module_thieu_trong_namespace(tmp_path, monkeypatch):
+    scripts = tmp_path / 'scripts'
+    (scripts / 'social').mkdir(parents=True)
+    (scripts / 'demo.py').write_text('from scripts.social import missing\n', encoding='utf-8')
+    monkeypatch.setattr(sys.modules[__name__], 'ROOT', tmp_path)
+    monkeypatch.setattr(sys.modules[__name__], '_khai_requirements', lambda *args: {})
+    with pytest.raises(AssertionError, match=r'scripts\.social\.missing'):
+        test_moi_goi_ngoai_ma_scripts_import_deu_duoc_khai()
+
+
+def test_guard_chap_nhan_import_symbol_tu_module_noi_bo(tmp_path, monkeypatch):
+    scripts = tmp_path / 'scripts'
+    (scripts / 'social').mkdir(parents=True)
+    (scripts / 'social' / 'direct.py').write_text('def send(): pass\n', encoding='utf-8')
+    (scripts / 'demo.py').write_text('import scripts\nfrom scripts.social.direct import send\n', encoding='utf-8')
+    monkeypatch.setattr(sys.modules[__name__], 'ROOT', tmp_path)
+    monkeypatch.setattr(sys.modules[__name__], '_khai_requirements', lambda *args: {})
+    test_moi_goi_ngoai_ma_scripts_import_deu_duoc_khai()
+
+
+def _module_scripts_noi_bo(root: Path, module: str) -> bool:
+    parts = module.split('.')
+    if parts[0] != 'scripts' or any(not part.isidentifier() for part in parts):
+        return False
+    path = root.joinpath(*parts)
+    return path.is_dir() or path.with_suffix('.py').is_file()
+
+
 def _khai_requirements(req: Path = REQ) -> dict[str, str]:
     """`requirements*.txt` -> {tên gói chữ thường: dòng nguyên văn}."""
     ra = {}
@@ -106,7 +156,7 @@ def test_moi_goi_ngoai_ma_scripts_import_deu_duoc_khai():
     ngoai_le = {"voice_studio", "video_studio"}
     khai = set(_khai_requirements())
     # Tên `import` ≠ tên gói pip. Thiếu bảng này thì cổng bắt oan `PIL` và `yaml`.
-    bi_danh = {"PIL": "pillow", "yaml": "pyyaml"}
+    bi_danh = {"PIL": "pillow", "yaml": "pyyaml", "markdown_it": "markdown-it-py"}
     # Bộ chạy tin/truyện (`scripts/runners/`) chạy bằng python của VENV GIỌNG: gói của nó khai
     # ở `requirements-runners.txt` (cài vào venv đó), và numpy/soundfile/torch đến cùng
     # `voice_studio` — không khai lại ở đây.
@@ -120,6 +170,7 @@ def test_moi_goi_ngoai_ma_scripts_import_deu_duoc_khai():
     ngoai_le_runner = ngoai_le | {"numpy", "soundfile", "torch"}
 
     thieu = {}
+    sai_noi_bo = {}
     for f in sorted((ROOT / "scripts").rglob("*.py")):
         la_runner = "runners" in f.relative_to(ROOT / "scripts").parts
         k_ = khai_runner if la_runner else khai
@@ -128,18 +179,32 @@ def test_moi_goi_ngoai_ma_scripts_import_deu_duoc_khai():
         cay = ast.parse(f.read_text(encoding="utf-8"), filename=str(f))
         for nut in ast.walk(cay):
             if isinstance(nut, ast.Import):
-                ten = [a.name.split(".")[0] for a in nut.names]
+                ten = [a.name for a in nut.names]
             elif isinstance(nut, ast.ImportFrom):
-                ten = [nut.module.split(".")[0]] if nut.module and not nut.level else []
+                ten = [nut.module] if nut.module and not nut.level else []
             else:
                 continue
-            for t in ten:
+            for module in ten:
+                t = module.split('.')[0]
+                if t == 'scripts':
+                    if not _module_scripts_noi_bo(ROOT, module):
+                        sai_noi_bo.setdefault(module, set()).add(str(f.relative_to(ROOT)).replace('\\', '/'))
+                    elif isinstance(nut, ast.ImportFrom):
+                        package = ROOT.joinpath(*module.split('.'))
+                        if package.is_dir() and not (package / '__init__.py').is_file():
+                            for name in nut.names:
+                                child = module + '.' + name.name
+                                if name.name != '*' and not _module_scripts_noi_bo(ROOT, child):
+                                    sai_noi_bo.setdefault(child, set()).add(str(f.relative_to(ROOT)).replace('\\', '/'))
+                    continue
                 if (t in sys.stdlib_module_names or t in noi_bo or t in n_
                         or b_.get(t, t).lower() in k_):
                     continue
                 thieu.setdefault(b_.get(t, t), set()).add(
                     str(f.relative_to(ROOT)).replace("\\", "/"))
 
+    assert not sai_noi_bo, ("module scripts nội bộ không tồn tại: "
+                            + '; '.join(f"{k} ({', '.join(sorted(v))})" for k, v in sorted(sai_noi_bo.items())))
     assert not thieu, ("gói bên thứ ba được import mà KHÔNG khai trong requirements.txt: "
                        + "; ".join(f"{k} ({', '.join(sorted(v))})" for k, v in sorted(thieu.items())))
 

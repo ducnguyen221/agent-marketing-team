@@ -1,0 +1,20 @@
+# Luồng tải video YouTube từ gói Social V2
+
+[`run_youtube_package_workflow`](../../scripts/social/youtube_package_workflow.py) nhận gói `social-standalone-package/1` có hành động `post_video`, một MP4 và cùng ID kênh YouTube ở hai trường `target.account_id` và `target.destination_id`. Giá trị `ChannelApproval.package_digest` phải khớp gói. `ChannelApproval.options_digest` là SHA-256 của metadata chuẩn hóa do `youtube.direct.preview_video` tạo ở `request.body`, gồm tiêu đề, mô tả lấy từ gói, danh mục, quyền riêng tư và cờ tự khai dành cho trẻ em. Adapter đối chiếu lại MP4 với số byte và SHA-256 đã duyệt trước khi gọi transport. [Cách chuẩn bị gói độc lập](SOCIAL_V2_STANDALONE.md)
+
+## Gói chiến dịch
+
+Truyền `YouTubeCampaignContext` cùng gói `social-package/1` có đích `channel` và hành động `post_video`. Context chọn campaign, phạm vi bài, thư mục tạm, sổ quyết định, digest `expected_review`, múi giờ và các đường dẫn `text_file`, `media_file` đã dùng khi tạo gói. Luồng gửi trực tiếp dùng `scheduled_at = None`. `ChannelApproval.approval_ref` phải là `expected_head` từ lần kiểm quyết định theo đích. `ChannelApproval.options_digest` lấy từ `adapter_options_digest` của tuyến đối chiếu gói chiến dịch.
+
+Workflow dựng lại gói từ nguồn, kiểm G1/G2 và G3 nếu bảng Content có cột `g3`, rồi đối chiếu quyết định mới nhất cho đúng kênh, lượt, gói và các tùy chọn `title`, `category_id`, `privacy`, `made_for_kids`. Workflow kiểm lại trước khi giành lượt và sau khi đồng bộ dấu giành lượt, ngay trước khi gọi HTTPS. Nếu lần kiểm sau khi giành lượt thất bại, lần gọi đó trả `blocked_before_send` và giữ dấu giành lượt. Khi đọc lại sổ, dấu giành lượt thiếu biên nhận cho kết quả `unknown`. Quyết định vẫn có thể thay đổi sau lần đọc cuối. [Chuẩn bị và duyệt theo đích](SOCIAL_V2_APPROVAL.md)
+
+Sau khi nhận biên nhận, dùng `read_youtube_upload_receipt` với sổ ban đầu, `channel_id`, `occurrence_id`, `package_digest`, `metadata_digest`, `expected_review` và `expected_approval_ref` của lần gửi. Hàm đối chiếu tệp dấu, biên nhận, metadata và snapshot duyệt đã lưu trong sổ cục bộ. Hàm dùng bằng chứng của lần gửi ban đầu, kể cả khi nội dung hoặc quyết định hiện tại đã đổi. Không cần OAuth bearer hay truy cập mạng khi đọc biên nhận chiến dịch.
+
+## Gửi upload và lưu biên nhận
+
+1. Luồng kiểm tra danh tính bằng `channels.list?mine=true` với cùng OAuth bearer dành cho `videos.insert`. Chỉ tiếp tục khi phản hồi có đúng một kênh khớp, tổng số kết quả là một và không có token phân trang. Kết quả đó xác minh kênh duy nhất trong danh sách đọc được. Quyền upload và khả năng hiển thị của video cần bằng chứng riêng.
+2. Trước POST, luồng tạo độc quyền và đồng bộ tệp dấu lần gửi cùng thư mục sổ. Khóa dựa trên kênh, mã lượt phát hành và thao tác `videos.insert`. Chỉnh metadata, thay gói, đổi phê duyệt hoặc đổi bearer không đổi khóa. Caller hiện cung cấp cả thư mục sổ và mã lượt. Đổi một trong hai sẽ tạo không gian giành lượt khác, vì vậy quyền production cần gắn mã lượt với gói đã duyệt và dùng một sổ cố định.
+3. Adapter gửi một yêu cầu `multipart/related` với `notifySubscribers=false`. Biên nhận cục bộ chỉ ghi ID video hợp lệ sau khi phản hồi thành công có đúng kênh và quyền riêng tư mong đợi. Biên nhận gắn ID với dấu lần gửi, kênh, mã lượt và digest của gói cùng metadata. Dấu vân tay bearer dùng để đối chiếu trong bộ nhớ khi gọi adapter.
+4. Lỗi hoặc phản hồi mơ hồ sau khi giành lượt giữ nguyên tệp dấu và trả `unknown` nếu thiếu biên nhận khớp. Khi gọi lại workflow cho gói độc lập, biên nhận khớp vẫn yêu cầu xác minh bearer hiện tại qua truy vấn kênh ở bước 1. Biên nhận cho biết nhà cung cấp đã nhận upload theo phản hồi ban đầu. Xử lý video, quyền sở hữu hiện hành và khả năng hiển thị cần được xác minh riêng. Đối soát trước khi quyết định tạo lượt phát hành khác.
+
+Sổ yêu cầu thư mục cục bộ trên POSIX do tài khoản chạy sở hữu và chỉ tài khoản đó có quyền truy cập. Windows dừng trước gửi. Cổng `production_approval_generation_unavailable` đang chặn ngay từ đầu. Đường tích hợp này chưa được chạy hoặc xác minh trên tài khoản YouTube thật. [Hợp đồng sổ lần thử](SOCIAL_V2_TRANSPORT.md)

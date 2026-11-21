@@ -1,0 +1,8 @@
+{
+  "schema": "discord-bot-userinfo/1",
+  "provider": "discord",
+  "token_kind": "bot_token",
+  "application_id": null,
+  "expected_bot_id": null,
+  "bot_token": null
+}

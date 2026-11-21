@@ -1,0 +1,160 @@
+{
+  "source": "---\nschema: content/1\ncontent_id: fixture-content\ncampaign_id: fixture-campaign\n---\n## post:reel\nReel giả trên Facebook\n\n## post:youtube_short\n**Hook:** Kịch bản nội bộ\n\n**Caption:** Caption Short giả\n",
+  "entries": [
+    {
+      "platform": "facebook",
+      "args": {
+        "key": {
+          "station_id": "fixture-station",
+          "channel_id": "fixture-brand",
+          "campaign_id": "fixture-campaign",
+          "content_id": "fixture-content",
+          "post_id": "fixture-fb-reel",
+          "platform": "facebook",
+          "account_id": "fixture-facebook-account-123",
+          "destination_id": "fixture-facebook-page-123",
+          "occurrence_key": "fixture-slot"
+        },
+        "manifest": [
+          {
+            "content_id": "fixture-content",
+            "post_id": "fixture-fb-reel",
+            "relative_path": "short.mp4",
+            "kind": "video",
+            "id": "fixture-video-facebook",
+            "path": "/fixture/short.mp4"
+          }
+        ],
+        "scheduled_at": "2026-11-20T03:00:00Z",
+        "api_version": "v27.0",
+        "page_id": "123",
+        "media_type": "REEL"
+      }
+    },
+    {
+      "platform": "youtube",
+      "args": {
+        "key": {
+          "station_id": "fixture-station",
+          "channel_id": "fixture-brand",
+          "campaign_id": "fixture-campaign",
+          "content_id": "fixture-content",
+          "post_id": "fixture-yt-short",
+          "platform": "youtube",
+          "account_id": "fixture-youtube-account-demo",
+          "destination_id": "fixture-youtube-channel-demo",
+          "occurrence_key": "fixture-slot"
+        },
+        "manifest": [
+          {
+            "content_id": "fixture-content",
+            "post_id": "fixture-yt-short",
+            "relative_path": "short.mp4",
+            "kind": "video",
+            "id": "fixture-video-youtube",
+            "path": "/fixture/short.mp4"
+          }
+        ],
+        "scheduled_at": "2026-11-20T03:00:00Z",
+        "title": "Short giả",
+        "category_id": "22",
+        "privacy": "private",
+        "made_for_kids": false
+      }
+    },
+    {
+      "platform": "instagram",
+      "args": {
+        "key": {
+          "station_id": "fixture-station",
+          "channel_id": "fixture-brand",
+          "campaign_id": "fixture-campaign",
+          "content_id": "fixture-content",
+          "post_id": "fixture-fb-reel",
+          "platform": "instagram",
+          "account_id": "fixture-instagram-account-456",
+          "destination_id": "fixture-instagram-456",
+          "occurrence_key": "fixture-slot"
+        },
+        "user_id": "456",
+        "api_version": "v21.0",
+        "scheduled_at": "2026-11-20T03:00:00Z",
+        "manifest": [
+          {
+            "content_id": "fixture-content",
+            "post_id": "fixture-fb-reel",
+            "relative_path": "short.mp4",
+            "kind": "video",
+            "id": "fixture-video-ig",
+            "path": "/fixture/short.mp4"
+          }
+        ]
+      }
+    }
+  ],
+  "events": [
+    {
+      "action": "grant",
+      "entries": [
+        {
+          "index": 0,
+          "version": 1
+        },
+        {
+          "index": 1,
+          "version": 1
+        },
+        {
+          "index": 2,
+          "version": 1
+        }
+      ]
+    },
+    {
+      "action": "scan",
+      "now": "2026-11-20T03:00:00Z"
+    },
+    {
+      "action": "claim",
+      "index": 0,
+      "version": 1,
+      "now": "2026-11-20T03:00:00Z"
+    },
+    {
+      "action": "claim",
+      "index": 1,
+      "version": 1,
+      "now": "2026-11-20T03:00:00Z"
+    },
+    {
+      "action": "claim",
+      "index": 2,
+      "version": 1,
+      "now": "2026-11-20T03:00:00Z"
+    }
+  ],
+  "publication": {
+    "schema": "publish/2",
+    "post_id": "fixture-content",
+    "campaign_id": "fixture-campaign",
+    "channel_id": "fixture-brand",
+    "posts": [
+      {
+        "post_id": "fixture-fb-reel",
+        "content_id": "fixture-content",
+        "channel": "facebook",
+        "post_format": "reel",
+        "post_content": "post:reel",
+        "asset_ref": ""
+      },
+      {
+        "post_id": "fixture-yt-short",
+        "content_id": "fixture-content",
+        "channel": "youtube",
+        "post_format": "youtube_short",
+        "post_content": "post:youtube_short",
+        "asset_ref": ""
+      }
+    ]
+  }
+}

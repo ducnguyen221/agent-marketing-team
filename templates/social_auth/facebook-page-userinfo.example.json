@@ -1,0 +1,9 @@
+{
+  "schema": "facebook-page-userinfo/1",
+  "provider": "facebook",
+  "token_kind": "page_access_token",
+  "app_id": null,
+  "expected_page_id": null,
+  "api_version": null,
+  "access_token": null
+}

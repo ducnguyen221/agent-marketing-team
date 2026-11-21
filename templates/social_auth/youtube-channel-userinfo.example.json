@@ -1,0 +1,8 @@
+{
+  "schema": "youtube-channel-userinfo/1",
+  "provider": "youtube",
+  "token_kind": "oauth_access_token",
+  "client_id": null,
+  "expected_channel_id": null,
+  "access_token": null
+}
